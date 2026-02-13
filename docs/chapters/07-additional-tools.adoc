@@ -1,0 +1,130 @@
+== Additional Load Testing Tools
+
+Beyond VMFleet, this framework supports additional tools for comprehensive cluster validation. Each tool targets a specific performance dimension.
+
+=== fio (Flexible I/O Tester)
+
+==== Purpose
+
+Fine-grained storage I/O benchmarking with extensive control over workload parameters. Runs inside Linux VMs on the cluster.
+
+==== Status
+
+🔲 *Placeholder* — Structure and Ansible roles scaffolded; implementation pending.
+
+==== When to Use
+
+* Need precise control over I/O patterns beyond VMFleet's profiles
+* Testing Linux VM storage performance specifically
+* Validating I/O scheduler behavior, queue depths, or specific block sizes
+* Client/server mode for distributed I/O testing
+
+==== Key Capabilities
+
+* Job file-based workload definition
+* Multiple I/O engines (libaio, io_uring, Windows IOCP)
+* JSON output for automated parsing
+* Verification mode for data integrity testing
+
+==== Location
+
+* Scripts: `src/solutions/fio/scripts/`
+* Ansible playbooks: `src/solutions/fio/playbooks/`
+* Job files: `src/solutions/fio/job-files/`
+* Profiles: `config/profiles/fio/`
+
+---
+
+=== iPerf3
+
+==== Purpose
+
+Network bandwidth, jitter, and packet loss measurement between cluster nodes and VMs.
+
+==== Status
+
+🔲 *Placeholder* — Structure and Ansible roles scaffolded; implementation pending.
+
+==== When to Use
+
+* Validating RDMA/SMB Direct network paths between cluster nodes
+* Measuring east-west bandwidth between VMs
+* Testing Switch Embedded Teaming (SET) throughput
+* Baseline network performance before deploying workloads
+
+==== Key Capabilities
+
+* TCP, UDP, and SCTP protocol support
+* Multi-stream parallel connections
+* JSON output for automated parsing
+* Server daemon mode for persistent testing endpoints
+
+==== Location
+
+* Scripts: `src/solutions/iperf/scripts/`
+* Ansible playbooks: `src/solutions/iperf/playbooks/`
+* Profiles: `config/profiles/iperf/`
+
+---
+
+=== HammerDB
+
+==== Purpose
+
+Database workload benchmarking for SQL Server running on Azure Local VMs.
+
+==== Status
+
+🔲 *Placeholder* — Structure and Ansible roles scaffolded; implementation pending.
+
+==== When to Use
+
+* Validating SQL Server performance on the cluster
+* OLTP (TPROC-C) workload benchmarking
+* OLAP/analytics (TPROC-H) workload benchmarking
+* Combined storage + compute performance validation
+
+==== Key Capabilities
+
+* Supports SQL Server, PostgreSQL, MySQL, Oracle, and more
+* TPC-C and TPC-H benchmark profiles
+* GUI, CLI, and web interfaces
+* Docker images for reproducible CI/CD runs
+
+==== Location
+
+* Scripts: `src/solutions/hammerdb/scripts/`
+* Ansible playbooks: `src/solutions/hammerdb/playbooks/`
+* Profiles: `config/profiles/hammerdb/`
+
+---
+
+=== stress-ng
+
+==== Purpose
+
+CPU, memory, cache, and system stress testing for capacity planning and burn-in validation.
+
+==== Status
+
+🔲 *Placeholder* — Structure and Ansible roles scaffolded; implementation pending.
+
+==== When to Use
+
+* CPU stress testing for thermal and power validation
+* Memory stress testing for stability under pressure
+* Burn-in testing of new cluster nodes
+* Capacity planning — determine maximum safe utilization levels
+
+==== Key Capabilities
+
+* 370+ stress tests across CPU, memory, filesystem, network categories
+* YAML job files for reproducible configurations
+* Metrics: bogo ops/s, thermal zones, power measurement
+* Stressor class system for targeted testing
+
+==== Location
+
+* Scripts: `src/solutions/stress-ng/scripts/`
+* Ansible playbooks: `src/solutions/stress-ng/playbooks/`
+* Profiles: `config/profiles/stress-ng/`

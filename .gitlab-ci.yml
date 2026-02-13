@@ -1,0 +1,100 @@
+# =============================================================================
+# GitLab CI - Azure Local Load Tools
+# =============================================================================
+# Placeholder GitLab CI configuration.
+# =============================================================================
+
+stages:
+  - validate
+  - test
+  - docs
+
+# ---- Validate Stage ----
+lint-powershell:
+  stage: validate
+  image: mcr.microsoft.com/powershell:7.4-ubuntu-22.04
+  script:
+    - pwsh -Command "Install-Module PSScriptAnalyzer -Force -Scope CurrentUser"
+    - pwsh -File tests/PSScriptAnalyzer.ps1 -ProjectRoot $CI_PROJECT_DIR
+  rules:
+    - changes:
+        - "src/**/*.ps1"
+        - "src/**/*.psm1"
+        - "tests/**/*.ps1"
+
+validate-config:
+  stage: validate
+  image: python:3.12-slim
+  script:
+    - pip install pyyaml
+    - |
+      python3 -c "
+      import yaml, json
+      with open('config/variables/master-environment.yml') as f:
+          data = yaml.safe_load(f)
+      print(f'Master config: {len(data[\"variables\"])} variables')
+      for sf in ['vmfleet', 'fio', 'iperf', 'hammerdb', 'stress-ng']:
+          with open(f'config/variables/solutions/{sf}.json') as f:
+              j = json.load(f)
+              print(f'{sf}: {len(j) - 1} settings')
+      "
+  rules:
+    - changes:
+        - "config/**"
+
+# ---- Test Stage ----
+pester-tests:
+  stage: test
+  image: mcr.microsoft.com/powershell:7.4-ubuntu-22.04
+  script:
+    - pwsh -Command "Install-Module Pester -Force -Scope CurrentUser -MinimumVersion 5.0"
+    - pwsh -Command "Install-Module powershell-yaml -Force -Scope CurrentUser"
+    - |
+      pwsh -Command "
+        \$config = New-PesterConfiguration
+        \$config.Run.Path = 'tests'
+        \$config.Run.Exit = \$true
+        \$config.TestResult.Enabled = \$true
+        \$config.TestResult.OutputPath = 'test-results.xml'
+        \$config.TestResult.OutputFormat = 'NUnitXml'
+        Invoke-Pester -Configuration \$config
+      "
+  artifacts:
+    reports:
+      junit: test-results.xml
+  rules:
+    - changes:
+        - "src/**"
+        - "tests/**"
+
+# ---- Docs Stage ----
+build-docs:
+  stage: docs
+  image: asciidoctor/docker-asciidoctor
+  script:
+    - asciidoctor-pdf
+        -a pdf-theme=docs/themes/azurelocal-theme.yml
+        -o docs/output/azurelocal-loadtools.pdf
+        docs/main.adoc
+    - asciidoctor
+        -o docs/output/index.html
+        docs/main.adoc
+  artifacts:
+    paths:
+      - docs/output/
+    expire_in: 30 days
+  rules:
+    - changes:
+        - "docs/**"
+
+# =============================================================================
+# VMFleet execution job (manual trigger, self-hosted runner required)
+# =============================================================================
+# vmfleet-test:
+#   stage: test
+#   tags:
+#     - azurelocal
+#     - self-hosted
+#   when: manual
+#   script:
+#     - pwsh -File src/solutions/vmfleet/Invoke-VMFleetPipeline.ps1 ...

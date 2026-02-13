@@ -1,0 +1,13 @@
+---
+- name: Deploy HammerDB to Linux VMs
+  hosts: hammerdb_hosts
+  become: yes
+
+  roles:
+    - common
+    - hammerdb
+
+  post_tasks:
+    - name: Report HammerDB status
+      debug:
+        msg: "HammerDB installed on {{ inventory_hostname }}"

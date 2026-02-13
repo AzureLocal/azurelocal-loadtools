@@ -1,0 +1,129 @@
+== Installation
+
+This chapter walks through the installation and initial setup of the {project-name}.
+
+=== Clone the Repository
+
+[source,powershell]
+----
+git clone https://github.com/AzureLocal/azurelocal-loadtools.git
+cd azurelocal-loadtools
+----
+
+=== Install PowerShell Dependencies
+
+[source,powershell]
+----
+# Install required PowerShell modules
+Install-Module -Name powershell-yaml -Scope CurrentUser -Force
+Install-Module -Name ImportExcel -Scope CurrentUser -Force
+Install-Module -Name Az.KeyVault -Scope CurrentUser -Force
+Install-Module -Name Az.Monitor -Scope CurrentUser -Force
+Install-Module -Name VMFleet -Scope CurrentUser -Force
+Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
+----
+
+=== Install Report Generation Tools
+
+==== Asciidoctor (PDF Reports)
+
+[source,powershell]
+----
+# Install Ruby (via winget or chocolatey)
+winget install RubyInstallerTeam.Ruby.3.2
+
+# Install Asciidoctor and PDF generator
+gem install asciidoctor asciidoctor-pdf rouge
+----
+
+==== Pandoc (Word Reports)
+
+[source,powershell]
+----
+# Install Pandoc
+winget install JohnMacFarlane.Pandoc
+----
+
+=== Install Ansible (Optional — Linux Tools)
+
+Ansible is required only for Linux-based tools (fio, iPerf3, HammerDB, stress-ng).
+
+==== Option A: WSL2 on Windows
+
+[source,powershell]
+----
+# Enable WSL2 and install Ubuntu
+wsl --install -d Ubuntu
+
+# Inside WSL2:
+sudo apt update && sudo apt install -y python3-pip
+pip3 install ansible
+----
+
+==== Option B: Linux Jump Box
+
+[source,bash]
+----
+# On a dedicated Linux management VM
+sudo apt update && sudo apt install -y python3-pip
+pip3 install ansible
+----
+
+==== Option C: CI Runner Only
+
+Ansible is installed as part of the CI/CD pipeline. See the <<CI/CD Pipelines>> chapter.
+
+=== Configure Cluster Connection
+
+Copy the example cluster configuration and customize:
+
+[source,powershell]
+----
+Copy-Item config/clusters/example-cluster.yml config/clusters/my-cluster.yml
+----
+
+Edit `config/clusters/my-cluster.yml` with your cluster details:
+
+[source,yaml]
+----
+cluster:
+  name: "my-hci-cluster"
+  domain: "contoso.local"
+  nodes:
+    - name: "hci-node-01"
+      management_ip: "10.0.0.1"
+    - name: "hci-node-02"
+      management_ip: "10.0.0.2"
+  csv_path: "C:\\ClusterStorage\\Volume1"
+  collect_volume_path: "C:\\ClusterStorage\\Collect"
+  base_vhd_path: "C:\\ClusterStorage\\Collect\\BaseImage.vhdx"
+----
+
+=== Initialize the Environment
+
+[source,powershell]
+----
+# Run the environment initialization script
+.\src\core\powershell\helpers\Initialize-Environment.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -CredentialSource Interactive
+----
+
+This will:
+
+. Load and validate the cluster configuration
+. Test connectivity to all cluster nodes
+. Verify Storage Spaces Direct health
+. Check for required volumes and base VHD
+. Generate solution-specific configuration files from the master environment
+. Create initial run state
+
+=== Verify Installation
+
+[source,powershell]
+----
+# Run the validation suite
+Invoke-Pester tests/unit/ -Output Detailed
+----
+
+All tests should pass, confirming modules load correctly and configuration is valid.

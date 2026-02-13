@@ -1,0 +1,61 @@
+---
+# HammerDB role - installs HammerDB for database benchmarking
+
+- name: Set HammerDB version
+  set_fact:
+    hammerdb_ver: "{{ hammerdb_version | default('5.0') }}"
+
+- name: Download HammerDB
+  get_url:
+    url: "https://github.com/TPC-Council/HammerDB/releases/download/v{{ hammerdb_ver }}/HammerDB-{{ hammerdb_ver }}-Linux.tar.gz"
+    dest: "/tmp/HammerDB-{{ hammerdb_ver }}-Linux.tar.gz"
+    mode: '0644'
+
+- name: Create HammerDB directory
+  file:
+    path: /opt/hammerdb
+    state: directory
+    mode: '0755'
+
+- name: Extract HammerDB
+  unarchive:
+    src: "/tmp/HammerDB-{{ hammerdb_ver }}-Linux.tar.gz"
+    dest: /opt/hammerdb
+    remote_src: yes
+    creates: "/opt/hammerdb/HammerDB-{{ hammerdb_ver }}"
+
+- name: Create hammerdb symlink
+  file:
+    src: "/opt/hammerdb/HammerDB-{{ hammerdb_ver }}"
+    dest: /opt/hammerdb/current
+    state: link
+
+- name: Verify HammerDB installation
+  command: /opt/hammerdb/current/hammerdbcli help
+  register: hammerdb_check
+  changed_when: false
+  ignore_errors: yes
+
+- name: Display HammerDB status
+  debug:
+    msg: "HammerDB installed at /opt/hammerdb/current (v{{ hammerdb_ver }})"
+  when: hammerdb_check.rc == 0
+
+- name: Install MSSQL ODBC driver (Debian/Ubuntu)
+  block:
+    - name: Add Microsoft GPG key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add MSSQL ODBC repo
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/{{ ansible_distribution_version }}/prod {{ ansible_distribution_release }} main"
+        state: present
+        filename: mssql-release
+
+    - name: Install msodbcsql driver
+      shell: ACCEPT_EULA=Y apt-get install -y msodbcsql18
+      args:
+        creates: /opt/microsoft/msodbcsql18
+  when: db_type | default('mssql') == 'mssql' and ansible_os_family == 'Debian'

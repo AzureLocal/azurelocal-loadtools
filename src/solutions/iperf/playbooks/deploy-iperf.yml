@@ -1,0 +1,18 @@
+---
+- name: Deploy iPerf3 to Linux VMs
+  hosts: linux_vms
+  become: yes
+
+  roles:
+    - common
+    - iperf
+
+  post_tasks:
+    - name: Verify iPerf3 is operational
+      command: iperf3 --version
+      register: iperf_check
+      changed_when: false
+
+    - name: Report iPerf3 status
+      debug:
+        msg: "iPerf3 ready on {{ inventory_hostname }}: {{ iperf_check.stdout_lines[0] }}"

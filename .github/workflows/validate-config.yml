@@ -1,0 +1,82 @@
+# =============================================================================
+# validate-config.yml - Validate configuration files
+# =============================================================================
+# Validates YAML configs against JSON Schema and checks for syntax errors.
+# =============================================================================
+
+name: Validate Configuration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'config/**'
+      - '.github/workflows/validate-config.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'config/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-config:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (for ajv-cli)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install validation tools
+        run: |
+          npm install -g ajv-cli yaml-lint
+
+      - name: Lint YAML files
+        run: |
+          find config -name '*.yml' -o -name '*.yaml' | while read f; do
+            echo "Validating YAML syntax: $f"
+            yamllint "$f" || echo "WARN: $f has lint issues"
+          done
+
+      - name: Validate JSON files
+        run: |
+          find config -name '*.json' | while read f; do
+            echo "Validating JSON syntax: $f"
+            python3 -m json.tool "$f" > /dev/null
+          done
+
+      - name: Validate master config against schema
+        run: |
+          # Convert YAML to JSON for schema validation
+          pip install pyyaml
+          python3 -c "
+          import yaml, json, sys
+          with open('config/variables/master-environment.yml') as f:
+              data = yaml.safe_load(f)
+          json.dump(data, sys.stdout)
+          " > /tmp/master-config.json
+
+          ajv validate \
+            -s config/variables/schema.json \
+            -d /tmp/master-config.json \
+            || echo "Schema validation completed with issues"
+
+      - name: Validate solution configs
+        run: |
+          for f in config/variables/solutions/*.json; do
+            echo "Checking solution config: $f"
+            python3 -c "
+          import json
+          with open('$f') as fh:
+              data = json.load(fh)
+              assert '_metadata' in data, 'Missing _metadata section'
+              print(f\"  Solution: {data['_metadata']['solution']} - OK\")
+          "
+          done

@@ -1,0 +1,28 @@
+---
+# =============================================================================
+# deploy-fio.yml - Ansible playbook for fio deployment
+# =============================================================================
+# Deploys fio to Linux VMs on Azure Local cluster.
+# Run from: WSL2, Linux jump box, or CI runner
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml deploy-fio.yml
+# =============================================================================
+
+- name: Deploy fio to Linux VMs
+  hosts: linux_vms
+  become: yes
+
+  roles:
+    - common
+    - fio
+
+  post_tasks:
+    - name: Verify fio is operational
+      command: fio --version
+      register: fio_check
+      changed_when: false
+
+    - name: Report fio status
+      debug:
+        msg: "fio ready on {{ inventory_hostname }}: {{ fio_check.stdout }}"

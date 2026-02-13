@@ -1,0 +1,56 @@
+---
+# fio role - installs and configures fio for storage benchmarking
+
+- name: Install fio (Debian/Ubuntu)
+  apt:
+    name: fio
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install fio (RHEL)
+  yum:
+    name: fio
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Verify fio installation
+  command: fio --version
+  register: fio_version
+  changed_when: false
+
+- name: Display fio version
+  debug:
+    msg: "fio version: {{ fio_version.stdout }}"
+
+- name: Create fio job files directory
+  file:
+    path: "{{ results_dir }}/fio-jobs"
+    state: directory
+    mode: '0755'
+
+- name: Deploy fio job templates
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ results_dir }}/fio-jobs/{{ item }}"
+    mode: '0644'
+  loop:
+    - sequential-read.fio
+    - sequential-write.fio
+    - random-read.fio
+    - random-write.fio
+    - mixed-rw.fio
+  when: false  # Enable when templates are created
+
+- name: Prepare test data disk
+  filesystem:
+    fstype: ext4
+    dev: "{{ data_disk_path }}"
+  when: data_disk_path is defined and format_disk | default(false)
+
+- name: Mount test data disk
+  mount:
+    path: "{{ mount_point }}"
+    src: "{{ data_disk_path }}"
+    fstype: ext4
+    state: mounted
+  when: data_disk_path is defined and mount_point is defined

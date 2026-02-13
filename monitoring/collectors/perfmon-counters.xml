@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PerfMon Counter Configuration - Azure Local Load Tools
+  Used by monitoring scripts to define which counters to collect.
+-->
+<PerformanceCounters>
+  <Category name="Storage">
+    <Counter path="\Cluster CSVFS\Reads/sec" />
+    <Counter path="\Cluster CSVFS\Writes/sec" />
+    <Counter path="\Cluster CSVFS\Read Bytes/sec" />
+    <Counter path="\Cluster CSVFS\Write Bytes/sec" />
+    <Counter path="\Cluster CSVFS\Avg. sec/Read" />
+    <Counter path="\Cluster CSVFS\Avg. sec/Write" />
+    <Counter path="\PhysicalDisk(*)\Disk Reads/sec" />
+    <Counter path="\PhysicalDisk(*)\Disk Writes/sec" />
+    <Counter path="\PhysicalDisk(*)\Avg. Disk sec/Read" />
+    <Counter path="\PhysicalDisk(*)\Avg. Disk sec/Write" />
+    <Counter path="\PhysicalDisk(*)\Current Disk Queue Length" />
+    <Counter path="\PhysicalDisk(*)\Disk Bytes/sec" />
+    <Counter path="\Storage Spaces Virtual Disk(*)\Read Bytes/sec" />
+    <Counter path="\Storage Spaces Virtual Disk(*)\Write Bytes/sec" />
+  </Category>
+
+  <Category name="Network">
+    <Counter path="\RDMA Activity(*)\RDMA Inbound Bytes/sec" />
+    <Counter path="\RDMA Activity(*)\RDMA Outbound Bytes/sec" />
+    <Counter path="\RDMA Activity(*)\RDMA Completion Queue Errors" />
+    <Counter path="\SMB Direct Connection(*)\Bytes Sent/sec" />
+    <Counter path="\SMB Direct Connection(*)\Bytes Received/sec" />
+    <Counter path="\SMB Direct Connection(*)\Send Completion Queue Length" />
+    <Counter path="\Network Interface(*)\Bytes Total/sec" />
+    <Counter path="\Network Interface(*)\Bytes Sent/sec" />
+    <Counter path="\Network Interface(*)\Bytes Received/sec" />
+    <Counter path="\Network Interface(*)\Packets/sec" />
+    <Counter path="\Network Interface(*)\Output Queue Length" />
+    <Counter path="\TCPv4\Connections Established" />
+    <Counter path="\TCPv4\Segments Retransmitted/sec" />
+  </Category>
+
+  <Category name="Compute">
+    <Counter path="\Processor(_Total)\% Processor Time" />
+    <Counter path="\Processor(*)\% Processor Time" />
+    <Counter path="\Memory\Available MBytes" />
+    <Counter path="\Memory\% Committed Bytes In Use" />
+    <Counter path="\Memory\Pages/sec" />
+    <Counter path="\Hyper-V Hypervisor Logical Processor(_Total)\% Total Run Time" />
+    <Counter path="\Hyper-V Hypervisor Virtual Processor(*)\% Total Run Time" />
+    <Counter path="\Hyper-V Dynamic Memory Balancer(*)\Available Memory" />
+    <Counter path="\Hyper-V Virtual Machine Health Summary\Health OK" />
+  </Category>
+</PerformanceCounters>

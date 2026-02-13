@@ -1,0 +1,127 @@
+= Azure Local Load Tools
+:toc: macro
+:toclevels: 2
+:icons: font
+:url-docs: docs/main.adoc
+
+image:https://img.shields.io/badge/PowerShell-7.2%2B-blue[PowerShell 7.2+]
+image:https://img.shields.io/badge/License-MIT-green[MIT License]
+image:https://img.shields.io/badge/VMFleet-2.1.0.0-orange[VMFleet 2.1.0.0]
+
+Comprehensive load testing framework for **Azure Local** (formerly Azure Stack HCI) clusters. Validates storage, network, and compute performance before production workloads are migrated or deployed.
+
+toc::[]
+
+== Overview
+
+Azure Local Load Tools provides an automated, config-driven pipeline for running load tests against Azure Local clusters using multiple industry-standard tools:
+
+[cols="1,1,1,2"]
+|===
+| Tool | Type | Status | Description
+
+| **VMFleet** | Storage I/O | ✅ Implemented | Fleet VMs running DiskSpd on S2D clusters
+| **fio** | Storage I/O | 🔲 Planned | Flexible I/O tester for Linux VMs
+| **iPerf3** | Network | 🔲 Planned | Network throughput and latency testing
+| **HammerDB** | Database | 🔲 Planned | TPC-C/TPC-H benchmarks against SQL Server
+| **stress-ng** | Compute | 🔲 Planned | CPU, memory, and I/O stress testing
+|===
+
+== Key Features
+
+* **Config-driven**: Master YAML config with tagged variables → per-solution JSON configs
+* **Parameterized**: Three-level override chain (explicit param > solution config > master default)
+* **Credential management**: Azure Key Vault, interactive, or parameter-based — never hardcoded
+* **State tracking**: Checkpoint-based resume with JSON state files and mutex locking
+* **Structured logging**: JSON-lines per component with correlation IDs
+* **Monitoring**: Local PerfMon collection + optional Azure Monitor push
+* **Multi-format reports**: PDF (asciidoctor-pdf), DOCX (Pandoc), XLSX (ImportExcel)
+* **CI/CD ready**: GitHub Actions primary, Azure DevOps + GitLab CI placeholders
+
+== Quick Start
+
+[source,powershell]
+----
+# 1. Clone the repository
+git clone https://github.com/AzureLocal/azurelocal-loadtools.git
+cd azurelocal-loadtools
+
+# 2. Install PowerShell prerequisites
+Install-Module powershell-yaml -Force
+Install-Module ImportExcel -Force
+Install-Module VMFleet -Force
+
+# 3. Copy and edit cluster configuration
+cp config/clusters/example-cluster.yml config/clusters/my-cluster.yml
+# Edit my-cluster.yml with your cluster details
+
+# 4. Initialize environment
+.\src\core\powershell\helpers\Initialize-Environment.ps1 `
+    -ClusterConfigPath config\clusters\my-cluster.yml `
+    -Solution VMFleet
+
+# 5. Run the full VMFleet pipeline
+.\src\solutions\vmfleet\Invoke-VMFleetPipeline.ps1 `
+    -ClusterConfigPath config\clusters\my-cluster.yml `
+    -ProfilePath config\profiles\vmfleet\general.yml `
+    -ReportFormats @('PDF', 'XLSX')
+----
+
+== Project Structure
+
+[source]
+----
+azurelocal-loadtools/
+├── config/                     # All configuration
+│   ├── variables/              # Master config + schema + solution JSONs
+│   ├── clusters/               # Cluster-specific configs
+│   ├── profiles/               # Workload profiles per solution
+│   └── credentials/            # Key Vault configuration
+├── docs/                       # AsciiDoc documentation (book format)
+│   ├── chapters/               # 11 chapters
+│   ├── appendices/             # Variable reference, cmdlet ref, glossary
+│   ├── diagrams/               # draw.io source files
+│   └── themes/                 # Custom PDF theme
+├── src/
+│   ├── core/
+│   │   ├── powershell/
+│   │   │   ├── modules/        # 6 core modules
+│   │   │   └── helpers/        # Bootstrap & common functions
+│   │   └── ansible/            # Roles for Linux tool deployment
+│   ├── solutions/
+│   │   ├── vmfleet/            # Full implementation
+│   │   │   ├── scripts/        # 7 pipeline scripts
+│   │   │   └── monitoring/     # 5 metric collection scripts
+│   │   ├── fio/                # Placeholder
+│   │   ├── iperf/              # Placeholder
+│   │   ├── hammerdb/           # Placeholder
+│   │   └── stress-ng/          # Placeholder
+│   └── infrastructure/         # Bicep templates (Key Vault, monitoring)
+├── monitoring/                 # Alert rules, counter configs, dashboards
+├── reports/                    # Generated reports & templates
+├── logs/                       # Structured JSON-lines logs
+├── state/                      # Run state files
+├── tests/                      # Pester tests & PSScriptAnalyzer
+└── .github/workflows/          # 5 GitHub Actions workflows
+----
+
+== Documentation
+
+Full documentation is available in AsciiDoc format at link:{url-docs}[docs/main.adoc]. Build PDF with:
+
+[source,bash]
+----
+asciidoctor-pdf -a pdf-theme=docs/themes/azurelocal-theme.yml docs/main.adoc
+----
+
+== Prerequisites
+
+* PowerShell 7.2+
+* `powershell-yaml` module
+* `VMFleet` module (for VMFleet solution)
+* Azure Local cluster with WinRM access
+* Optional: `ImportExcel`, `Az.KeyVault`, `Az.Monitor`, `asciidoctor-pdf`, `pandoc`
+
+== License
+
+This project is licensed under the MIT License — see link:LICENSE[LICENSE] for details.

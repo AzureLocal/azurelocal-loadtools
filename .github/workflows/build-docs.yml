@@ -1,0 +1,70 @@
+# =============================================================================
+# build-docs.yml - Build AsciiDoc documentation
+# =============================================================================
+# Builds PDF documentation using asciidoctor-pdf and exports draw.io diagrams.
+# =============================================================================
+
+name: Build Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/build-docs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby for Asciidoctor
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: false
+
+      - name: Install Asciidoctor toolchain
+        run: |
+          gem install asciidoctor asciidoctor-pdf rouge
+
+      - name: Export draw.io diagrams
+        uses: rlespinasse/drawio-export-action@v2
+        with:
+          path: docs/diagrams
+          format: png
+          output: docs/images
+
+      - name: Build PDF documentation
+        run: |
+          asciidoctor-pdf \
+            -a pdf-theme=docs/themes/azurelocal-theme.yml \
+            -a pdf-fontsdir=docs/themes/fonts \
+            -a imagesdir=docs/images \
+            -o docs/output/azurelocal-loadtools.pdf \
+            docs/main.adoc
+
+      - name: Build HTML documentation
+        run: |
+          asciidoctor \
+            -a imagesdir=images \
+            -o docs/output/index.html \
+            docs/main.adoc
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/output/
+          retention-days: 30

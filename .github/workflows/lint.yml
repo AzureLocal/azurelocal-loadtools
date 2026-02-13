@@ -1,0 +1,44 @@
+# =============================================================================
+# lint.yml - PSScriptAnalyzer linting
+# =============================================================================
+# Lints all PowerShell scripts with PSScriptAnalyzer.
+# =============================================================================
+
+name: Lint PowerShell
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**/*.ps1'
+      - 'src/**/*.psm1'
+      - 'tests/**/*.ps1'
+      - '.github/workflows/lint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**/*.ps1'
+      - 'src/**/*.psm1'
+      - 'tests/**/*.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\tests\PSScriptAnalyzer.ps1" -ProjectRoot "${{ github.workspace }}"

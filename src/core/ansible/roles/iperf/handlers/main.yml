@@ -1,0 +1,8 @@
+---
+# iPerf3 handlers
+
+- name: restart iperf3
+  systemd:
+    name: iperf3-server
+    state: restarted
+    daemon_reload: yes

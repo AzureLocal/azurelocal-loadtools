@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Event Log Queries - Azure Local Load Tools
+  XPath queries for collecting relevant Windows Event Log entries
+  during load test execution.
+-->
+<EventLogQueries>
+  <!-- Cluster critical/error events -->
+  <Query name="ClusterErrors" log="Microsoft-Windows-FailoverClustering/Operational">
+    <![CDATA[
+    *[System[(Level=1 or Level=2) and TimeCreated[timediff(@SystemTime) <= 3600000]]]
+    ]]>
+  </Query>
+
+  <!-- Storage Spaces Direct events -->
+  <Query name="S2DEvents" log="Microsoft-Windows-StorageSpaces-Driver/Operational">
+    <![CDATA[
+    *[System[(Level=1 or Level=2 or Level=3) and TimeCreated[timediff(@SystemTime) <= 3600000]]]
+    ]]>
+  </Query>
+
+  <!-- Hyper-V worker process events -->
+  <Query name="HyperVWorker" log="Microsoft-Windows-Hyper-V-Worker-Admin">
+    <![CDATA[
+    *[System[(Level=1 or Level=2) and TimeCreated[timediff(@SystemTime) <= 3600000]]]
+    ]]>
+  </Query>
+
+  <!-- SMB Client connectivity issues -->
+  <Query name="SMBClient" log="Microsoft-Windows-SMBClient/Operational">
+    <![CDATA[
+    *[System[(Level=1 or Level=2 or Level=3) and TimeCreated[timediff(@SystemTime) <= 3600000]]]
+    ]]>
+  </Query>
+
+  <!-- CSVFS volume events -->
+  <Query name="CSVFS" log="Microsoft-Windows-FailoverClustering-CsvFs/Operational">
+    <![CDATA[
+    *[System[(Level=1 or Level=2 or Level=3) and TimeCreated[timediff(@SystemTime) <= 3600000]]]
+    ]]>
+  </Query>
+
+  <!-- System critical events -->
+  <Query name="SystemCritical" log="System">
+    <![CDATA[
+    *[System[(Level=1 or Level=2) and TimeCreated[timediff(@SystemTime) <= 3600000]]]
+    ]]>
+  </Query>
+</EventLogQueries>

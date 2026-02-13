@@ -1,0 +1,104 @@
+# =============================================================================
+# Alert Rules - Azure Local Load Tools
+# =============================================================================
+# Defines threshold-based alert rules for monitoring during load tests.
+# Used by MonitoringManager and Push-MetricsToAzureMonitor.ps1
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  description: "Alert rules for Azure Local load testing"
+
+alert_rules:
+  # ---- Storage Alerts ----
+  - name: high_disk_latency
+    category: storage
+    counter: '\PhysicalDisk(*)\Avg. Disk sec/Read'
+    condition: greater_than
+    threshold: 0.020      # 20ms
+    severity: warning
+    message: "Disk read latency exceeds 20ms on {node} ({instance})"
+    cooldown_seconds: 300
+
+  - name: critical_disk_latency
+    category: storage
+    counter: '\PhysicalDisk(*)\Avg. Disk sec/Read'
+    condition: greater_than
+    threshold: 0.050      # 50ms
+    severity: critical
+    message: "CRITICAL: Disk read latency exceeds 50ms on {node} ({instance})"
+    cooldown_seconds: 120
+
+  - name: high_disk_queue
+    category: storage
+    counter: '\PhysicalDisk(*)\Current Disk Queue Length'
+    condition: greater_than
+    threshold: 32
+    severity: warning
+    message: "Disk queue length exceeds 32 on {node} ({instance})"
+    cooldown_seconds: 300
+
+  - name: csv_write_latency
+    category: storage
+    counter: '\Cluster CSVFS\Avg. sec/Write'
+    condition: greater_than
+    threshold: 0.025      # 25ms
+    severity: warning
+    message: "CSVFS write latency exceeds 25ms on {node}"
+    cooldown_seconds: 300
+
+  # ---- Compute Alerts ----
+  - name: high_cpu
+    category: compute
+    counter: '\Processor(_Total)\% Processor Time'
+    condition: greater_than
+    threshold: 95
+    severity: warning
+    message: "CPU usage exceeds 95% on {node}"
+    cooldown_seconds: 300
+
+  - name: low_memory
+    category: compute
+    counter: '\Memory\Available MBytes'
+    condition: less_than
+    threshold: 1024       # 1 GB
+    severity: critical
+    message: "Available memory below 1GB on {node}"
+    cooldown_seconds: 120
+
+  - name: memory_pressure
+    category: compute
+    counter: '\Memory\Pages/sec'
+    condition: greater_than
+    threshold: 5000
+    severity: warning
+    message: "High paging rate on {node}: {value} pages/sec"
+    cooldown_seconds: 300
+
+  # ---- Network Alerts ----
+  - name: rdma_errors
+    category: network
+    counter: '\RDMA Activity(*)\RDMA Completion Queue Errors'
+    condition: greater_than
+    threshold: 0
+    severity: warning
+    message: "RDMA completion queue errors detected on {node} ({instance})"
+    cooldown_seconds: 600
+
+  - name: tcp_retransmits
+    category: network
+    counter: '\TCPv4\Segments Retransmitted/sec'
+    condition: greater_than
+    threshold: 100
+    severity: warning
+    message: "High TCP retransmit rate on {node}: {value}/sec"
+    cooldown_seconds: 300
+
+  - name: high_network_queue
+    category: network
+    counter: '\Network Interface(*)\Output Queue Length'
+    condition: greater_than
+    threshold: 2
+    severity: warning
+    message: "Network output queue length elevated on {node} ({instance})"
+    cooldown_seconds: 300

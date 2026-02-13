@@ -1,0 +1,23 @@
+# =============================================================================
+# VMFleet Workload Profile: General
+# =============================================================================
+# Balanced read/write workload for general-purpose storage validation.
+# Simulates a mixed workload typical of general server applications.
+# =============================================================================
+
+profile:
+  name: "General"
+  description: "Balanced read/write workload for general storage validation"
+  category: "mixed"
+  parameters:
+    block_size: "8k"
+    write_ratio: 30
+    random_ratio: 70
+    outstanding_io: 8
+    threads_per_vm: 2
+    duration_seconds: 300
+    warmup_seconds: 60
+  expected_thresholds:
+    min_iops_per_node: 5000
+    max_latency_ms: 25
+    min_throughput_mbps: 100

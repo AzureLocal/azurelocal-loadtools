@@ -1,0 +1,23 @@
+# =============================================================================
+# VMFleet Workload Profile: SQL OLTP
+# =============================================================================
+# SQL Server Online Transaction Processing workload simulation.
+# 8K random read/write mix typical of SQL Server database operations.
+# =============================================================================
+
+profile:
+  name: "SQL OLTP"
+  description: "8K random read/write mix simulating SQL Server OLTP workloads"
+  category: "database"
+  parameters:
+    block_size: "8k"
+    write_ratio: 40
+    random_ratio: 100
+    outstanding_io: 16
+    threads_per_vm: 4
+    duration_seconds: 300
+    warmup_seconds: 60
+  expected_thresholds:
+    min_iops_per_node: 10000
+    max_latency_ms: 15
+    min_throughput_mbps: 150

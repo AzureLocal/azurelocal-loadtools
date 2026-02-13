@@ -1,0 +1,59 @@
+---
+# iPerf3 role - installs and configures iPerf3 for network benchmarking
+
+- name: Install iperf3 (Debian/Ubuntu)
+  apt:
+    name: iperf3
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install iperf3 (RHEL)
+  yum:
+    name: iperf3
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Verify iperf3 installation
+  command: iperf3 --version
+  register: iperf_version
+  changed_when: false
+
+- name: Display iperf3 version
+  debug:
+    msg: "iperf3 version: {{ iperf_version.stdout_lines[0] }}"
+
+- name: Create iperf3 systemd service for server mode
+  copy:
+    dest: /etc/systemd/system/iperf3-server.service
+    content: |
+      [Unit]
+      Description=iPerf3 Network Benchmark Server
+      After=network.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/iperf3 -s -p {{ iperf_port | default(5201) }}
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+  when: "'iperf_servers' in group_names"
+  notify: restart iperf3
+
+- name: Enable and start iperf3 server
+  systemd:
+    name: iperf3-server
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  when: "'iperf_servers' in group_names"
+
+- name: Open firewall port for iperf3
+  ufw:
+    rule: allow
+    port: "{{ iperf_port | default(5201) }}"
+    proto: tcp
+  when: "'iperf_servers' in group_names"
+  ignore_errors: yes

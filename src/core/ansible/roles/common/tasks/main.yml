@@ -1,0 +1,59 @@
+---
+# Common role - installs shared prerequisites on Linux VMs
+
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == 'Debian'
+
+- name: Update package cache (RHEL)
+  yum:
+    update_cache: yes
+  when: ansible_os_family == 'RedHat'
+
+- name: Install common packages (Debian/Ubuntu)
+  apt:
+    name:
+      - build-essential
+      - git
+      - curl
+      - wget
+      - jq
+      - sysstat
+      - htop
+      - iotop
+      - dstat
+      - python3-pip
+      - ntp
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install common packages (RHEL)
+  yum:
+    name:
+      - gcc
+      - make
+      - git
+      - curl
+      - wget
+      - jq
+      - sysstat
+      - htop
+      - iotop
+      - python3-pip
+      - chrony
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Create results directory
+  file:
+    path: "{{ results_dir | default('/tmp/loadtest-results') }}"
+    state: directory
+    mode: '0755'
+
+- name: Configure NTP synchronization
+  service:
+    name: "{{ 'ntp' if ansible_os_family == 'Debian' else 'chronyd' }}"
+    state: started
+    enabled: yes

@@ -1,0 +1,84 @@
+# =============================================================================
+# Azure Local Load Tools - .gitignore
+# =============================================================================
+
+# Runtime logs (generated during test execution)
+logs/**
+!logs/.gitkeep
+!logs/**/
+!logs/**/.gitkeep
+
+# Runtime state files (generated during automation runs)
+state/run-state.json
+state/history/**
+!state/history/.gitkeep
+
+# Generated reports (PDF, DOCX, XLSX output)
+reports/**/*.pdf
+reports/**/*.docx
+reports/**/*.xlsx
+reports/**/*.html
+reports/**/run-*/
+!reports/.gitkeep
+!reports/templates/
+
+# CI-generated diagram exports
+docs/images/*.png
+docs/images/*.svg
+!docs/images/.gitkeep
+
+# Credential files (never commit secrets)
+config/credentials/*.secret
+config/credentials/*.key
+config/credentials/*.pem
+config/credentials/.env
+
+# Generated solution config files (built from master-environment.yml)
+# Uncomment the next line if you want these regenerated every time:
+# config/variables/solutions/*.json
+
+# PowerShell module artifacts
+*.nupkg
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Ansible artifacts
+*.retry
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# IDE / Editor
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS artifacts
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Build outputs
+build/
+dist/
+output/
+
+# Node (if any doc tooling uses it)
+node_modules/
+package-lock.json
+
+# Ruby (asciidoctor)
+.bundle/
+vendor/bundle/
+Gemfile.lock

@@ -1,0 +1,23 @@
+# =============================================================================
+# VMFleet Workload Profile: VDI
+# =============================================================================
+# Virtual Desktop Infrastructure workload simulation.
+# Mixed small-block I/O patterns typical of desktop virtualization.
+# =============================================================================
+
+profile:
+  name: "VDI"
+  description: "Mixed small-block I/O simulating Virtual Desktop Infrastructure patterns"
+  category: "mixed"
+  parameters:
+    block_size: "8k"
+    write_ratio: 20
+    random_ratio: 80
+    outstanding_io: 4
+    threads_per_vm: 1
+    duration_seconds: 300
+    warmup_seconds: 60
+  expected_thresholds:
+    min_iops_per_node: 3000
+    max_latency_ms: 30
+    min_throughput_mbps: 50

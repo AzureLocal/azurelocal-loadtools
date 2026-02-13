@@ -1,0 +1,68 @@
+# =============================================================================
+# Azure Local Load Tools - Example Cluster Configuration
+# =============================================================================
+# Copy this file and customize for your Azure Local cluster:
+#   Copy-Item config/clusters/example-cluster.yml config/clusters/my-cluster.yml
+#
+# To target this cluster, pass it to any script:
+#   .\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/my-cluster.yml"
+# =============================================================================
+
+cluster:
+  # Cluster identity
+  name: "example-hci-cluster"
+  domain: "contoso.local"
+  description: "Example Azure Local cluster for load testing"
+
+  # Cluster nodes - list all nodes in the cluster
+  nodes:
+    - name: "hci-node-01"
+      management_ip: "10.0.0.1"
+      storage_ip: "10.0.1.1"
+    - name: "hci-node-02"
+      management_ip: "10.0.0.2"
+      storage_ip: "10.0.1.2"
+    # Add more nodes as needed:
+    # - name: "hci-node-03"
+    #   management_ip: "10.0.0.3"
+    #   storage_ip: "10.0.1.3"
+    # - name: "hci-node-04"
+    #   management_ip: "10.0.0.4"
+    #   storage_ip: "10.0.1.4"
+
+  # Storage paths
+  csv_path: "C:\\ClusterStorage\\Volume1"
+  collect_volume_path: "C:\\ClusterStorage\\Collect"
+  base_vhd_path: "C:\\ClusterStorage\\Collect\\BaseImage.vhdx"
+
+  # WinRM connection settings
+  winrm:
+    port: 5985
+    use_ssl: false
+    authentication: "Kerberos"  # Kerberos, Negotiate, or Basic
+    skip_ca_check: false
+    operation_timeout_seconds: 300
+
+  # Network configuration (for iPerf and network testing)
+  networks:
+    management:
+      subnet: "10.0.0.0/24"
+      vlan_id: 0
+    storage:
+      subnet: "10.0.1.0/24"
+      vlan_id: 100
+      rdma_enabled: true
+    compute:
+      subnet: "10.0.2.0/24"
+      vlan_id: 200
+
+  # Ansible-managed Linux VMs (for fio, iperf, stress-ng, hammerdb)
+  linux_vms: []
+    # - name: "linux-test-01"
+    #   ip: "10.0.2.10"
+    #   ssh_user: "azureuser"
+    #   ssh_key_path: "~/.ssh/id_rsa"
+    # - name: "linux-test-02"
+    #   ip: "10.0.2.11"
+    #   ssh_user: "azureuser"
+    #   ssh_key_path: "~/.ssh/id_rsa"

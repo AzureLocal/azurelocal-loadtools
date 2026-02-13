@@ -1,0 +1,122 @@
+# =============================================================================
+# run-vmfleet.yml - Execute VMFleet load test pipeline
+# =============================================================================
+# Runs the full VMFleet pipeline on a self-hosted runner with cluster access.
+# Requires: self-hosted runner with WinRM access to Azure Local cluster.
+# =============================================================================
+
+name: Run VMFleet Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_config:
+        description: 'Cluster config file (relative to config/clusters/)'
+        required: true
+        default: 'example-cluster.yml'
+      profile:
+        description: 'Workload profile (relative to config/profiles/vmfleet/)'
+        required: false
+        default: 'general.yml'
+      report_formats:
+        description: 'Report formats (comma-separated: PDF,DOCX,XLSX)'
+        required: false
+        default: 'PDF,XLSX'
+      skip_cleanup:
+        description: 'Skip VM cleanup after test'
+        type: boolean
+        default: false
+      push_to_azure_monitor:
+        description: 'Push metrics to Azure Monitor'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  vmfleet-test:
+    runs-on: [self-hosted, azurelocal]
+    timeout-minutes: 120
+
+    env:
+      PROJECT_ROOT: ${{ github.workspace }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate PowerShell version
+        shell: pwsh
+        run: |
+          Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)"
+          if ($PSVersionTable.PSVersion -lt [version]'7.2') {
+            throw "PowerShell 7.2+ required"
+          }
+
+      - name: Install PowerShell dependencies
+        shell: pwsh
+        run: |
+          $modules = @('powershell-yaml', 'ImportExcel')
+          foreach ($mod in $modules) {
+            if (-not (Get-Module -ListAvailable -Name $mod)) {
+              Install-Module $mod -Force -Scope CurrentUser -AllowClobber
+            }
+          }
+
+      - name: Initialize environment
+        shell: pwsh
+        run: |
+          & "$env:PROJECT_ROOT\src\core\powershell\helpers\Initialize-Environment.ps1" `
+            -ProjectRoot $env:PROJECT_ROOT `
+            -ClusterConfigPath "$env:PROJECT_ROOT\config\clusters\${{ inputs.cluster_config }}" `
+            -Solution VMFleet
+
+      - name: Run VMFleet pipeline
+        shell: pwsh
+        env:
+          CLUSTER_ADMIN_USERNAME: ${{ secrets.CLUSTER_ADMIN_USERNAME }}
+          CLUSTER_ADMIN_PASSWORD: ${{ secrets.CLUSTER_ADMIN_PASSWORD }}
+        run: |
+          $secPassword = ConvertTo-SecureString $env:CLUSTER_ADMIN_PASSWORD -AsPlainText -Force
+          $credential = New-Object PSCredential($env:CLUSTER_ADMIN_USERNAME, $secPassword)
+
+          $formats = '${{ inputs.report_formats }}'.Split(',').Trim()
+
+          $params = @{
+            ClusterConfigPath  = "$env:PROJECT_ROOT\config\clusters\${{ inputs.cluster_config }}"
+            ProjectRoot        = $env:PROJECT_ROOT
+            Credential         = $credential
+            ReportFormats      = $formats
+          }
+
+          $profileInput = '${{ inputs.profile }}'
+          if ($profileInput) {
+            $params['ProfilePath'] = "$env:PROJECT_ROOT\config\profiles\vmfleet\$profileInput"
+          }
+
+          if ('${{ inputs.skip_cleanup }}' -eq 'true') {
+            $params['SkipCleanup'] = $true
+          }
+
+          if ('${{ inputs.push_to_azure_monitor }}' -eq 'true') {
+            $params['IncludeAzureMonitor'] = $true
+          }
+
+          & "$env:PROJECT_ROOT\src\solutions\vmfleet\Invoke-VMFleetPipeline.ps1" @params
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vmfleet-reports-${{ github.run_id }}
+          path: reports/
+          retention-days: 90
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vmfleet-logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 30

@@ -1,0 +1,104 @@
+= Azure Local Load Testing Framework
+:author: AzureLocal
+:email: azurelocal@microsoft.com
+:revdate: 2026-02-13
+:revnumber: 0.1.0
+:doctype: book
+:toc: left
+:toclevels: 3
+:sectnums:
+:sectnumlevels: 3
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: images
+:pdf-themesdir: themes
+:pdf-theme: azurelocal-theme
+// Document attributes - reusable variables
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+:vmfleet-version: 2.1.0.0
+:diskspd-version: 2.2
+
+[preface]
+== Preface
+
+This document provides comprehensive documentation for the {project-name}. It covers architecture, installation, configuration, usage of each load testing tool, monitoring, reporting, and CI/CD integration.
+
+The framework is designed to fully automate load testing of Azure Local (Azure Stack HCI) clusters before production or development workloads are migrated or deployed.
+
+=== Target Audience
+
+* Infrastructure Engineers preparing Azure Local clusters for production
+* DevOps Engineers building automated testing pipelines
+* Storage Administrators validating Storage Spaces Direct performance
+* Network Engineers validating RDMA and SMB Direct configurations
+
+=== Document Conventions
+
+[cols="1,3"]
+|===
+| Convention | Meaning
+
+| `monospace`
+| Commands, file paths, variable names
+
+| *bold*
+| Important terms, UI elements
+
+| _italic_
+| Emphasis, first use of terms
+
+| NOTE:
+| Additional information
+
+| WARNING:
+| Potential issues or data loss risks
+
+| TIP:
+| Best practices and recommendations
+|===
+
+// Part I: Overview and Architecture
+= Overview
+
+include::chapters/01-introduction.adoc[leveloffset=+1]
+
+include::chapters/02-architecture.adoc[leveloffset=+1]
+
+// Part II: Setup and Configuration
+= Setup and Configuration
+
+include::chapters/03-prerequisites.adoc[leveloffset=+1]
+
+include::chapters/04-installation.adoc[leveloffset=+1]
+
+include::chapters/05-configuration.adoc[leveloffset=+1]
+
+// Part III: Load Testing Tools
+= Load Testing Tools
+
+include::chapters/06-vmfleet-guide.adoc[leveloffset=+1]
+
+include::chapters/07-additional-tools.adoc[leveloffset=+1]
+
+// Part IV: Operations
+= Operations
+
+include::chapters/08-monitoring.adoc[leveloffset=+1]
+
+include::chapters/09-reporting.adoc[leveloffset=+1]
+
+include::chapters/10-ci-cd.adoc[leveloffset=+1]
+
+include::chapters/11-troubleshooting.adoc[leveloffset=+1]
+
+// Appendices
+[appendix]
+include::appendices/a-variable-reference.adoc[leveloffset=+1]
+
+[appendix]
+include::appendices/b-cmdlet-reference.adoc[leveloffset=+1]
+
+[appendix]
+include::appendices/c-glossary.adoc[leveloffset=+1]

@@ -1,0 +1,154 @@
+== Cmdlet Reference
+
+This appendix documents the custom PowerShell functions provided by the core modules.
+
+=== ConfigManager Module
+
+==== Export-SolutionConfig
+
+Generates a solution-specific JSON configuration file from the master environment.
+
+[source,powershell]
+----
+Export-SolutionConfig [-Solution] <string> [-MasterConfigPath <string>] [-OutputPath <string>]
+----
+
+.Parameters
+[cols="1,1,3"]
+|===
+| Parameter | Type | Description
+
+| `-Solution`
+| string
+| Solution name: vmfleet, fio, iperf, hammerdb, stress-ng
+
+| `-MasterConfigPath`
+| string
+| Path to master-environment.yml (default: `config/variables/master-environment.yml`)
+
+| `-OutputPath`
+| string
+| Output path for generated JSON (default: `config/variables/solutions/{solution}.json`)
+|===
+
+==== Get-ConfigValue
+
+Retrieves a configuration value with override chain support.
+
+[source,powershell]
+----
+Get-ConfigValue [-Name] <string> [-Solution <string>] [-DefaultValue <object>] [-Override <object>]
+----
+
+=== Logger Module
+
+==== Write-Log
+
+Writes a structured log entry to the component log file.
+
+[source,powershell]
+----
+Write-Log [-Message] <string> [-Severity <string>] [-Component <string>] [-Data <hashtable>]
+----
+
+.Severity Levels
+* `DEBUG` — Detailed diagnostic information
+* `INFO` — General operational messages
+* `WARNING` — Potential issues that don't stop execution
+* `ERROR` — Failures that affect the current operation
+* `CRITICAL` — Fatal errors requiring immediate attention
+
+==== Start-LogSession / Stop-LogSession
+
+Manages log session lifecycle with correlation IDs.
+
+[source,powershell]
+----
+$sessionId = Start-LogSession -Component "VMFleet" -RunId "run-001"
+# ... operations ...
+Stop-LogSession -SessionId $sessionId
+----
+
+=== StateManager Module
+
+==== New-RunState
+
+Creates a new run state file for tracking automation progress.
+
+[source,powershell]
+----
+New-RunState [-RunId] <string> [-Phases <string[]>]
+----
+
+==== Update-RunPhase
+
+Updates the status of a specific phase in the run state.
+
+[source,powershell]
+----
+Update-RunPhase [-RunId] <string> [-Phase] <string> [-Status] <string> [-Details <hashtable>]
+----
+
+.Phase Statuses
+* `pending` — Not yet started
+* `running` — Currently executing
+* `completed` — Successfully finished
+* `failed` — Encountered an error
+* `skipped` — Intentionally bypassed
+
+==== Test-PhaseCompleted
+
+Checks if a phase has already completed (for resume support).
+
+[source,powershell]
+----
+Test-PhaseCompleted [-RunId] <string> [-Phase] <string>
+----
+
+=== CredentialManager Module
+
+==== Get-ManagedCredential
+
+Retrieves credentials from the configured source.
+
+[source,powershell]
+----
+Get-ManagedCredential [-Name] <string> [-Source <string>] [-VaultConfig <string>]
+----
+
+.Credential Sources
+* `KeyVault` — Retrieve from Azure Key Vault
+* `Interactive` — Prompt user with `Get-Credential`
+* `Parameter` — Expect credential passed as parameter
+
+=== MonitoringManager Module
+
+==== Start-MetricCollection
+
+Begins background metric collection for the specified categories.
+
+[source,powershell]
+----
+Start-MetricCollection [-Categories <string[]>] [-SampleIntervalSeconds <int>] [-OutputPath <string>]
+----
+
+==== Stop-MetricCollection
+
+Stops background metric collection and finalizes output files.
+
+[source,powershell]
+----
+Stop-MetricCollection [-CollectionId] <string>
+----
+
+=== ReportGenerator Module
+
+==== New-TestReport
+
+Generates test reports in the specified formats.
+
+[source,powershell]
+----
+New-TestReport [-RunId] <string> [-ResultsPath <string>] [-OutputPath <string>]
+             [-Formats <string[]>] [-IncludeMetrics] [-ClusterConfig <string>]
+----

@@ -1,0 +1,64 @@
+---
+# stress-ng role - installs stress-ng for compute/memory stress testing
+
+- name: Install stress-ng (Debian/Ubuntu)
+  apt:
+    name: stress-ng
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install stress-ng from EPEL (RHEL)
+  block:
+    - name: Enable EPEL repository
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Install stress-ng
+      yum:
+        name: stress-ng
+        state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Verify stress-ng installation
+  command: stress-ng --version
+  register: stressng_version
+  changed_when: false
+
+- name: Display stress-ng version
+  debug:
+    msg: "stress-ng version: {{ stressng_version.stdout }}"
+
+- name: Create stress-ng job directory
+  file:
+    path: "{{ results_dir }}/stress-ng-jobs"
+    state: directory
+    mode: '0755'
+
+- name: Deploy stress-ng job configurations
+  copy:
+    dest: "{{ results_dir }}/stress-ng-jobs/{{ item.name }}.yml"
+    content: "{{ item.content }}"
+    mode: '0644'
+  loop:
+    - name: cpu-stress
+      content: |
+        # CPU stress test configuration
+        cpu: 0
+        cpu-method: all
+        timeout: 300s
+        metrics-brief: true
+    - name: memory-stress
+      content: |
+        # Memory stress test configuration
+        vm: 0
+        vm-bytes: 80%
+        timeout: 300s
+        metrics-brief: true
+    - name: io-stress
+      content: |
+        # I/O stress test configuration
+        hdd: 0
+        hdd-bytes: 1G
+        timeout: 300s
+        metrics-brief: true

@@ -1,0 +1,424 @@
+# =============================================================================
+# Azure Local Load Tools - Master Environment Configuration
+# =============================================================================
+# This file contains ALL variables used across all load testing solutions.
+# Each variable is tagged with the solutions that consume it.
+#
+# The ConfigManager module reads this file, filters by solution tag, and
+# generates solution-specific JSON files in config/variables/solutions/.
+#
+# IMPORTANT: Sensitive values (passwords, keys) should have empty defaults
+# here and be retrieved at runtime from Azure Key Vault or interactive prompt.
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  description: "Master environment configuration for Azure Local Load Tools"
+  last_modified: "2026-02-13"
+
+# =============================================================================
+# Cluster Variables
+# =============================================================================
+variables:
+  # --- Cluster Connection ---
+  - name: cluster_name
+    value: ""
+    type: string
+    required: true
+    description: "Azure Local cluster name"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: cluster
+
+  - name: cluster_domain
+    value: ""
+    type: string
+    required: true
+    description: "Active Directory domain for the cluster"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: cluster
+
+  - name: cluster_nodes
+    value: []
+    type: array
+    required: true
+    description: "List of cluster node hostnames"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: cluster
+
+  # --- Storage Paths ---
+  - name: csv_path
+    value: "C:\\ClusterStorage\\Volume1"
+    type: string
+    required: true
+    description: "Path to the Cluster Shared Volume for VM storage"
+    solutions: [vmfleet, fio]
+    category: cluster
+
+  - name: collect_volume_path
+    value: "C:\\ClusterStorage\\Collect"
+    type: string
+    required: true
+    description: "Path to the VMFleet Collect volume (ReFS, 200GB+)"
+    solutions: [vmfleet]
+    category: cluster
+
+  - name: base_vhd_path
+    value: ""
+    type: string
+    required: true
+    description: "Path to the Windows Server Core base VHDX for fleet VMs"
+    solutions: [vmfleet]
+    category: cluster
+
+  # =============================================================================
+  # VMFleet Variables
+  # =============================================================================
+  - name: vm_count_per_node
+    value: 10
+    type: integer
+    required: true
+    description: "Number of fleet VMs to create per cluster node"
+    solutions: [vmfleet]
+    category: deployment
+
+  - name: vm_vcpu_count
+    value: 2
+    type: integer
+    required: true
+    description: "Number of virtual CPUs per fleet VM"
+    solutions: [vmfleet]
+    category: deployment
+
+  - name: vm_memory_gb
+    value: 2
+    type: integer
+    required: true
+    description: "Memory allocation (GB) per fleet VM"
+    solutions: [vmfleet]
+    category: deployment
+
+  - name: vmfleet_admin_username
+    value: ""
+    type: string
+    required: true
+    description: "Administrator username for fleet VMs"
+    solutions: [vmfleet]
+    category: credentials
+    sensitive: true
+
+  - name: vmfleet_admin_password
+    value: ""
+    type: string
+    required: true
+    description: "Administrator password for fleet VMs (use Key Vault)"
+    solutions: [vmfleet]
+    category: credentials
+    sensitive: true
+
+  # =============================================================================
+  # Test Execution Variables
+  # =============================================================================
+  - name: test_duration_seconds
+    value: 300
+    type: integer
+    required: true
+    description: "Duration of each test pass in seconds"
+    solutions: [vmfleet, fio, stress-ng]
+    category: testing
+
+  - name: warmup_seconds
+    value: 60
+    type: integer
+    required: false
+    description: "Warmup period before measurement begins (seconds)"
+    solutions: [vmfleet, fio]
+    category: testing
+
+  - name: cooldown_seconds
+    value: 30
+    type: integer
+    required: false
+    description: "Cooldown period after test completes (seconds)"
+    solutions: [vmfleet, fio]
+    category: testing
+
+  - name: test_iterations
+    value: 1
+    type: integer
+    required: false
+    description: "Number of times to repeat each test profile"
+    solutions: [vmfleet, fio, iperf, stress-ng]
+    category: testing
+
+  # =============================================================================
+  # fio Variables
+  # =============================================================================
+  - name: fio_runtime_seconds
+    value: 300
+    type: integer
+    required: false
+    description: "Duration of fio test execution"
+    solutions: [fio]
+    category: testing
+
+  - name: fio_block_size
+    value: "4k"
+    type: string
+    required: false
+    description: "Default block size for fio jobs"
+    solutions: [fio]
+    category: testing
+
+  - name: fio_io_engine
+    value: "libaio"
+    type: string
+    required: false
+    description: "I/O engine for fio (libaio, io_uring, windowsaio)"
+    solutions: [fio]
+    category: testing
+
+  - name: fio_io_depth
+    value: 32
+    type: integer
+    required: false
+    description: "Queue depth for fio I/O operations"
+    solutions: [fio]
+    category: testing
+
+  - name: fio_num_jobs
+    value: 4
+    type: integer
+    required: false
+    description: "Number of parallel fio jobs"
+    solutions: [fio]
+    category: testing
+
+  # =============================================================================
+  # iPerf Variables
+  # =============================================================================
+  - name: iperf_duration_seconds
+    value: 30
+    type: integer
+    required: false
+    description: "Duration of each iPerf test in seconds"
+    solutions: [iperf]
+    category: testing
+
+  - name: iperf_parallel_streams
+    value: 4
+    type: integer
+    required: false
+    description: "Number of parallel streams per iPerf test"
+    solutions: [iperf]
+    category: testing
+
+  - name: iperf_protocol
+    value: "TCP"
+    type: string
+    required: false
+    description: "iPerf protocol: TCP or UDP"
+    solutions: [iperf]
+    category: testing
+
+  - name: iperf_server_port
+    value: 5201
+    type: integer
+    required: false
+    description: "iPerf server listening port"
+    solutions: [iperf]
+    category: testing
+
+  # =============================================================================
+  # HammerDB Variables
+  # =============================================================================
+  - name: hammerdb_db_type
+    value: "mssql"
+    type: string
+    required: false
+    description: "Target database type: mssql, postgresql, mysql"
+    solutions: [hammerdb]
+    category: testing
+
+  - name: hammerdb_warehouse_count
+    value: 10
+    type: integer
+    required: false
+    description: "Number of TPC-C warehouses"
+    solutions: [hammerdb]
+    category: testing
+
+  - name: hammerdb_virtual_users
+    value: 4
+    type: integer
+    required: false
+    description: "Number of virtual users for workload generation"
+    solutions: [hammerdb]
+    category: testing
+
+  - name: hammerdb_db_server
+    value: ""
+    type: string
+    required: false
+    description: "Database server hostname or IP"
+    solutions: [hammerdb]
+    category: testing
+
+  - name: hammerdb_db_name
+    value: "tpcc"
+    type: string
+    required: false
+    description: "Target database name"
+    solutions: [hammerdb]
+    category: testing
+
+  # =============================================================================
+  # stress-ng Variables
+  # =============================================================================
+  - name: stress_ng_timeout
+    value: "5m"
+    type: string
+    required: false
+    description: "Stress test duration (e.g., 5m, 1h)"
+    solutions: [stress-ng]
+    category: testing
+
+  - name: stress_ng_stressors
+    value: ["cpu", "vm", "hdd"]
+    type: array
+    required: false
+    description: "Stressor classes to execute"
+    solutions: [stress-ng]
+    category: testing
+
+  - name: stress_ng_workers
+    value: 0
+    type: integer
+    required: false
+    description: "Number of workers per stressor (0 = auto-detect CPU count)"
+    solutions: [stress-ng]
+    category: testing
+
+  # =============================================================================
+  # Monitoring Variables
+  # =============================================================================
+  - name: monitoring_enabled
+    value: true
+    type: boolean
+    required: false
+    description: "Enable metric collection during test runs"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: monitoring
+
+  - name: sample_interval_seconds
+    value: 5
+    type: integer
+    required: false
+    description: "Metric sampling interval in seconds"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: monitoring
+
+  - name: push_to_azure_monitor
+    value: false
+    type: boolean
+    required: false
+    description: "Push collected metrics to Azure Monitor / Log Analytics"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: monitoring
+
+  - name: log_analytics_workspace_id
+    value: ""
+    type: string
+    required: false
+    description: "Azure Log Analytics workspace ID (required if push enabled)"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: monitoring
+
+  - name: log_analytics_shared_key
+    value: ""
+    type: string
+    required: false
+    description: "Log Analytics shared key (sensitive — use Key Vault)"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: monitoring
+    sensitive: true
+
+  # =============================================================================
+  # Reporting Variables
+  # =============================================================================
+  - name: report_formats
+    value: ["PDF"]
+    type: array
+    required: false
+    description: "Report output formats: PDF, DOCX, XLSX"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: reporting
+
+  - name: report_title
+    value: "Azure Local Load Test Report"
+    type: string
+    required: false
+    description: "Title displayed on report cover page"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: reporting
+
+  - name: report_author
+    value: "Azure Local Load Tools"
+    type: string
+    required: false
+    description: "Author attribution on generated reports"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: reporting
+
+  - name: include_raw_data
+    value: true
+    type: boolean
+    required: false
+    description: "Include raw metric data in Excel report"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: reporting
+
+  # =============================================================================
+  # Credential Variables
+  # =============================================================================
+  - name: credential_source
+    value: "Interactive"
+    type: string
+    required: false
+    description: "Credential retrieval mode: KeyVault, Interactive, Parameter"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: credentials
+
+  - name: keyvault_name
+    value: ""
+    type: string
+    required: false
+    description: "Azure Key Vault name for credential storage"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: credentials
+
+  # =============================================================================
+  # Logging Variables
+  # =============================================================================
+  - name: log_level
+    value: "INFO"
+    type: string
+    required: false
+    description: "Minimum log severity: DEBUG, INFO, WARNING, ERROR, CRITICAL"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: logging
+
+  - name: log_retention_days
+    value: 30
+    type: integer
+    required: false
+    description: "Number of days to retain log files"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: logging
+
+  - name: log_max_file_size_mb
+    value: 50
+    type: integer
+    required: false
+    description: "Maximum log file size in MB before rotation"
+    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
+    category: logging

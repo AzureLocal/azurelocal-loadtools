@@ -1,0 +1,113 @@
+# =============================================================================
+# Azure Local Load Tools - Custom PDF Theme for asciidoctor-pdf
+# =============================================================================
+# Usage: asciidoctor-pdf -a pdf-theme=azurelocal-theme docs/main.adoc
+extends: default
+font:
+  catalog:
+    merge: true
+page:
+  margin: [0.75in, 0.75in, 1in, 0.75in]
+  size: A4
+  layout: portrait
+base:
+  font-family: Noto Sans
+  font-size: 10
+  font-color: #333333
+  line-height-length: 15
+  line-height: $base_line_height_length / $base_font_size
+heading:
+  font-color: #0078D4
+  font-style: bold
+  h1-font-size: 24
+  h2-font-size: 20
+  h3-font-size: 16
+  h4-font-size: 14
+  margin-top: 15
+  margin-bottom: 10
+title-page:
+  align: center
+  font-color: #0078D4
+  title:
+    top: 40%
+    font-size: 32
+    font-style: bold
+    font-color: #0078D4
+    line-height: 1.2
+  subtitle:
+    font-size: 18
+    font-color: #505050
+    margin-top: 10
+  authors:
+    font-size: 14
+    font-color: #505050
+    margin-top: 20
+  revision:
+    font-size: 12
+    font-color: #808080
+    margin-top: 10
+header:
+  height: 0.5in
+  font-size: 8
+  font-color: #808080
+  border-color: #DDDDDD
+  border-width: 0.5
+  recto:
+    right:
+      content: '{document-title}'
+  verso:
+    left:
+      content: '{document-title}'
+footer:
+  height: 0.5in
+  font-size: 8
+  font-color: #808080
+  border-color: #DDDDDD
+  border-width: 0.5
+  recto:
+    center:
+      content: 'Page {page-number} of {page-count}'
+    right:
+      content: '{revdate}'
+  verso:
+    center:
+      content: 'Page {page-number} of {page-count}'
+    left:
+      content: '{revdate}'
+code:
+  font-family: Noto Sans Mono
+  font-size: 9
+  background-color: #F5F5F5
+  border-color: #DDDDDD
+  border-width: 0.5
+  padding: [8, 10, 8, 10]
+table:
+  head:
+    font-color: #FFFFFF
+    background-color: #0078D4
+    font-style: bold
+  body:
+    stripe-background-color: #F0F6FF
+  border-color: #CCCCCC
+  border-width: 0.5
+admonition:
+  icon:
+    note:
+      stroke-color: #0078D4
+    tip:
+      stroke-color: #107C10
+    warning:
+      stroke-color: #FF8C00
+    caution:
+      stroke-color: #D83B01
+    important:
+      stroke-color: #A4262C
+sidebar:
+  background-color: #F0F6FF
+  border-color: #0078D4
+  border-width: 1
+toc:
+  dot-leader:
+    font-color: #CCCCCC
+  indent: 20
+  line-height: 1.8

@@ -1,0 +1,23 @@
+# =============================================================================
+# VMFleet Workload Profile: Peak IOPS
+# =============================================================================
+# Maximum IOPS workload for determining peak storage performance.
+# Uses small random reads to maximize IOPS count.
+# =============================================================================
+
+profile:
+  name: "Peak IOPS"
+  description: "100% random 4K reads for maximum IOPS measurement"
+  category: "iops"
+  parameters:
+    block_size: "4k"
+    write_ratio: 0
+    random_ratio: 100
+    outstanding_io: 32
+    threads_per_vm: 4
+    duration_seconds: 300
+    warmup_seconds: 60
+  expected_thresholds:
+    min_iops_per_node: 50000
+    max_latency_ms: 10
+    min_throughput_mbps: 200

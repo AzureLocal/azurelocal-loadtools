@@ -1,0 +1,103 @@
+# =============================================================================
+# Azure DevOps Pipeline - Build & Test
+# =============================================================================
+# Placeholder pipeline for Azure DevOps.
+# Import this as a pipeline in Azure DevOps to run tests and build docs.
+# =============================================================================
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/**
+      - tests/**
+      - docs/**
+      - config/**
+
+pool:
+  vmImage: 'windows-latest'
+
+stages:
+  - stage: Validate
+    displayName: 'Validate & Lint'
+    jobs:
+      - job: Lint
+        displayName: 'PSScriptAnalyzer'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Install PSScriptAnalyzer'
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+
+          - task: PowerShell@2
+            displayName: 'Run PSScriptAnalyzer'
+            inputs:
+              targetType: filePath
+              filePath: tests/PSScriptAnalyzer.ps1
+              pwsh: true
+
+      - job: ConfigValidation
+        displayName: 'Validate Configs'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Validate YAML/JSON configs'
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                Install-Module powershell-yaml -Force -Scope CurrentUser
+                Import-Module powershell-yaml
+                # Validate master config loads without errors
+                $config = Get-Content config/variables/master-environment.yml -Raw | ConvertFrom-Yaml
+                Write-Host "Master config loaded: $($config.variables.Count) variables"
+
+  - stage: Test
+    displayName: 'Unit Tests'
+    dependsOn: Validate
+    jobs:
+      - job: Pester
+        displayName: 'Run Pester Tests'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Install dependencies'
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                Install-Module Pester -Force -Scope CurrentUser -MinimumVersion 5.0
+                Install-Module powershell-yaml -Force -Scope CurrentUser
+
+          - task: PowerShell@2
+            displayName: 'Run Pester'
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                $config = New-PesterConfiguration
+                $config.Run.Path = 'tests'
+                $config.Run.Exit = $true
+                $config.TestResult.Enabled = $true
+                $config.TestResult.OutputPath = '$(Build.ArtifactStagingDirectory)/test-results.xml'
+                $config.TestResult.OutputFormat = 'NUnitXml'
+                Invoke-Pester -Configuration $config
+
+          - task: PublishTestResults@2
+            displayName: 'Publish test results'
+            condition: always()
+            inputs:
+              testResultsFormat: NUnit
+              testResultsFiles: '$(Build.ArtifactStagingDirectory)/test-results.xml'
+
+# =============================================================================
+# VMFleet execution pipeline (separate, manually triggered)
+# =============================================================================
+# To create a separate pipeline for VMFleet execution:
+# 1. Create azure-pipelines-vmfleet.yml
+# 2. Use a self-hosted agent pool with cluster access
+# 3. Add pipeline variables for credentials
+# 4. Use the Invoke-VMFleetPipeline.ps1 orchestrator

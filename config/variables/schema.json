@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Azure Local Load Tools - Master Environment Schema",
+  "description": "Validates the structure of master-environment.yml",
+  "type": "object",
+  "required": ["metadata", "variables"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["version", "description"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "description": {
+          "type": "string"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "value", "type", "required", "description", "solutions"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unique variable identifier in snake_case"
+          },
+          "value": {
+            "description": "Default value for the variable"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "integer", "boolean", "array"],
+            "description": "Data type of the variable"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the variable must have a non-empty value at runtime"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the variable"
+          },
+          "solutions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["vmfleet", "fio", "iperf", "hammerdb", "stress-ng"]
+            },
+            "minItems": 1,
+            "description": "Solutions that consume this variable"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["cluster", "deployment", "testing", "monitoring", "reporting", "credentials", "logging"],
+            "description": "Logical grouping for the variable"
+          },
+          "sensitive": {
+            "type": "boolean",
+            "description": "If true, value should be retrieved from Key Vault at runtime"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

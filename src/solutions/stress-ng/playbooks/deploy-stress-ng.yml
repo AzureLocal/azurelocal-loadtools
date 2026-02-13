@@ -1,0 +1,18 @@
+---
+- name: Deploy stress-ng to Linux VMs
+  hosts: linux_vms
+  become: yes
+
+  roles:
+    - common
+    - stress_ng
+
+  post_tasks:
+    - name: Verify stress-ng is operational
+      command: stress-ng --version
+      register: stressng_check
+      changed_when: false
+
+    - name: Report stress-ng status
+      debug:
+        msg: "stress-ng ready on {{ inventory_hostname }}: {{ stressng_check.stdout }}"

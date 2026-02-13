@@ -1,0 +1,15 @@
+<mxfile host="app.diagrams.net" modified="2026-02-13T00:00:00.000Z" agent="Azure Local Load Tools" version="24.0.0" type="device">
+  <diagram id="vmfleet-workflow" name="VMFleet Workflow">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <!-- TODO: Design VMFleet workflow diagram -->
+        <!-- Phases: Pre-check → Install → Deploy → Test → Monitor → Collect → Report → Cleanup -->
+        <mxCell id="2" value="VMFleet Automation Workflow&#xa;&#xa;TODO: Design this diagram in draw.io Desktop" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="350" y="380" width="400" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

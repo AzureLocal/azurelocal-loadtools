@@ -1,0 +1,263 @@
+== Variable Reference
+
+This appendix provides a complete catalog of all variables defined in `master-environment.yml`.
+
+=== Cluster Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `cluster_name`
+| string
+| Yes
+| (none)
+| Azure Local cluster name
+
+| `cluster_domain`
+| string
+| Yes
+| (none)
+| Active Directory domain for the cluster
+
+| `cluster_nodes`
+| array
+| Yes
+| (none)
+| List of cluster node hostnames
+
+| `csv_path`
+| string
+| Yes
+| (none)
+| Path to the Cluster Shared Volume for VM storage
+
+| `collect_volume_path`
+| string
+| Yes
+| (none)
+| Path to the VMFleet Collect volume (ReFS, 200GB+)
+
+| `base_vhd_path`
+| string
+| Yes
+| (none)
+| Path to the Windows Server Core base VHDX
+|===
+
+=== VMFleet Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `vm_count_per_node`
+| integer
+| Yes
+| 10
+| Number of fleet VMs to create per cluster node
+
+| `vm_vcpu_count`
+| integer
+| Yes
+| 2
+| Number of virtual CPUs per fleet VM
+
+| `vm_memory_gb`
+| integer
+| Yes
+| 2
+| Memory allocation (GB) per fleet VM
+
+| `test_duration_seconds`
+| integer
+| Yes
+| 300
+| Duration of each test pass in seconds
+
+| `warmup_seconds`
+| integer
+| No
+| 60
+| Warmup period before measurement begins
+
+| `vmfleet_admin_username`
+| string
+| Yes
+| (none)
+| Administrator username for fleet VMs (sensitive)
+
+| `vmfleet_admin_password`
+| string
+| Yes
+| (none)
+| Administrator password for fleet VMs (sensitive — use Key Vault)
+|===
+
+=== Monitoring Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `monitoring_enabled`
+| boolean
+| No
+| true
+| Enable metric collection during tests
+
+| `sample_interval_seconds`
+| integer
+| No
+| 5
+| Metric sampling interval
+
+| `push_to_azure_monitor`
+| boolean
+| No
+| false
+| Send metrics to Azure Monitor / Log Analytics
+
+| `log_analytics_workspace_id`
+| string
+| No
+| (none)
+| Azure Log Analytics workspace ID (required if push enabled)
+
+| `log_analytics_shared_key`
+| string
+| No
+| (none)
+| Log Analytics shared key (sensitive — use Key Vault)
+|===
+
+=== Reporting Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `report_formats`
+| array
+| No
+| ["PDF"]
+| Report output formats: PDF, DOCX, XLSX
+
+| `report_title`
+| string
+| No
+| "Azure Local Load Test Report"
+| Title on report cover page
+
+| `report_author`
+| string
+| No
+| "Azure Local Load Tools"
+| Author attribution on reports
+
+| `include_raw_data`
+| boolean
+| No
+| true
+| Include raw metrics in Excel report
+|===
+
+=== fio Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `fio_runtime_seconds`
+| integer
+| No
+| 300
+| Duration of fio test execution
+
+| `fio_block_size`
+| string
+| No
+| "4k"
+| Default block size for fio jobs
+
+| `fio_io_engine`
+| string
+| No
+| "libaio"
+| I/O engine for fio (libaio, io_uring, etc.)
+|===
+
+=== iPerf Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `iperf_duration_seconds`
+| integer
+| No
+| 30
+| Duration of each iPerf test
+
+| `iperf_parallel_streams`
+| integer
+| No
+| 4
+| Number of parallel streams per iPerf test
+
+| `iperf_protocol`
+| string
+| No
+| "TCP"
+| Protocol: TCP or UDP
+|===
+
+=== HammerDB Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `hammerdb_db_type`
+| string
+| No
+| "mssql"
+| Target database: mssql, postgresql, mysql
+
+| `hammerdb_warehouse_count`
+| integer
+| No
+| 10
+| Number of TPC-C warehouses
+
+| `hammerdb_virtual_users`
+| integer
+| No
+| 4
+| Number of virtual users for workload generation
+|===
+
+=== stress-ng Variables
+
+[cols="2,1,1,1,3"]
+|===
+| Variable | Type | Required | Default | Description
+
+| `stress_ng_timeout`
+| string
+| No
+| "5m"
+| Stress test duration
+
+| `stress_ng_stressors`
+| array
+| No
+| ["cpu", "vm", "hdd"]
+| Stressor classes to execute
+
+| `stress_ng_workers`
+| integer
+| No
+| 0
+| Number of workers per stressor (0 = auto-detect CPU count)
+|===

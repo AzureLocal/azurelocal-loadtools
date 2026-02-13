@@ -1,0 +1,44 @@
+# =============================================================================
+# Azure Local Load Tools - EditorConfig
+# https://editorconfig.org
+# =============================================================================
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{ps1,psm1,psd1}]
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.json]
+indent_style = space
+indent_size = 2
+
+[*.{adoc,asciidoc}]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+[*.{bicep,tf}]
+indent_style = space
+indent_size = 2
+
+[*.{sh,bash}]
+indent_style = space
+indent_size = 2
+
+[*.xml]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab

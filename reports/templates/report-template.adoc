@@ -1,0 +1,118 @@
+= Azure Local Load Test Report
+:author: Azure Local Load Tools
+:revdate: {revdate}
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+
+// Attributes set by ReportGenerator module
+:run-id: {run-id}
+:cluster-name: {cluster-name}
+:solution: {solution}
+:test-date: {test-date}
+
+include::cover-page.adoc[leveloffset=+0]
+
+== Executive Summary
+
+This report presents the results of load testing performed on the Azure Local cluster *{cluster-name}* using *{solution}*.
+
+[cols="2,3"]
+|===
+| *Property* | *Value*
+
+| Run ID | {run-id}
+| Test Date | {test-date}
+| Cluster | {cluster-name}
+| Solution | {solution}
+| Report Generated | {revdate}
+|===
+
+== Test Configuration
+
+// Auto-populated from test parameters
+=== Workload Profile
+
+[cols="2,1"]
+|===
+| Parameter | Value
+
+| Block Size | {block-size}
+| Write Ratio | {write-ratio}%
+| Random Ratio | {random-ratio}%
+| Outstanding I/O | {outstanding-io}
+| Threads per VM | {threads}
+| Duration | {duration}s
+| Warmup | {warmup}s
+|===
+
+=== Cluster Configuration
+
+// Auto-populated from cluster config
+VM Count:: {vm-count}
+Node Count:: {node-count}
+
+== Performance Results
+
+=== Aggregate Results
+
+[cols="3,1"]
+|===
+| Metric | Value
+
+| Total IOPS | {total-iops}
+| Read IOPS | {read-iops}
+| Write IOPS | {write-iops}
+| Average Latency | {avg-latency} ms
+| Read Throughput | {read-throughput} MB/s
+| Write Throughput | {write-throughput} MB/s
+|===
+
+=== Per-VM Results
+
+// Table auto-generated from per-VM data
+
+== Monitoring Metrics
+
+=== Storage Metrics
+
+// Auto-populated from storage metric collection
+
+=== Network Metrics
+
+// Auto-populated from network metric collection
+
+=== Compute Metrics
+
+// Auto-populated from compute metric collection
+
+== Analysis & Recommendations
+
+=== Observations
+
+// Auto-generated observations based on threshold analysis
+
+=== Alerts Triggered
+
+// Auto-populated from alert rule evaluation
+
+== Appendix
+
+=== Raw Counter Data
+
+// Available in the XLSX report for detailed analysis
+
+=== Environment Details
+
+[cols="2,3"]
+|===
+| Component | Version
+
+| VMFleet | {vmfleet-version}
+| DiskSpd | {diskspd-version}
+| PowerShell | {ps-version}
+| OS | {os-version}
+|===

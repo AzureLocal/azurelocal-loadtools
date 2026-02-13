@@ -1,0 +1,44 @@
+== Glossary
+
+[glossary]
+Azure Local:: Microsoft's on-premises hyperconverged infrastructure (HCI) solution, formerly Azure Stack HCI. Runs Azure services on-premises.
+
+Cluster Shared Volume (CSV):: A shared storage volume accessible from all nodes in a Windows Server Failover Cluster. Used by VMFleet to store fleet VMs.
+
+Collect Volume:: A dedicated ReFS volume (200GB+) used by VMFleet to aggregate DiskSpd results from all fleet VMs.
+
+DiskSpd:: Microsoft's open-source storage performance benchmarking tool. VMFleet uses DiskSpd as the I/O workload generator inside fleet VMs.
+
+fio (Flexible I/O Tester):: A cross-platform storage I/O benchmarking tool with extensive workload customization. Primarily used on Linux.
+
+Fleet VM:: A lightweight virtual machine deployed by VMFleet as part of the testing fleet. Runs Windows Server Core with DiskSpd.
+
+HammerDB:: An open-source database benchmarking tool supporting TPC-C (OLTP) and TPC-H (OLAP) workloads against SQL Server and other databases.
+
+IOPS:: Input/Output Operations Per Second. A key storage performance metric measuring the number of read/write operations the storage can handle.
+
+iPerf3:: A network performance measurement tool for testing bandwidth, jitter, and packet loss over TCP, UDP, and SCTP.
+
+JSON-lines:: A text format where each line is a valid JSON object. Used for structured logging in this framework.
+
+Latency:: The time delay between issuing an I/O request and receiving the response. Measured in milliseconds. Lower is better.
+
+Master Environment File:: The `master-environment.yml` file containing all configuration variables tagged by solution.
+
+PerfMon:: Windows Performance Monitor. A built-in tool for collecting performance counter data from Windows systems.
+
+RDMA (Remote Direct Memory Access):: A technology enabling direct memory access from one computer to another without involving the operating system. Used for high-speed storage networking in Azure Local.
+
+SMB Direct:: An enhancement to the SMB protocol that uses RDMA network adapters for high-throughput, low-latency data transfer.
+
+Solution JSON:: A generated JSON file containing only the variables relevant to a specific testing solution (e.g., `vmfleet.json`).
+
+Storage Spaces Direct (S2D):: Microsoft's software-defined storage solution that pools local drives across cluster nodes into a highly available, scalable storage system.
+
+stress-ng:: A stress testing tool with 370+ stress tests for CPU, memory, cache, filesystem, and other system components.
+
+Throughput:: The amount of data transferred per unit of time. Measured in MB/s or GB/s. Higher is better.
+
+VMFleet:: A storage load generator that deploys a fleet of VMs running DiskSpd workloads across a Hyper-V cluster to stress-test Storage Spaces Direct.
+
+Workload Profile:: A predefined set of I/O parameters (block size, read/write ratio, random/sequential ratio, etc.) that defines a specific test scenario.

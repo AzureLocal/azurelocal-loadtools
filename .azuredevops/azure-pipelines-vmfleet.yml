@@ -1,0 +1,84 @@
+# =============================================================================
+# Azure DevOps Pipeline - VMFleet Execution
+# =============================================================================
+# Runs the VMFleet load test pipeline on a self-hosted agent.
+# Requires: Self-hosted agent with WinRM access to Azure Local cluster.
+# =============================================================================
+
+trigger: none  # Manual trigger only
+
+parameters:
+  - name: clusterConfig
+    displayName: 'Cluster config file'
+    type: string
+    default: 'example-cluster.yml'
+  - name: profile
+    displayName: 'Workload profile'
+    type: string
+    default: 'general.yml'
+  - name: skipCleanup
+    displayName: 'Skip cleanup after test'
+    type: boolean
+    default: false
+
+pool:
+  name: 'AzureLocal-SelfHosted'  # Update with your agent pool name
+
+variables:
+  - group: azurelocal-loadtest-secrets  # Variable group with credentials
+
+stages:
+  - stage: LoadTest
+    displayName: 'VMFleet Load Test'
+    jobs:
+      - job: VMFleet
+        displayName: 'Execute VMFleet Pipeline'
+        timeoutInMinutes: 120
+        steps:
+          - task: PowerShell@2
+            displayName: 'Initialize Environment'
+            inputs:
+              targetType: filePath
+              filePath: src/core/powershell/helpers/Initialize-Environment.ps1
+              arguments: >
+                -ProjectRoot $(Build.SourcesDirectory)
+                -ClusterConfigPath $(Build.SourcesDirectory)/config/clusters/${{ parameters.clusterConfig }}
+                -Solution VMFleet
+              pwsh: true
+
+          - task: PowerShell@2
+            displayName: 'Run VMFleet Pipeline'
+            inputs:
+              targetType: inline
+              pwsh: true
+              script: |
+                $secPassword = ConvertTo-SecureString '$(CLUSTER_ADMIN_PASSWORD)' -AsPlainText -Force
+                $credential = New-Object PSCredential('$(CLUSTER_ADMIN_USERNAME)', $secPassword)
+
+                $params = @{
+                  ClusterConfigPath = "$(Build.SourcesDirectory)/config/clusters/${{ parameters.clusterConfig }}"
+                  ProfilePath       = "$(Build.SourcesDirectory)/config/profiles/vmfleet/${{ parameters.profile }}"
+                  ProjectRoot       = "$(Build.SourcesDirectory)"
+                  Credential        = $credential
+                  ReportFormats     = @('PDF', 'XLSX')
+                }
+
+                if ('${{ parameters.skipCleanup }}' -eq 'True') {
+                  $params['SkipCleanup'] = $true
+                }
+
+                & "$(Build.SourcesDirectory)/src/solutions/vmfleet/Invoke-VMFleetPipeline.ps1" @params
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Reports'
+            condition: always()
+            inputs:
+              PathtoPublish: reports
+              ArtifactName: vmfleet-reports
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Logs'
+            condition: always()
+            inputs:
+              PathtoPublish: logs
+              ArtifactName: vmfleet-logs

@@ -1,0 +1,190 @@
+== Monitoring
+
+The monitoring subsystem collects real-time storage, network, and compute metrics during load test execution. It uses a hybrid architecture: local PowerShell/PerfMon collection (always active) with optional push to Azure Monitor/Log Analytics.
+
+=== Monitoring Architecture
+
+.Metric Collection Flow
+[source,text]
+----
+Cluster Nodes (PerfMon counters)
+        │
+        ▼
+PowerShell Get-Counter (remote sessions)
+        │
+        ├──► Local CSV/JSON files (results/{run-id}/metrics/)
+        │
+        └──► Azure Monitor / Log Analytics (optional)
+                    │
+                    ▼
+              Azure Portal dashboards, alerts
+----
+
+=== Metric Categories
+
+==== Storage Metrics
+
+Collected by `Collect-StorageMetrics.ps1`:
+
+[cols="2,3"]
+|===
+| Counter | Description
+
+| CSVFS: Read IOPS
+| Cluster Shared Volume read operations per second
+
+| CSVFS: Write IOPS
+| Cluster Shared Volume write operations per second
+
+| CSVFS: Read Throughput (MB/s)
+| Aggregate read bandwidth across CSVs
+
+| CSVFS: Write Throughput (MB/s)
+| Aggregate write bandwidth across CSVs
+
+| CSVFS: Read Latency (ms)
+| Average read latency per I/O operation
+
+| CSVFS: Write Latency (ms)
+| Average write latency per I/O operation
+
+| S2D Cache Hit Ratio
+| Percentage of I/O served from cache tier
+
+| Physical Disk Queue Depth
+| Outstanding I/O requests per physical disk
+
+| Storage Pool Health
+| Degraded/healthy status of storage pools
+|===
+
+==== Network Metrics
+
+Collected by `Collect-NetworkMetrics.ps1`:
+
+[cols="2,3"]
+|===
+| Counter | Description
+
+| RDMA Activity: Bytes Sent/sec
+| RDMA network adapter transmit throughput
+
+| RDMA Activity: Bytes Received/sec
+| RDMA network adapter receive throughput
+
+| SMB Direct: Bytes Sent/sec
+| SMB Direct (RDMA) data transfer rate
+
+| Network Adapter: Throughput (Gbps)
+| Total NIC throughput per adapter
+
+| Network Adapter: Packets Dropped
+| Dropped packets indicating congestion or errors
+
+| TCP: Retransmits/sec
+| TCP retransmission rate (indicates network issues)
+|===
+
+==== Compute Metrics
+
+Collected by `Collect-ComputeMetrics.ps1`:
+
+[cols="2,3"]
+|===
+| Counter | Description
+
+| Processor: % Total CPU
+| Host CPU utilization across all logical processors
+
+| Hyper-V Hypervisor Logical Processor: % Total Run Time
+| Hypervisor-level CPU consumption
+
+| Guest vCPU Utilization
+| Per-VM CPU usage (via VMFleet `Watch-FleetCPU`)
+
+| Memory: Available MBytes
+| Free physical memory on each host
+
+| Memory: % Committed Bytes In Use
+| Memory pressure indicator
+
+| Hyper-V Dynamic Memory: Current Pressure
+| Dynamic memory pressure per VM
+|===
+
+=== Local Metric Collection
+
+Local collection is always active during test runs:
+
+[source,powershell]
+----
+# Collect all metric categories with 5-second intervals
+.\src\solutions\vmfleet\monitoring\Collect-StorageMetrics.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -SampleIntervalSeconds 5 `
+    -OutputPath "results/run-001/metrics/storage/"
+
+.\src\solutions\vmfleet\monitoring\Collect-NetworkMetrics.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -SampleIntervalSeconds 5 `
+    -OutputPath "results/run-001/metrics/network/"
+
+.\src\solutions\vmfleet\monitoring\Collect-ComputeMetrics.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -SampleIntervalSeconds 5 `
+    -OutputPath "results/run-001/metrics/compute/"
+----
+
+Output format is JSON-lines for machine parsing:
+
+[source,json]
+----
+{"timestamp":"2026-02-13T10:05:00Z","node":"hci-node-01","counter":"CSVFS_ReadIOPS","value":45230}
+{"timestamp":"2026-02-13T10:05:00Z","node":"hci-node-01","counter":"CSVFS_WriteIOPS","value":12840}
+----
+
+=== Azure Monitor Integration
+
+Optionally push collected metrics to Azure Monitor for centralized dashboards and alerting:
+
+[source,powershell]
+----
+.\src\solutions\vmfleet\monitoring\Push-MetricsToAzureMonitor.ps1 `
+    -MetricsPath "results/run-001/metrics/" `
+    -WorkspaceId "your-log-analytics-workspace-id" `
+    -CredentialSource KeyVault
+----
+
+NOTE: Azure Monitor integration requires the `monitoring.bicep` infrastructure template to be deployed. See `src/infrastructure/bicep/monitoring.bicep`.
+
+=== Alert Rules
+
+Predefined alert thresholds in `monitoring/alerts/alert-rules.yml`:
+
+[source,yaml]
+----
+alerts:
+  - name: high_storage_latency
+    metric: csvfs_write_latency_ms
+    threshold: 50
+    severity: warning
+    description: "Write latency exceeds 50ms — possible storage bottleneck"
+
+  - name: critical_cpu
+    metric: host_cpu_percent
+    threshold: 95
+    severity: critical
+    description: "Host CPU exceeds 95% — test may be compute-bound"
+----
+
+=== Real-Time Dashboard
+
+During test execution, use the monitoring dashboard wrapper:
+
+[source,powershell]
+----
+# Launch real-time monitoring (combines VMFleet Watch-FleetCluster with custom metrics)
+.\src\solutions\vmfleet\monitoring\Export-MetricsDashboard.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -RefreshIntervalSeconds 5
+----
