@@ -1,0 +1,529 @@
+= PowerShell Scripting Standards — Azure Local Load Tools
+Kristopher Turner
+v1.0, 2026-02-13
+
+:description: Mandatory PowerShell scripting standards for all scripts and modules in the Azure Local Load Tools repository.
+:keywords: powershell, standards, coding, scripting, azure-local, modules, pester, pssa
+:toc: left
+:toclevels: 4
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:tip-caption: 💡
+:note-caption: ℹ️
+:warning-caption: ⚠️
+:caution-caption: 🔥
+:important-caption: ❗
+
+[abstract]
+This document defines the mandatory PowerShell scripting standards for all scripts and modules in the Azure Local Load Tools repository.
+Every contributor must follow these standards.
+Scripts that do not comply must be refactored before merging.
+
+[discrete]
+== Quick Navigation
+
+* <<file-and-naming-conventions>> — File names, function names, approved verbs
+* <<script-structure>> — Required layout for every `.ps1` file
+* <<parameter-standards>> — Mandatory/optional params, validation, override chain
+* <<module-structure>> — `.psd1` / `.psm1` layout, exports, versioning
+* <<error-handling>> — `try`/`catch`, `$ErrorActionPreference`, `-ErrorAction Stop`
+* <<logging-standards>> — JSON-lines, correlation IDs, severity levels
+* <<testing-requirements>> — Pester conventions, naming, coverage
+* <<psscriptanalyzer-rules>> — Enforced linting rules and exclusions
+
+'''
+
+== File and Naming Conventions
+
+=== File Naming
+
+All PowerShell files must follow PascalCase naming with the `Verb-Noun` pattern:
+
+[cols="2,3,2"]
+|===
+| Type | Pattern | Example
+
+| Standalone scripts
+| `Verb-Noun.ps1`
+| `Install-VMFleet.ps1`
+
+| Pipeline orchestrators
+| `Invoke-<Solution>Pipeline.ps1`
+| `Invoke-VMFleetPipeline.ps1`
+
+| Monitoring scripts
+| `Verb-<Category>Metrics.ps1`
+| `Collect-StorageMetrics.ps1`
+
+| Helper scripts
+| `PascalCase-Description.ps1`
+| `Common-Functions.ps1`
+
+| Module files
+| `ModuleName.psm1` / `.psd1`
+| `ConfigManager.psm1`
+
+| Test files
+| `ModuleName.Tests.ps1`
+| `Logger.Tests.ps1`
+|===
+
+=== Function Naming
+
+* Use **approved PowerShell verbs** only — run `Get-Verb` to see the full list.
+* Common approved verbs in this project:
+
+[cols="1,3"]
+|===
+| Verb | Usage
+
+| `Install`  | Installing modules or prerequisites
+| `Deploy`   | Creating VMs, provisioning resources
+| `Start`    | Launching workloads or tests
+| `Stop`     | Halting workloads
+| `Collect`  | Gathering results or metrics
+| `Remove`   | Tearing down resources
+| `Invoke`   | Running a pipeline or multi-phase workflow
+| `Watch`    | Real-time monitoring
+| `Import`   | Loading configuration into memory
+| `Export`    | Writing configuration or data to disk
+| `Get`      | Retrieving status, state, or info
+| `Set`      | Modifying state or configuration
+| `New`      | Creating objects (e.g., `New-RunState`)
+| `Push`     | Sending data to external services (e.g., Azure Monitor)
+|===
+
+CAUTION: Never use unapproved verbs like `Create`, `Delete`, `Run`, or `Setup`. PSScriptAnalyzer will flag these.
+
+=== Variable Naming
+
+* **Local variables:** `$camelCase` (e.g., `$vmCount`, `$logSession`)
+* **Script-scoped variables:** `$script:PascalCase` (e.g., `$script:ActiveSessions`)
+* **Parameters:** `PascalCase` (e.g., `$ProjectRoot`, `$SolutionConfigPath`)
+* **Constants:** `$UPPER_SNAKE_CASE` or descriptive `$PascalCase` (e.g., `$ErrorActionPreference`)
+
+== Script Structure
+
+Every standalone `.ps1` script must follow this exact structure:
+
+[source,powershell]
+----
+# =============================================================================
+# Verb-Noun.ps1 - Azure Local Load Tools
+# =============================================================================
+# Brief description of what this script does.
+# Phase N of the <Solution> pipeline (if applicable).
+# =============================================================================
+
+#Requires -Version 7.2  # <1>
+
+[CmdletBinding(SupportsShouldProcess)]  # <2>
+param(
+    [Parameter(Mandatory)]  # <3>
+    [string]$RequiredParam,
+
+    [Parameter()]
+    [string]$OptionalParam,
+
+    [Parameter()]
+    [string]$ProjectRoot  # <4>
+)
+
+$ErrorActionPreference = 'Stop'  # <5>
+
+# ---- Resolve Project Root ----  # <6>
+if (-not $ProjectRoot) {
+    $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+}
+
+# ---- Bootstrap ----  # <7>
+. (Join-Path $ProjectRoot 'src\core\powershell\helpers\Common-Functions.ps1')
+Import-Module (Join-Path $ProjectRoot 'src\core\powershell\modules\Logger\Logger.psm1') -Force
+Import-Module (Join-Path $ProjectRoot 'src\core\powershell\modules\ConfigManager\ConfigManager.psm1') -Force
+
+# ---- Initialize Logging ----  # <8>
+$logSession = Start-LogSession -Component '<Solution>-<Phase>' `
+    -LogRootPath (Join-Path $ProjectRoot 'logs\<solution>')
+
+try {
+    Write-Log -Message 'Starting <phase description>' -Severity Information
+
+    # ... main logic ...  # <9>
+
+    Write-Log -Message '<Phase> completed successfully' -Severity Information
+    Write-Host '<Phase> complete.' -ForegroundColor Green
+}
+catch {
+    Write-Log -Message "Error: $_" -Severity Error -ErrorRecord $_  # <10>
+    throw
+}
+finally {
+    Stop-LogSession  # <11>
+}
+----
+<1> Always require PowerShell 7.2+
+<2> All scripts must support `-WhatIf` and `-Confirm`
+<3> Mark truly required parameters with `[Parameter(Mandatory)]`
+<4> `$ProjectRoot` is always optional — auto-resolved from `$PSScriptRoot`
+<5> Set `$ErrorActionPreference = 'Stop'` at the top of every script
+<6> Auto-resolve project root relative to script location
+<7> Dot-source helpers, import modules with `-Force`
+<8> Start a log session before any work
+<9> Main logic wrapped in `try`
+<10> Log errors with the `$ErrorRecord` for full stack trace
+<11> Always close the log session in `finally`
+
+=== Comment Block Header
+
+Every script **must** start with the banner comment:
+
+[source,powershell]
+----
+# =============================================================================
+# Script-Name.ps1 - Azure Local Load Tools
+# =============================================================================
+# Description of the script purpose.
+# =============================================================================
+----
+
+NOTE: This banner replaces traditional comment-based help at the _file_ level. Functions inside modules use `<# .SYNOPSIS #>` blocks instead.
+
+== Parameter Standards
+
+=== Required vs Optional
+
+[cols="1,2,3"]
+|===
+| Attribute | When to Use | Example
+
+| `[Parameter(Mandatory)]`
+| Value must be provided — no fallback exists
+| Rarely used; most params have config fallbacks
+
+| `[Parameter()]`
+| Has a fallback via solution config or master config
+| Most parameters in this project
+
+| `[ValidateSet(...)]`
+| Constrained to known values
+| `[ValidateSet('PDF', 'DOCX', 'XLSX')]`
+
+| `[ValidateRange(...)]`
+| Numeric bounds
+| `[ValidateRange(1, 1000)]`
+
+| `[PSCredential]`
+| Credential parameters
+| `[PSCredential]$Credential`
+
+| `[switch]`
+| Boolean flags
+| `[switch]$Force`, `[switch]$Resume`
+|===
+
+=== Three-Level Override Chain
+
+All configuration-driven parameters must follow this override chain:
+
+[source,powershell]
+----
+$vmCount = if ($VMCount) { $VMCount }               # <1>
+           elseif ($profile) { $profile.vm_count }   # <2>
+           else { [int]$solutionConfig.vmfleet_vm_count }  # <3>
+----
+<1> **Explicit parameter** — highest priority, user passed it directly
+<2> **Profile config** — loaded from `config/profiles/<solution>/*.yml`
+<3> **Solution config** — generated from `master-environment.yml`
+
+IMPORTANT: Never skip levels. Every configurable parameter must check all three levels in this exact order.
+
+=== Default Config Path Resolution
+
+When a config path parameter is not provided, resolve it from `$ProjectRoot`:
+
+[source,powershell]
+----
+if (-not $SolutionConfigPath) {
+    $SolutionConfigPath = Join-Path $ProjectRoot 'config\variables\solutions\vmfleet.json'
+}
+----
+
+== Module Structure
+
+=== File Layout
+
+Each module consists of two files in its own directory:
+
+----
+src/core/powershell/modules/
+└── ModuleName/
+    ├── ModuleName.psd1   # Module manifest
+    └── ModuleName.psm1   # Module implementation
+----
+
+=== Manifest Requirements (`.psd1`)
+
+Every module manifest must include:
+
+[source,powershell]
+----
+@{
+    RootModule        = 'ModuleName.psm1'
+    ModuleVersion     = '0.1.0'                    # <1>
+    GUID              = '<unique-guid>'
+    Author            = 'AzureLocal'
+    Description       = 'Brief module description'
+    PowerShellVersion = '7.2'
+    FunctionsToExport = @('Public-Function1', 'Public-Function2')  # <2>
+    PrivateData       = @{
+        PSData = @{
+            ProjectUri = 'https://github.com/AzureLocal/azurelocal-loadtools'  # <3>
+        }
+    }
+}
+----
+<1> Follow semantic versioning
+<2> Explicitly list exported functions — never use `'*'`
+<3> Always include the project URI
+
+=== Module Implementation (`.psm1`)
+
+[source,powershell]
+----
+# =============================================================================
+# ModuleName Module - Azure Local Load Tools
+# =============================================================================
+# Module description.
+# =============================================================================
+
+# Module-level variables
+$script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
+
+function Public-Function {
+    <#
+    .SYNOPSIS
+        One-line description.
+    .DESCRIPTION
+        Detailed description.
+    .PARAMETER ParamName
+        Parameter description.
+    .OUTPUTS
+        Output type description.
+    .EXAMPLE
+        Public-Function -ParamName 'value'
+    #>
+    [CmdletBinding()]
+    param( ... )
+    # Implementation
+}
+----
+
+WARNING: Every public function must have a complete comment-based help block with `.SYNOPSIS`, `.DESCRIPTION`, `.PARAMETER`, and `.OUTPUTS` at minimum.
+
+== Error Handling
+
+=== Global Error Preference
+
+Every script sets `$ErrorActionPreference = 'Stop'` at the top. This ensures all errors are terminating.
+
+=== Try/Catch Pattern
+
+[source,powershell]
+----
+try {
+    # Operations that may fail
+    Invoke-Command -ComputerName $node -ScriptBlock {
+        Import-Module VMFleet -ErrorAction Stop  # <1>
+        # ...
+    } -Credential $cred
+}
+catch {
+    Write-Log -Message "Failed: $_" -Severity Error -ErrorRecord $_  # <2>
+    throw  # <3>
+}
+----
+<1> Use `-ErrorAction Stop` on individual cmdlets inside remote sessions
+<2> Always log before re-throwing
+<3> Re-throw to propagate — let the caller decide recovery
+
+=== ShouldProcess for Destructive Operations
+
+Wrap all cluster-modifying operations in `$PSCmdlet.ShouldProcess()`:
+
+[source,powershell]
+----
+if ($PSCmdlet.ShouldProcess($primaryNode, 'Stop VMFleet workload')) {
+    Invoke-Command -ComputerName $primaryNode -ScriptBlock {
+        Import-Module VMFleet -ErrorAction Stop
+        Stop-Fleet
+    } -Credential $clusterCred
+}
+----
+
+TIP: This enables users to run scripts with `-WhatIf` for a dry run or `-Confirm` for step-by-step approval.
+
+== Logging Standards
+
+=== Log Format
+
+All logs are written in **JSON-lines** format (`.jsonl`), one JSON object per line:
+
+[source,json]
+----
+{"timestamp":"2026-02-13T10:30:00.000Z","severity":"INFO","component":"VMFleet-Install","correlation_id":"abc123","message":"VMFleet module installation complete","data":null}
+----
+
+=== Severity Levels
+
+[cols="1,3"]
+|===
+| Level | When to Use
+
+| `DEBUG`    | Verbose diagnostic info (parameter values, intermediate state)
+| `INFO`     | Normal operation milestones (phase started, phase completed)
+| `WARNING`  | Non-fatal issues (fallback used, optional feature unavailable)
+| `ERROR`    | Failures that stop the current operation
+| `CRITICAL` | Unrecoverable failures requiring immediate attention
+|===
+
+=== Log Session Lifecycle
+
+[source,powershell]
+----
+# Start
+$logSession = Start-LogSession -Component 'VMFleet-Deploy' `
+    -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+
+# Write entries
+Write-Log -Message 'Starting deployment' -Severity Information
+Write-Log -Message 'Deployment complete' -Severity Information -Data @{
+    vm_count = $vmCount
+    duration = $elapsed.TotalSeconds
+}
+
+# Stop (always in finally block)
+Stop-LogSession
+----
+
+=== Log Directory Convention
+
+----
+logs/
+├── vmfleet/          # VMFleet component logs
+├── fio/              # fio component logs
+├── pipeline/         # Orchestrator logs
+├── monitoring/       # Metric collection logs
+└── reports/          # Report generation logs
+----
+
+== Testing Requirements
+
+=== Framework
+
+All tests use **Pester v5+**.
+
+=== File Naming
+
+Test files follow the pattern `<ModuleName>.Tests.ps1` and live in the `tests/` directory:
+
+----
+tests/
+├── ConfigManager.Tests.ps1
+├── Logger.Tests.ps1
+├── ReportGenerator.Tests.ps1
+├── StateManager.Tests.ps1
+└── PSScriptAnalyzer.ps1
+----
+
+=== Test Structure
+
+[source,powershell]
+----
+BeforeAll {
+    $modulePath = Join-Path $PSScriptRoot '..\src\core\powershell\modules\<Module>\<Module>.psm1'
+    Import-Module $modulePath -Force
+}
+
+Describe '<Module> Module' {
+    Context '<FunctionName>' {
+        It 'Should <expected behavior>' {
+            # Arrange
+            $input = ...
+
+            # Act
+            $result = Function-Name -Param $input
+
+            # Assert
+            $result | Should -Be $expected
+        }
+    }
+}
+----
+
+=== Test Isolation
+
+* Use `$TestDrive` for any file I/O — never write to the real project tree
+* Import modules in `BeforeAll`, not at the top of the file
+* Each `It` block must be independent — no shared mutable state between tests
+
+=== Coverage Expectations
+
+[cols="1,2"]
+|===
+| Area | Minimum Requirement
+
+| Core modules (`ConfigManager`, `Logger`, `StateManager`)
+| One `Describe` block per public function
+
+| Solution scripts
+| Integration test via pipeline orchestrator
+
+| Config validation
+| Schema validation tests for all JSON and YAML files
+|===
+
+== PSScriptAnalyzer Rules
+
+=== Running the Linter
+
+[source,powershell]
+----
+# Lint all scripts
+pwsh -File tests/PSScriptAnalyzer.ps1
+
+# Lint with auto-fix
+pwsh -File tests/PSScriptAnalyzer.ps1 -Fix
+----
+
+=== Enforced Rules
+
+All default PSScriptAnalyzer rules are enforced **except** the following exclusions:
+
+[cols="2,3"]
+|===
+| Excluded Rule | Reason
+
+| `PSAvoidUsingConvertToSecureStringWithPlainText`
+| Used in demo/template code for examples only
+|===
+
+=== Severity Policy
+
+[cols="1,3"]
+|===
+| Severity | Policy
+
+| **Error**
+| Must be fixed before merge — PR will be blocked
+
+| **Warning**
+| Must be fixed before merge unless a documented exception exists
+
+| **Information**
+| Should be addressed; not a merge blocker
+|===
+
+TIP: Run `tests/PSScriptAnalyzer.ps1` locally before every commit. The CI pipeline (`lint.yml`) runs this automatically on PR.
