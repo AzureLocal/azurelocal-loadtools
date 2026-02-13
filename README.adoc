@@ -8,6 +8,14 @@ image:https://img.shields.io/badge/PowerShell-7.2%2B-blue[PowerShell 7.2+]
 image:https://img.shields.io/badge/License-MIT-green[MIT License]
 image:https://img.shields.io/badge/VMFleet-2.1.0.0-orange[VMFleet 2.1.0.0]
 
+
+[CAUTION]
+====
+**Pre-Release Solution** — This project is under active development and has not been officially released.
+It should be considered experimental. Scripts, configuration formats, and module interfaces may change without notice.
+Use in production environments is not recommended at this time.
+====
+
 Comprehensive load testing framework for **Azure Local** (formerly Azure Stack HCI) clusters. Validates storage, network, and compute performance before production workloads are migrated or deployed.
 
 toc::[]

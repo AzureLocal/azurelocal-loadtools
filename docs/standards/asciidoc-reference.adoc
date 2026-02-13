@@ -1,0 +1,1170 @@
+= AsciiDoc Syntax Reference — Azure Local Load Tools
+Kristopher Turner
+v1.0, 2026-02-13
+
+:description: Quick-reference guide for AsciiDoc syntax used in the Azure Local Load Tools project. Covers formatting, blocks, tables, admonitions, attributes, and cross-references.
+:keywords: asciidoc, syntax, reference, cheat-sheet, formatting, documentation, azure-local
+:toc: left
+:toclevels: 4
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:tip-caption: 💡
+:note-caption: ℹ️
+:warning-caption: ⚠️
+:caution-caption: 🔥
+:important-caption: ❗
+
+[abstract]
+A project-tailored AsciiDoc syntax reference for contributors to the Azure Local Load Tools repository.
+Every example is taken from or modeled after actual project files.
+For the full AsciiDoc specification, see https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/[Asciidoctor Quick Reference] and https://asciidoc.org/[asciidoc.org].
+
+[discrete]
+== Quick Navigation
+
+* <<document-header>> — Title, author, revision, attributes
+* <<text-formatting>> — Bold, italic, monospace, highlight
+* <<paragraphs-and-line-breaks>> — Normal, literal, lead, hard breaks
+* <<section-headings>> — Levels, anchors, discrete headings
+* <<lists>> — Unordered, ordered, checklists, description lists
+* <<code-blocks>> — Source blocks, callouts, inline code
+* <<admonitions>> — TIP, NOTE, WARNING, CAUTION, IMPORTANT
+* <<tables>> — Basic tables, column specs, AsciiDoc content in cells
+* <<links-and-cross-references>> — URLs, anchors, xref, inter-document links
+* <<images-and-diagrams>> — Block images, inline images, captions
+* <<includes>> — Including other files, tagged regions, lines
+* <<attributes-and-variables>> — Declaring and using document attributes
+* <<delimited-blocks>> — Sidebars, examples, quotes, open blocks, passthroughs
+* <<keyboard-button-and-menu-macros>> — UI interaction documentation
+* <<comments-and-breaks>> — Line comments, block comments, thematic and page breaks
+
+'''
+
+[[document-header]]
+== Document Header
+
+The document header contains the title, author, revision, and attribute entries. It must not contain empty lines.
+
+=== Minimal Header (Chapter Files)
+
+Chapter files that are included into `main.adoc` need no header — they start at heading level `==`:
+
+[source,asciidoc]
+----
+== Chapter Title
+
+Content starts here.
+----
+
+=== Standard Header (README Files)
+
+[source,asciidoc]
+----
+= Azure Local Load Tools
+:toc: macro
+:toclevels: 2
+:icons: font
+
+Description paragraph.
+
+toc::[]
+----
+
+=== Full Header (Standards Documents)
+
+[source,asciidoc]
+----
+= Document Title — Subtitle
+Kristopher Turner
+v1.0, 2026-02-13
+
+:description: Brief description for metadata.
+:keywords: comma, separated, keywords
+:toc: left
+:toclevels: 4
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:tip-caption: 💡
+:note-caption: ℹ️
+:warning-caption: ⚠️
+:caution-caption: 🔥
+:important-caption: ❗
+----
+
+=== Book Header (`main.adoc`)
+
+[source,asciidoc]
+----
+= Book Title
+:author: AzureLocal
+:email: azurelocal@microsoft.com
+:revdate: 2026-02-13
+:revnumber: 0.1.0
+:doctype: book
+:toc: left
+:toclevels: 3
+:sectnums:
+:sectnumlevels: 3
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: images
+
+// Custom attributes (reusable variables)
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+----
+
+=== Common Attributes Reference
+
+[cols="2,1,3"]
+|===
+| Attribute | Values | Effect
+
+| `:toc:`
+| `left`, `right`, `macro`, `auto`, `preamble`
+| Table of contents placement
+
+| `:toclevels:`
+| `1`–`5`
+| Depth of headings shown in TOC
+
+| `:sectnums:`
+| (flag)
+| Enables section numbering (1, 1.1, 1.2…)
+
+| `:icons:`
+| `font`, `image`
+| Use Font Awesome icons for admonitions
+
+| `:source-highlighter:`
+| `rouge`, `highlight.js`, `coderay`
+| Syntax highlighting engine
+
+| `:experimental:`
+| (flag)
+| Enables `kbd:[]`, `btn:[]`, `menu:[]` macros
+
+| `:imagesdir:`
+| path
+| Base directory for image references
+
+| `:tip-caption:` etc.
+| text/emoji
+| Custom admonition label text
+|===
+
+[[text-formatting]]
+== Text Formatting
+
+=== Inline Styles
+
+[cols="2,3,2"]
+|===
+| Style | Syntax | Renders As
+
+| Bold
+| `+*bold text*+`
+| *bold text*
+
+| Italic
+| `+_italic text_+`
+| _italic text_
+
+| Monospace
+| `++`monospace`++`
+| `monospace`
+
+| Bold italic
+| `+*_bold italic_*+`
+| *_bold italic_*
+
+| Bold monospace
+| `++*`bold mono`*++`
+| *`bold mono`*
+
+| Highlight
+| `+#highlighted#+`
+| #highlighted#
+
+| Underline
+| `+[.underline]#underlined#+`
+| [.underline]#underlined#
+
+| Strikethrough
+| `+[.line-through]#struck#+`
+| [.line-through]#struck#
+
+| Superscript
+| `+^super^+`
+| ^super^
+
+| Subscript
+| `+~sub~+`
+| ~sub~
+|===
+
+=== Unconstrained Formatting
+
+Use double marks when formatting is inside a word:
+
+[source,asciidoc]
+----
+**C**reate, **R**ead, **U**pdate, and **D**elete (CRUD)
+
+fan__freakin__tastic
+----
+
+Renders as: **C**reate, **R**ead, **U**pdate, and **D**elete (CRUD)
+
+[[paragraphs-and-line-breaks]]
+== Paragraphs and Line Breaks
+
+=== Normal Paragraph
+
+Just write text. One or more consecutive lines form a paragraph. Separate paragraphs with a blank line:
+
+[source,asciidoc]
+----
+This is the first paragraph.
+
+This is the second paragraph.
+----
+
+=== Hard Line Breaks
+
+Force a line break with `+` at the end of a line:
+
+[source,asciidoc]
+----
+First line, +
+second line, +
+third line.
+----
+
+Or apply to an entire block:
+
+[source,asciidoc]
+----
+[%hardbreaks]
+Line one.
+Line two.
+Line three.
+----
+
+=== Literal Paragraph
+
+Indent by one or more spaces to create a literal (preformatted) paragraph:
+
+[source,asciidoc]
+----
+ This is a literal paragraph.
+ Spaces and line breaks are preserved.
+ It renders in a monospace font.
+----
+
+=== Lead Paragraph
+
+[source,asciidoc]
+----
+[.lead]
+This paragraph will render in a larger font.
+----
+
+[[section-headings]]
+== Section Headings
+
+=== Heading Levels
+
+[source,asciidoc]
+-----
+= Document Title (Level 0)     <1>
+
+== Level 1 Section              <2>
+
+=== Level 2 Section
+
+==== Level 3 Section
+
+===== Level 4 Section
+-----
+<1> Level 0 — only one per document (the title), unless `:doctype: book`
+<2> Level 1 — top-level section in chapters
+
+=== Explicit Anchors
+
+Add a stable anchor ID above a heading for reliable cross-references:
+
+[source,asciidoc]
+----
+[[deploy-phase]]
+== Deploy VMFleet
+
+Reference it elsewhere: see <<deploy-phase>>.
+----
+
+WARNING: Auto-generated anchors break when headings are renamed. Always use explicit `[[anchor]]` IDs for sections referenced from other documents.
+
+=== Discrete Headings
+
+A discrete heading looks like a heading but doesn't become a section (excluded from TOC and numbering):
+
+[source,asciidoc]
+----
+[discrete]
+== Quick Navigation
+
+* <<section-one>> — Description
+* <<section-two>> — Description
+----
+
+TIP: We use discrete headings for the Quick Navigation block at the top of standards documents.
+
+[[lists]]
+== Lists
+
+=== Unordered Lists
+
+[source,asciidoc]
+----
+* Item one
+* Item two
+** Nested item
+*** Deeper nested
+* Item three
+----
+
+Renders as:
+
+* Item one
+* Item two
+** Nested item
+*** Deeper nested
+* Item three
+
+IMPORTANT: Always use `*` for unordered lists in this project. Do not use `-`.
+
+=== Ordered Lists
+
+[source,asciidoc]
+----
+. First step
+. Second step
+.. Sub-step A
+.. Sub-step B
+. Third step
+----
+
+Renders as:
+
+. First step
+. Second step
+.. Sub-step A
+.. Sub-step B
+. Third step
+
+=== Checklists
+
+[source,asciidoc]
+----
+* [*] Completed task
+* [x] Also completed
+* [ ] Incomplete task
+* Normal list item
+----
+
+=== Description Lists
+
+[source,asciidoc]
+----
+Term 1:: Definition on the same line.
+Term 2::
+Definition on the next line.
+----
+
+Renders as:
+
+Term 1:: Definition on the same line.
+Term 2::
+Definition on the next line.
+
+=== Complex List Content
+
+Attach additional content to a list item using the list continuation (`+`):
+
+[source,asciidoc]
+-----
+* First item with a paragraph.
++
+And a second paragraph attached to it.
++
+[source,powershell]
+----
+Get-Process  # Code block attached to list item
+----
+
+* Second item.
+-----
+
+[[code-blocks]]
+== Code Blocks
+
+=== Source Block with Language
+
+Always specify the language for syntax highlighting:
+
+[source,asciidoc]
+-----
+[source,powershell]
+----
+$config = Import-MasterConfig
+$config | Where-Object { $_.solutions -contains 'vmfleet' }
+----
+-----
+
+=== Source Block with Title
+
+[source,asciidoc]
+-----
+.Install-VMFleet.ps1 — Module installation
+[source,powershell]
+----
+Install-Module -Name VMFleet -RequiredVersion $vmfleetVer -Force
+----
+-----
+
+=== Callouts
+
+Annotate lines in a code block with numbered callouts:
+
+[source,asciidoc]
+-----
+[source,powershell]
+----
+$config = Import-MasterConfig   # \<1>
+$filtered = Get-SolutionConfig -Solution 'VMFleet'  # \<2>
+Export-SolutionConfig -OutputPath $outputPath  # \<3>
+----
+\<1> Loads the master YAML into memory
+\<2> Filters to VMFleet-tagged variables
+\<3> Writes the solution JSON to disk
+-----
+
+NOTE: The callout comment style depends on the language — `# <N>` for PowerShell/YAML, `// <N>` for JSON/C-style languages, `<!--N-->` for XML.
+
+=== Inline Monospace
+
+Reference code elements inline with backticks:
+
+[source,asciidoc]
+----
+Set `$ErrorActionPreference` to `'Stop'` at the top of every script.
+
+Run the `Install-VMFleet.ps1` script to install the module.
+----
+
+=== Literal Block
+
+A literal block preserves whitespace and uses monospace rendering, but has no syntax highlighting:
+
+[source,asciidoc]
+-----
+....
+logs/
+├── vmfleet/
+├── fio/
+└── pipeline/
+....
+-----
+
+Renders as:
+
+....
+logs/
+├── vmfleet/
+├── fio/
+└── pipeline/
+....
+
+Alternatively, use a listing block with `----` delimiters, or prefix a paragraph with a single space for inline literal paragraphs.
+
+[[admonitions]]
+== Admonitions
+
+=== Inline Admonitions
+
+[source,asciidoc]
+----
+TIP: Run the linter before committing.
+
+NOTE: This applies to all PowerShell modules.
+
+WARNING: This will delete all fleet VMs.
+
+CAUTION: Risk of data loss if the volume is not backed up.
+
+IMPORTANT: Never commit credentials to this file.
+----
+
+Renders as:
+
+TIP: Run the linter before committing.
+
+NOTE: This applies to all PowerShell modules.
+
+WARNING: This will delete all fleet VMs.
+
+CAUTION: Risk of data loss if the volume is not backed up.
+
+IMPORTANT: Never commit credentials to this file.
+
+=== Block Admonitions
+
+For multi-line admonitions, use the block form:
+
+[source,asciidoc]
+----
+[WARNING]
+====
+This operation is destructive and cannot be undone.
+
+Steps to take:
+
+. Back up the cluster
+. Verify the backup
+. Proceed with the operation
+====
+----
+
+=== When to Use Each Type
+
+[cols="1,1,3"]
+|===
+| Type | Icon | Purpose
+
+| `TIP`
+| 💡
+| Helpful suggestions, shortcuts, best practices
+
+| `NOTE`
+| ℹ️
+| Extra context, clarifications, "good to know"
+
+| `WARNING`
+| ⚠️
+| Potential problems if instructions are not followed
+
+| `CAUTION`
+| 🔥
+| Risk of data loss, security issues, breaking changes
+
+| `IMPORTANT`
+| ❗
+| Critical information that must not be skipped
+|===
+
+[[tables]]
+== Tables
+
+=== Basic Table with Header
+
+[source,asciidoc]
+----
+[cols="1,2,3"]
+|===
+| Name | Type | Description
+
+| `cluster_name`
+| string
+| Azure Local cluster name
+
+| `vm_count_per_node`
+| integer
+| Fleet VMs created per cluster node
+|===
+----
+
+Renders as:
+
+[cols="1,2,3"]
+|===
+| Name | Type | Description
+
+| `cluster_name`
+| string
+| Azure Local cluster name
+
+| `vm_count_per_node`
+| integer
+| Fleet VMs created per cluster node
+|===
+
+=== Column Width Specifiers
+
+The `cols` attribute controls column widths as ratios:
+
+[source,asciidoc]
+----
+[cols="1,1,2"]   <1>
+[cols="2,3,5"]   <2>
+[cols="1,1,1"]   <3>
+[cols="3*"]      <4>
+----
+<1> Three columns: 25%, 25%, 50%
+<2> Three columns: 20%, 30%, 50%
+<3> Three equal columns
+<4> Shorthand: three equal columns (same as `1,1,1`)
+
+=== Column Alignment and Style
+
+[cols="1,3,2"]
+|===
+| Specifier | Meaning | Example
+
+| `<`
+| Left-align
+| `[cols="<1,>2"]`
+
+| `>`
+| Right-align
+| Numbers, sizes
+
+| `^`
+| Center-align
+| Status columns
+
+| `a`
+| AsciiDoc content
+| `[cols="1,2a"]` — allows lists, code, etc. inside cells
+
+| `e`
+| Emphasis (italic)
+| `[cols="e,m"]`
+
+| `m`
+| Monospace
+| Code values
+
+| `s`
+| Strong (bold)
+| Headers/labels
+|===
+
+=== AsciiDoc Content in Cells
+
+Use the `a` column type to write rich content inside table cells:
+
+[source,asciidoc]
+----
+[cols="1,2a"]
+|===
+| Feature | Details
+
+| Logging
+|
+Supports multiple levels:
+
+* `DEBUG`
+* `INFO`
+* `WARNING`
+* `ERROR`
+* `CRITICAL`
+|===
+----
+
+=== Table from CSV Data
+
+[source,asciidoc]
+----
+[%header,format=csv]
+|===
+Tool,Type,Status
+VMFleet,Storage I/O,Implemented
+fio,Storage I/O,Planned
+|===
+----
+
+[[links-and-cross-references]]
+== Links and Cross-References
+
+=== External URLs
+
+[source,asciidoc]
+----
+https://github.com/AzureLocal/azurelocal-loadtools[Azure Local Load Tools]
+
+https://docs.microsoft.com/en-us/azure-stack/hci/[Azure Stack HCI docs]
+----
+
+URLs with a scheme (`https://`, `http://`) are automatically converted to links. Add `[link text]` to customize the displayed text.
+
+=== Internal Cross-References
+
+Link to a section within the same document:
+
+[source,asciidoc]
+----
+See <<deploy-phase>> for deployment instructions.
+
+See <<deploy-phase, the deployment phase>> for custom link text.
+----
+
+=== Inter-Document Cross-References
+
+Link to a section in a different file using `xref`:
+
+[source,asciidoc]
+----
+See xref:chapters/06-vmfleet-guide.adoc#deploy-phase[the deployment phase].
+
+See xref:standards/scripting-standards.adoc[Scripting Standards] for full details.
+----
+
+=== Inline Anchors
+
+Create a referenceable anchor anywhere in text:
+
+[source,asciidoc]
+----
+[[my-anchor]]This text is now referenceable.
+
+[#inline-anchor]#This phrase# is also referenceable.
+----
+
+=== Link to a Relative File
+
+[source,asciidoc]
+----
+link:../../config/clusters/example-cluster.yml[Example cluster config]
+----
+
+[[images-and-diagrams]]
+== Images and Diagrams
+
+=== Block Image
+
+[source,asciidoc]
+----
+image::vmfleet-pipeline-workflow.png[VMFleet Pipeline Workflow, width=600]
+----
+
+* Store images in `docs/images/`
+* The `:imagesdir:` attribute resolves the path automatically
+* Always include alt text (first positional parameter)
+* Specify `width` for large images
+
+=== Block Image with Caption
+
+[source,asciidoc]
+----
+.Figure 1: VMFleet Pipeline Workflow
+image::vmfleet-pipeline-workflow.png[VMFleet Pipeline Workflow, width=600]
+----
+
+The `.Title` line above the image becomes the figure caption.
+
+=== Inline Image
+
+[source,asciidoc]
+----
+Click image:play-button.png[Play, 16, 16] to start the test.
+----
+
+NOTE: Block images use `image::` (two colons). Inline images use `image:` (one colon).
+
+[[includes]]
+== Includes
+
+=== Include an Entire File
+
+[source,asciidoc]
+----
+\include::chapters/01-introduction.adoc[]
+----
+
+Used in `main.adoc` to assemble the book from chapters.
+
+=== Include by Tagged Region
+
+In the source file, mark regions with tags:
+
+[source,powershell]
+----
+# tag::bootstrap[]
+. (Join-Path $ProjectRoot 'src\core\powershell\helpers\Common-Functions.ps1')
+Import-Module (Join-Path $ProjectRoot 'src\core\powershell\modules\Logger\Logger.psm1') -Force
+# end::bootstrap[]
+----
+
+Then include only that region:
+
+[source,asciidoc]
+-----
+[source,powershell]
+----
+\include::../../src/solutions/vmfleet/Invoke-VMFleetPipeline.ps1[tag=bootstrap]
+----
+-----
+
+=== Include by Line Range
+
+[source,asciidoc]
+----
+\include::../../src/solutions/vmfleet/Invoke-VMFleetPipeline.ps1[lines=1..10]
+----
+
+TIP: Use tagged regions instead of line numbers when possible — line numbers break when the source file changes.
+
+[[attributes-and-variables]]
+== Attributes and Variables
+
+=== Declaring Attributes
+
+[source,asciidoc]
+----
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+:vmfleet-version: 2.1.0.0
+----
+
+=== Using Attributes
+
+Reference with curly braces:
+
+[source,asciidoc]
+----
+The {project-name} is hosted at {project-repo}.
+
+Requires VMFleet version {vmfleet-version} or later.
+----
+
+Renders as: "The Azure Local Load Testing Framework is hosted at https://github.com/AzureLocal/azurelocal-loadtools."
+
+=== Conditional Attributes
+
+[source,asciidoc]
+----
+ifdef::env-github[]
+TIP: You are viewing this on GitHub.
+endif::[]
+
+ifndef::backend-pdf[]
+NOTE: This section is hidden in PDF output.
+endif::[]
+----
+
+=== Built-in Attributes
+
+[cols="2,3"]
+|===
+| Attribute | Value
+
+| `\{docname}`
+| Document file name (without extension)
+
+| `\{docdate}`
+| Document last-modified date
+
+| `\{revnumber}`
+| Revision number from header
+
+| `\{author}`
+| Author from header
+
+| `\{nbsp}`
+| Non-breaking space
+
+| `\{empty}`
+| Empty string (useful for resetting)
+
+| `\{zwsp}`
+| Zero-width space
+|===
+
+[[delimited-blocks]]
+== Delimited Blocks
+
+=== Sidebar
+
+[source,asciidoc]
+----
+.Optional Sidebar Title
+****
+Sidebars are used to visually separate supplemental content.
+They render with a distinct background or border.
+****
+----
+
+=== Example Block
+
+[source,asciidoc]
+----
+====
+This is an example block.
+
+It can contain compound content:
+
+* List items
+* More items
+
+And additional paragraphs.
+====
+----
+
+=== Blockquote
+
+[source,asciidoc]
+----
+[quote, Microsoft Documentation]
+____
+Azure Local is a hyperconverged infrastructure solution
+that runs on validated hardware.
+____
+----
+
+Or the shorthand form:
+
+[source,asciidoc]
+----
+"Azure Local is the future of hybrid cloud infrastructure."
+-- Microsoft, Azure Local Documentation
+----
+
+=== Open Block
+
+An anonymous container that can masquerade as any block type:
+
+[source,asciidoc]
+----
+--
+An open block can hold any content.
+--
+
+[source]
+--
+Or act as a source block.
+--
+----
+
+=== Passthrough Block
+
+Pass raw HTML or other content through without AsciiDoc processing:
+
+[source,asciidoc]
+----
+++++
+<div class="custom-badge">
+  <span>Status: Active</span>
+</div>
+++++
+----
+
+[[keyboard-button-and-menu-macros]]
+== Keyboard, Button, and Menu Macros
+
+NOTE: These macros require `:experimental:` in the document header.
+
+=== Keyboard Shortcuts
+
+[source,asciidoc]
+----
+Press kbd:[Ctrl+C] to stop the running process.
+
+Press kbd:[F11] to toggle fullscreen.
+
+Press kbd:[Ctrl+Shift+P] to open the command palette.
+----
+
+Renders as: Press kbd:[Ctrl+C] to stop the running process.
+
+=== Button Macro
+
+[source,asciidoc]
+----
+Click btn:[OK] to confirm.
+
+Press btn:[Cancel] to abort.
+----
+
+=== Menu Macro
+
+[source,asciidoc]
+----
+Select menu:File[Save] to save the document.
+
+Navigate to menu:View[Zoom > Reset] to reset zoom.
+----
+
+[[comments-and-breaks]]
+== Comments and Breaks
+
+=== Line Comment
+
+[source,asciidoc]
+----
+// This line is a comment — it won't appear in the output.
+----
+
+=== Block Comment
+
+[source,asciidoc]
+----
+////
+Everything in here is a comment.
+Multiple lines are supported.
+Won't appear in any output format.
+////
+----
+
+=== Thematic Break (Horizontal Rule)
+
+[source,asciidoc]
+----
+Content above.
+
+'''
+
+Content below.
+----
+
+Renders as a horizontal line separating the content.
+
+=== Page Break
+
+Force a page break (useful for PDF output):
+
+[source,asciidoc]
+----
+<<<
+----
+
+== Text Replacements
+
+AsciiDoc automatically converts certain character sequences:
+
+[cols="2,1,1"]
+|===
+| Input | Output | Unicode
+
+| `+(C)+`
+| (C)
+| &#169; Copyright
+
+| `+(R)+`
+| (R)
+| &#174; Registered
+
+| `+(TM)+`
+| (TM)
+| &#8482; Trademark
+
+| `+--+` (between words)
+| —
+| Em dash
+
+| `+...+`
+| ...
+| Ellipsis
+
+| `+->+`
+| ->
+| Right arrow
+
+| `+=>+`
+| =>
+| Double right arrow
+
+| `+<-+`
+| <-
+| Left arrow
+|===
+
+== Escaping
+
+To prevent AsciiDoc from interpreting special characters, use a backslash:
+
+[source,asciidoc]
+----
+\*Not bold*
+
+\https://example.org is not an active link.
+
+In /items/\{id}, the attribute isn't replaced.
+----
+
+For more complex escaping, use a passthrough:
+
+[source,asciidoc]
+----
+pass:[*not bold*]
+
++/user/{id}+  <1>
+----
+<1> Single plus passthrough — prevents substitution but still escapes special HTML characters
+
+== Quick Cheat Sheet
+
+[cols="3,4"]
+|===
+| Task | Syntax
+
+| Bold
+| `+*text*+`
+
+| Italic
+| `+_text_+`
+
+| Monospace
+| `++`text`++`
+
+| Heading L2
+| `+== Heading+`
+
+| Unordered list
+| `+* Item+`
+
+| Ordered list
+| `+. Item+`
+
+| Link
+| `+https://url[text]+`
+
+| Cross-ref
+| `+<<anchor>>+`
+
+| Code block
+| `+[source,lang]+ then +----+`
+
+| Image
+| `+image::file.png[alt]+`
+
+| Admonition
+| `+TIP: text+`
+
+| Include
+| `+include::file.adoc[]+`
+
+| Attribute
+| `+:name: value+` / `+{name}+`
+
+| Table
+| `+\|===+` / `+\| cell+`
+
+| Keyboard
+| `+kbd:[Ctrl+S]+`
+
+| Comment
+| `+// comment+`
+
+| Horizontal rule
+| `+'''+`
+
+| Page break
+| `+<<<+`
+|===
