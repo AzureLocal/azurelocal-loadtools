@@ -1,8 +1,19 @@
-== Installation
+= Installation
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-This chapter walks through the installation and initial setup of the {project-name}.
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
 
-=== Clone the Repository
+This guide walks through the installation and initial setup of the {project-name}.
+
+== Clone the Repository
 
 [source,powershell]
 ----
@@ -10,7 +21,7 @@ git clone https://github.com/AzureLocal/azurelocal-loadtools.git
 cd azurelocal-loadtools
 ----
 
-=== Install PowerShell Dependencies
+== Install PowerShell Dependencies
 
 [source,powershell]
 ----
@@ -23,9 +34,9 @@ Install-Module -Name VMFleet -Scope CurrentUser -Force
 Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force
 ----
 
-=== Install Report Generation Tools
+== Install Report Generation Tools
 
-==== Asciidoctor (PDF Reports)
+=== Asciidoctor (PDF Reports)
 
 [source,powershell]
 ----
@@ -36,7 +47,7 @@ winget install RubyInstallerTeam.Ruby.3.2
 gem install asciidoctor asciidoctor-pdf rouge
 ----
 
-==== Pandoc (Word Reports)
+=== Pandoc (Word Reports)
 
 [source,powershell]
 ----
@@ -44,11 +55,11 @@ gem install asciidoctor asciidoctor-pdf rouge
 winget install JohnMacFarlane.Pandoc
 ----
 
-=== Install Ansible (Optional — Linux Tools)
+== Install Ansible (Optional — Linux Tools)
 
 Ansible is required only for Linux-based tools (fio, iPerf3, HammerDB, stress-ng).
 
-==== Option A: WSL2 on Windows
+=== Option A: WSL2 on Windows
 
 [source,powershell]
 ----
@@ -60,7 +71,7 @@ sudo apt update && sudo apt install -y python3-pip
 pip3 install ansible
 ----
 
-==== Option B: Linux Jump Box
+=== Option B: Linux Jump Box
 
 [source,bash]
 ----
@@ -69,11 +80,11 @@ sudo apt update && sudo apt install -y python3-pip
 pip3 install ansible
 ----
 
-==== Option C: CI Runner Only
+=== Option C: CI Runner Only
 
-Ansible is installed as part of the CI/CD pipeline. See the <<CI/CD Pipelines>> chapter.
+Ansible is installed as part of the CI/CD pipeline. See the link:../operations/ci-cd.adoc[CI/CD Pipelines] guide.
 
-=== Configure Cluster Connection
+== Configure Cluster Connection
 
 Copy the example cluster configuration and customize:
 
@@ -99,7 +110,7 @@ cluster:
   base_vhd_path: "C:\\ClusterStorage\\Collect\\BaseImage.vhdx"
 ----
 
-=== Initialize the Environment
+== Initialize the Environment
 
 [source,powershell]
 ----
@@ -118,7 +129,7 @@ This will:
 . Generate solution-specific configuration files from the master environment
 . Create initial run state
 
-=== Verify Installation
+== Verify Installation
 
 [source,powershell]
 ----
@@ -127,3 +138,8 @@ Invoke-Pester tests/unit/ -Output Detailed
 ----
 
 All tests should pass, confirming modules load correctly and configuration is valid.
+
+== Next Steps
+
+* link:configuration.adoc[Configuration] — Understand the configuration system
+* link:../tools/vmfleet/overview.adoc[VMFleet Guide] — Start with VMFleet storage testing

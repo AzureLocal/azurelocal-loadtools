@@ -17,6 +17,8 @@ v1.0, 2026-02-13
 :caution-caption: 🔥
 :important-caption: ❗
 
+image:https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square[Category: Standards]
+
 [abstract]
 This document defines the mandatory AsciiDoc documentation standards for all `.adoc` files in the Azure Local Load Tools repository.
 It covers document types, required attributes, formatting conventions, and templates.
@@ -25,7 +27,7 @@ All documentation must conform to these standards before merging.
 [discrete]
 == Quick Navigation
 
-* <<document-types>> — Three tiers: Standards, Chapters, READMEs
+* <<document-types>> — Three tiers: Standards, Guides, READMEs
 * <<header-attribute-standards>> — Required attributes per document type
 * <<heading-and-structure-rules>> — Heading hierarchy, section numbering
 * <<formatting-conventions>> — Code blocks, tables, admonitions, links
@@ -37,7 +39,7 @@ All documentation must conform to these standards before merging.
 
 == Document Types
 
-This project uses three distinct document tiers, each with its own attribute profile and purpose:
+This project uses three distinct document tiers. **Every document is standalone** — viewable independently on GitHub, in VS Code, or rendered to PDF.
 
 [cols="1,2,2,2"]
 |===
@@ -48,10 +50,10 @@ This project uses three distinct document tiers, each with its own attribute pro
 | `docs/standards/`
 | This file, scripting-standards.adoc
 
-| **Chapters**
-| Book-style documentation — included into `main.adoc`
-| `docs/chapters/`
-| 01-introduction.adoc, 06-vmfleet-guide.adoc
+| **Guides**
+| Standalone documentation — getting-started, tool guides, operations, reference
+| `docs/getting-started/`, `docs/tools/*/`, `docs/operations/`, `docs/reference/`
+| installation.adoc, tools/vmfleet/overview.adoc, ci-cd.adoc
 
 | **READMEs**
 | Quick-start and overview pages — viewed on GitHub
@@ -63,21 +65,21 @@ This project uses three distinct document tiers, each with its own attribute pro
 
 [cols="2,1,1,1"]
 |===
-| Feature | Standards | Chapters | READMEs
+| Feature | Standards | Guides | READMEs
 
 | `:toc:` placement
 | `left` (sidebar)
-| Inherited from `main.adoc`
+| `left` (sidebar)
 | `macro` (inline)
 
 | `:toclevels:`
 | `4` (deep)
-| `3` (via main.adoc)
+| `3` (standard)
 | `2` (light)
 
 | `:sectnums:`
 | Yes
-| Yes (via main.adoc)
+| Yes
 | No
 
 | Quick Navigation block
@@ -97,12 +99,17 @@ This project uses three distinct document tiers, each with its own attribute pro
 
 | Author / version line
 | Yes
-| No (inherits from main.adoc)
 | No
+| No
+
+| Badges
+| Yes — after attributes, before `[abstract]`
+| Yes — after attributes, before first content
+| Yes — after attributes, inline on one line
 
 | Standalone rendering
 | Yes — self-contained
-| No — rendered as part of book
+| Yes — self-contained
 | Yes — self-contained
 |===
 
@@ -133,6 +140,8 @@ v1.0, 2026-02-13
 :caution-caption: 🔥
 :important-caption: ❗
 
+image:https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square[Category: Standards]
+
 \[abstract]
 One to three sentences describing the document's purpose and audience.
 
@@ -145,19 +154,35 @@ One to three sentences describing the document's purpose and audience.
 '''
 ----
 
-=== Chapter Documents
+=== Guide Documents
 
-Minimal header — chapters inherit all attributes from `main.adoc`:
+Standalone documents with their own sidebar TOC. Each guide has a level-1 title and includes project-wide attributes:
 
 [source,asciidoc]
 ----
-== Chapter Title
+= Guide Title
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-Chapter content starts immediately. No document-level attributes needed.
-These files are included into main.adoc via `include::` directives.
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
+
+Brief introduction to the topic.
+
+== First Section
 ----
 
-NOTE: Chapters start at heading level 2 (`==`) because level 1 (`=`) is reserved for the book title in `main.adoc`.
+NOTE: Replace the Category badge with the appropriate one for the document location (Tool Guide, Operations, Reference). See link:badge-standards.adoc[Badge Standards] for the full catalog.
+
+NOTE: Adjust `:imagesdir:` based on folder depth — `../images` for one level deep, `../../images` for two levels (e.g., `tools/vmfleet/`).
+
+TIP: Guides are also included into `main.adoc` for optional combined PDF builds. When included, the level-1 title is shifted by `leveloffset=+1`.
 
 === README Documents
 
@@ -170,6 +195,8 @@ GitHub-friendly inline TOC:
 :toclevels: 2
 :icons: font
 
+image:https://img.shields.io/badge/Platform-Azure%20Local-0078D4?style=flat-square&logo=microsoft-azure[Platform] image:https://img.shields.io/badge/PowerShell-7.2%2B-5391FE?style=flat-square&logo=powershell[PowerShell] image:https://img.shields.io/badge/License-MIT-green?style=flat-square[License]
+
 Brief one-paragraph description.
 
 toc::[]
@@ -179,9 +206,9 @@ toc::[]
 
 TIP: The `:toc: macro` + `toc::[]` pattern places the table of contents exactly where you put the macro — ideal for GitHub rendering where sidebar TOCs are not supported.
 
-=== Book Document (`main.adoc`)
+=== Book Document (`main.adoc` — Optional PDF Builder)
 
-The `main.adoc` file is the book root with the fullest attribute set:
+`main.adoc` is retained as an optional combined PDF builder. It includes all standalone guides and is **not** the primary documentation entry point — `docs/index.adoc` is.
 
 [source,asciidoc]
 ----
@@ -207,6 +234,10 @@ The `main.adoc` file is the book root with the fullest attribute set:
 :project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 ----
 
+=== Documentation Hub (`docs/index.adoc`)
+
+`index.adoc` is the landing page with links to all documentation organized by category. It uses the same header pattern as guides.
+
 == Heading and Structure Rules
 
 === Heading Levels
@@ -216,12 +247,12 @@ The `main.adoc` file is the book root with the fullest attribute set:
 | Level | Usage | Scope
 
 | `=`
-| Document/book title
-| Only in `main.adoc` and standalone documents (standards, READMEs)
+| Document title
+| Every standalone document (guides, standards, READMEs, `main.adoc`)
 
 | `==`
 | Major sections
-| Top-level chapters or major sections within a standalone doc
+| Top-level sections within any document
 
 | `===`
 | Subsections
@@ -490,6 +521,8 @@ v1.0, 2026-02-13
 :caution-caption: 🔥
 :important-caption: ❗
 
+image:https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square[Category: Standards]
+
 \[abstract]
 One to three sentences.
 
@@ -510,19 +543,30 @@ Content here.
 Content here.
 ----
 
-=== Chapter Template
+=== Guide Template
 
 [source,asciidoc]
 ----
-== Chapter Title
+= Guide Title
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-Brief introduction to the chapter topic.
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
 
-=== First Subsection
+Brief introduction to the topic.
+
+== First Section
 
 Content here.
 
-=== Second Subsection
+== Second Section
 
 Content here.
 ----
@@ -535,6 +579,8 @@ Content here.
 :toc: macro
 :toclevels: 2
 :icons: font
+
+image:https://img.shields.io/badge/Platform-Azure%20Local-0078D4?style=flat-square&logo=microsoft-azure[Platform] image:https://img.shields.io/badge/License-MIT-green?style=flat-square[License]
 
 Brief one-paragraph description of what this component does.
 
@@ -593,15 +639,38 @@ NOTE: The root `README.adoc` uses AsciiDoc. Solution-level READMEs (`src/solutio
 
 ----
 docs/
-├── main.adoc                 # Book root — includes all chapters
-├── chapters/                  # Book chapters (numbered for ordering)
-│   ├── 01-introduction.adoc
-│   ├── 02-architecture.adoc
-│   └── ...
-├── appendices/                # Reference appendices
-│   ├── a-variable-reference.adoc
-│   ├── b-cmdlet-reference.adoc
-│   └── c-glossary.adoc
+├── index.adoc                 # Documentation hub — links to everything
+├── main.adoc                  # Optional combined PDF builder
+├── getting-started/           # Shared setup docs (all tools)
+│   ├── introduction.adoc
+│   ├── architecture.adoc
+│   ├── prerequisites.adoc
+│   ├── installation.adoc
+│   └── configuration.adoc
+├── tools/                     # One folder per tool — self-contained
+│   ├── vmfleet/
+│   │   ├── overview.adoc
+│   │   ├── prerequisites.adoc
+│   │   ├── deployment.adoc
+│   │   ├── workload-profiles.adoc
+│   │   ├── monitoring.adoc
+│   │   ├── reporting.adoc
+│   │   └── troubleshooting.adoc
+│   ├── fio/
+│   │   └── overview.adoc
+│   ├── iperf/
+│   │   └── overview.adoc
+│   ├── hammerdb/
+│   │   └── overview.adoc
+│   └── stress-ng/
+│       └── overview.adoc
+├── operations/                # Cross-tool operational docs
+│   ├── ci-cd.adoc
+│   └── credential-management.adoc
+├── reference/                 # Reference material
+│   ├── variable-reference.adoc
+│   ├── cmdlet-reference.adoc
+│   └── glossary.adoc
 ├── standards/                 # Standards documents (self-contained)
 │   ├── documentation-standards.adoc
 │   ├── scripting-standards.adoc
@@ -617,13 +686,21 @@ docs/
 |===
 | Location | Convention | Example
 
-| `chapters/`
-| `NN-kebab-case.adoc` (numbered)
-| `06-vmfleet-guide.adoc`
+| `getting-started/`
+| `kebab-case.adoc`
+| `prerequisites.adoc`
 
-| `appendices/`
-| `letter-kebab-case.adoc`
-| `a-variable-reference.adoc`
+| `tools/{tool}/`
+| `kebab-case.adoc`
+| `workload-profiles.adoc`
+
+| `operations/`
+| `kebab-case.adoc`
+| `credential-management.adoc`
+
+| `reference/`
+| `kebab-case.adoc`
+| `variable-reference.adoc`
 
 | `standards/`
 | `kebab-case-standards.adoc`
@@ -638,12 +715,19 @@ docs/
 | `solution-architecture.png`
 |===
 
-=== Adding a New Chapter
+=== Adding a New Guide
 
-. Create the file in `docs/chapters/` with the next number prefix
-. Use heading level `==` as the top-level heading
-. Add an `include::` directive in `docs/main.adoc`
-. Update the chapter list in `01-introduction.adoc` if applicable
+. Create the file in the appropriate folder (`getting-started/`, `tools/{tool}/`, `operations/`, `reference/`)
+. Use the guide header template with `:toc: left` and project attributes
+. Add a link to `docs/index.adoc`
+. Add an `include::` directive in `docs/main.adoc` for combined PDF builds
+
+=== Adding a New Tool
+
+. Create `docs/tools/{tool-name}/` folder
+. Add at minimum `overview.adoc`; add `prerequisites.adoc`, `deployment.adoc`, `monitoring.adoc`, `reporting.adoc`, `troubleshooting.adoc` as the tool is implemented
+. Add links in `docs/index.adoc` under the Tool Guides section
+. Add `include::` directives in `docs/main.adoc`
 
 === Adding a New Standards Document
 

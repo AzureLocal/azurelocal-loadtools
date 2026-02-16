@@ -1,8 +1,19 @@
-== Prerequisites
+= Prerequisites
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-Before deploying the {project-name}, ensure the following prerequisites are met.
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
 
-=== Azure Local Cluster Requirements
+Before deploying the {project-name}, ensure the following common prerequisites are met. Individual tools may have additional requirements — see each tool's prerequisites page.
+
+== Azure Local Cluster Requirements
 
 [cols="1,2"]
 |===
@@ -19,15 +30,9 @@ Before deploying the {project-name}, ensure the following prerequisites are met.
 
 | Cluster Shared Volumes
 | At least one CSV for VM fleet storage; additional CSV for results collection
-
-| Base VHD
-| Windows Server 2019+ Server Core VHDX for fleet VMs
-
-| Collect Volume
-| 200GB+ ReFS volume named "Collect" for VMFleet result aggregation
 |===
 
-=== Network Requirements
+== Network Requirements
 
 [cols="1,2"]
 |===
@@ -46,7 +51,7 @@ Before deploying the {project-name}, ensure the following prerequisites are met.
 | Ports 5985 (WinRM HTTP), 5986 (WinRM HTTPS) open from management station
 |===
 
-=== Management Station Requirements
+== Management Station Requirements
 
 The management station is where automation scripts execute. This can be a physical workstation, jump box, or CI/CD runner.
 
@@ -73,7 +78,7 @@ The management station is where automation scripts execute. This can be a physic
 | Version 2.30+ (for repository management)
 |===
 
-=== Ansible Requirements (for Linux-based tools)
+== Ansible Requirements (for Linux-Based Tools)
 
 Ansible is required only if using fio, iPerf3, HammerDB, or stress-ng on Linux VMs.
 
@@ -94,7 +99,7 @@ Ansible is required only if using fio, iPerf3, HammerDB, or stress-ng on Linux V
 | Version 3.9+ on the Ansible control node
 |===
 
-=== Azure Requirements (Optional)
+== Azure Requirements (Optional)
 
 Required only if using Azure Monitor integration or Azure Key Vault for credentials.
 
@@ -115,9 +120,9 @@ Required only if using Azure Monitor integration or Azure Key Vault for credenti
 | For non-interactive Azure authentication in CI/CD
 |===
 
-=== Validating Prerequisites
+== Validating Prerequisites
 
-Run the pre-check script to validate all prerequisites:
+Run the pre-check script to validate all common prerequisites:
 
 [source,powershell]
 ----
@@ -129,6 +134,20 @@ This will check:
 
 * PowerShell version and required modules
 * Cluster connectivity and S2D health
-* Required volumes and VHD availability
+* Required volumes availability
 * Azure connectivity (if Azure features enabled)
 * Ansible availability (if Linux tools enabled)
+
+== Tool-Specific Prerequisites
+
+Each tool may have additional requirements beyond the common set above:
+
+* link:../tools/vmfleet/prerequisites.adoc[VMFleet Prerequisites] — Base VHD, Collect volume, VMFleet module
+* link:../tools/fio/overview.adoc[fio Prerequisites] — Linux VMs, fio package
+* link:../tools/iperf/overview.adoc[iPerf3 Prerequisites] — iPerf3 binaries, RDMA configuration
+* link:../tools/hammerdb/overview.adoc[HammerDB Prerequisites] — SQL Server, HammerDB installation
+* link:../tools/stress-ng/overview.adoc[stress-ng Prerequisites] — Linux VMs, stress-ng package
+
+== Next Steps
+
+* link:installation.adoc[Installation] — Install the framework and dependencies

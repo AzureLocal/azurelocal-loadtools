@@ -1,8 +1,20 @@
-== Monitoring
+= VMFleet Monitoring
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-The monitoring subsystem collects real-time storage, network, and compute metrics during load test execution. It uses a hybrid architecture: local PowerShell/PerfMon collection (always active) with optional push to Azure Monitor/Log Analytics.
+image:https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square[Tool: VMFleet]
+image:https://img.shields.io/badge/Category-Tool%20Guide-3498DB?style=flat-square[Category: Tool Guide]
 
-=== Monitoring Architecture
+The monitoring subsystem collects real-time storage, network, and compute metrics during VMFleet test execution. It uses a hybrid architecture: local PowerShell/PerfMon collection (always active) with optional push to Azure Monitor/Log Analytics.
+
+== Monitoring Architecture
 
 .Metric Collection Flow
 [source,text]
@@ -20,9 +32,9 @@ PowerShell Get-Counter (remote sessions)
               Azure Portal dashboards, alerts
 ----
 
-=== Metric Categories
+== Metric Categories
 
-==== Storage Metrics
+=== Storage Metrics
 
 Collected by `Collect-StorageMetrics.ps1`:
 
@@ -58,7 +70,7 @@ Collected by `Collect-StorageMetrics.ps1`:
 | Degraded/healthy status of storage pools
 |===
 
-==== Network Metrics
+=== Network Metrics
 
 Collected by `Collect-NetworkMetrics.ps1`:
 
@@ -85,7 +97,7 @@ Collected by `Collect-NetworkMetrics.ps1`:
 | TCP retransmission rate (indicates network issues)
 |===
 
-==== Compute Metrics
+=== Compute Metrics
 
 Collected by `Collect-ComputeMetrics.ps1`:
 
@@ -112,7 +124,7 @@ Collected by `Collect-ComputeMetrics.ps1`:
 | Dynamic memory pressure per VM
 |===
 
-=== Local Metric Collection
+== Local Metric Collection
 
 Local collection is always active during test runs:
 
@@ -143,7 +155,7 @@ Output format is JSON-lines for machine parsing:
 {"timestamp":"2026-02-13T10:05:00Z","node":"hci-node-01","counter":"CSVFS_WriteIOPS","value":12840}
 ----
 
-=== Azure Monitor Integration
+== Azure Monitor Integration
 
 Optionally push collected metrics to Azure Monitor for centralized dashboards and alerting:
 
@@ -157,7 +169,7 @@ Optionally push collected metrics to Azure Monitor for centralized dashboards an
 
 NOTE: Azure Monitor integration requires the `monitoring.bicep` infrastructure template to be deployed. See `src/infrastructure/bicep/monitoring.bicep`.
 
-=== Alert Rules
+== Alert Rules
 
 Predefined alert thresholds in `monitoring/alerts/alert-rules.yml`:
 
@@ -177,7 +189,7 @@ alerts:
     description: "Host CPU exceeds 95% — test may be compute-bound"
 ----
 
-=== Real-Time Dashboard
+== Real-Time Dashboard
 
 During test execution, use the monitoring dashboard wrapper:
 

@@ -1,18 +1,29 @@
-== CI/CD Pipelines
+= CI/CD Pipelines
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Category-Operations-9B59B6?style=flat-square[Category: Operations]
 
 The framework includes pipeline definitions for GitHub Actions (primary), Azure DevOps, and GitLab CI.
 
-=== GitHub Actions (Primary)
+== GitHub Actions (Primary)
 
-==== Documentation Build (`build-docs.yml`)
+=== Documentation Build (`build-docs.yml`)
 
 Triggers on push to `main` and pull requests. Builds HTML and PDF documentation, exports draw.io diagrams, and publishes artifacts.
 
-==== Configuration Validation (`validate-config.yml`)
+=== Configuration Validation (`validate-config.yml`)
 
 Triggers on changes to `config/`. Validates `master-environment.yml` against the JSON Schema and verifies solution config generation.
 
-==== VMFleet Pipeline (`run-vmfleet.yml`)
+=== VMFleet Pipeline (`run-vmfleet.yml`)
 
 Manual trigger (`workflow_dispatch`) with configurable inputs:
 
@@ -24,23 +35,23 @@ Manual trigger (`workflow_dispatch`) with configurable inputs:
 
 Requires a self-hosted runner with network access to the Azure Local cluster.
 
-==== Unit Tests (`run-tests.yml`)
+=== Unit Tests (`run-tests.yml`)
 
 Runs Pester unit tests for all core PowerShell modules on every pull request.
 
-==== Linting (`lint.yml`)
+=== Linting (`lint.yml`)
 
 Runs PSScriptAnalyzer for PowerShell, yamllint for YAML, and AsciiDoc syntax checks.
 
-=== Azure DevOps (Placeholder)
+== Azure DevOps (Placeholder)
 
 Pipeline definitions in `.azuredevops/pipelines/` mirror the GitHub Actions workflows, adapted for Azure DevOps syntax. Use Azure DevOps Service Connections for credential management.
 
-=== GitLab CI (Placeholder)
+== GitLab CI (Placeholder)
 
 Pipeline definition in `.gitlab/.gitlab-ci.yml` provides the same workflow stages, adapted for GitLab CI syntax.
 
-=== Manual Execution
+== Manual Execution
 
 Every pipeline action can also be run manually from a workstation:
 
@@ -62,7 +73,7 @@ asciidoctor-pdf docs/main.adoc -o output/azurelocal-loadtools.pdf
 Invoke-Pester tests/unit/ -Output Detailed
 ----
 
-=== Self-Hosted Runner Setup
+== Self-Hosted Runner Setup
 
 The VMFleet pipeline requires a self-hosted runner on the cluster management network:
 

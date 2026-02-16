@@ -1,0 +1,60 @@
+= HammerDB — Database Benchmarking
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Tool-HammerDB-E74C3C?style=flat-square[Tool: HammerDB]
+image:https://img.shields.io/badge/Status-Placeholder-lightgrey?style=flat-square[Status: Placeholder]
+
+CAUTION: *Placeholder* — Structure and Ansible roles scaffolded; implementation pending.
+
+== Purpose
+
+Database workload benchmarking for SQL Server running on Azure Local VMs.
+
+== When to Use
+
+* Validating SQL Server performance on the cluster
+* OLTP (TPROC-C) workload benchmarking
+* OLAP/analytics (TPROC-H) workload benchmarking
+* Combined storage + compute performance validation
+
+== Key Capabilities
+
+* Supports SQL Server, PostgreSQL, MySQL, Oracle, and more
+* TPC-C and TPC-H benchmark profiles
+* GUI, CLI, and web interfaces
+* Docker images for reproducible CI/CD runs
+
+== Prerequisites
+
+In addition to the link:../../getting-started/prerequisites.adoc[common prerequisites]:
+
+* SQL Server instance deployed on an Azure Local VM
+* HammerDB installed on the management station or target VM
+* Ansible 2.14+ for automated deployment
+
+== File Locations
+
+[cols="1,2"]
+|===
+| Component | Path
+
+| Scripts
+| `src/solutions/hammerdb/scripts/`
+
+| Ansible Playbooks
+| `src/solutions/hammerdb/playbooks/`
+
+| Profiles
+| `config/profiles/hammerdb/`
+
+| Ansible Role
+| `src/core/ansible/roles/hammerdb/`
+|===

@@ -17,6 +17,8 @@ v1.0, 2026-02-13
 :caution-caption: 🔥
 :important-caption: ❗
 
+image:https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square[Category: Standards]
+
 [abstract]
 A project-tailored AsciiDoc syntax reference for contributors to the Azure Local Load Tools repository.
 Every example is taken from or modeled after actual project files.

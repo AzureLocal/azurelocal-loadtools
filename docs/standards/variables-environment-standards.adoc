@@ -17,6 +17,8 @@ v1.0, 2026-02-13
 :caution-caption: 🔥
 :important-caption: ❗
 
+image:https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square[Category: Standards]
+
 [abstract]
 This document defines the mandatory standards for all configuration files, environment variables, YAML structures, JSON schemas, and the variable override chain in the Azure Local Load Tools repository.
 Every configuration file must conform to these standards before merging.

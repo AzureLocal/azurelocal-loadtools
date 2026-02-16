@@ -1,10 +1,21 @@
-== Cmdlet Reference
+= Cmdlet Reference
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-This appendix documents the custom PowerShell functions provided by the core modules.
+image:https://img.shields.io/badge/Category-Reference-7F8C8D?style=flat-square[Category: Reference]
 
-=== ConfigManager Module
+This document covers the custom PowerShell functions provided by the core modules.
 
-==== Export-SolutionConfig
+== ConfigManager Module
+
+=== Export-SolutionConfig
 
 Generates a solution-specific JSON configuration file from the master environment.
 
@@ -31,7 +42,7 @@ Export-SolutionConfig [-Solution] <string> [-MasterConfigPath <string>] [-Output
 | Output path for generated JSON (default: `config/variables/solutions/{solution}.json`)
 |===
 
-==== Get-ConfigValue
+=== Get-ConfigValue
 
 Retrieves a configuration value with override chain support.
 
@@ -40,9 +51,9 @@ Retrieves a configuration value with override chain support.
 Get-ConfigValue [-Name] <string> [-Solution <string>] [-DefaultValue <object>] [-Override <object>]
 ----
 
-=== Logger Module
+== Logger Module
 
-==== Write-Log
+=== Write-Log
 
 Writes a structured log entry to the component log file.
 
@@ -58,7 +69,7 @@ Write-Log [-Message] <string> [-Severity <string>] [-Component <string>] [-Data 
 * `ERROR` — Failures that affect the current operation
 * `CRITICAL` — Fatal errors requiring immediate attention
 
-==== Start-LogSession / Stop-LogSession
+=== Start-LogSession / Stop-LogSession
 
 Manages log session lifecycle with correlation IDs.
 
@@ -69,9 +80,9 @@ $sessionId = Start-LogSession -Component "VMFleet" -RunId "run-001"
 Stop-LogSession -SessionId $sessionId
 ----
 
-=== StateManager Module
+== StateManager Module
 
-==== New-RunState
+=== New-RunState
 
 Creates a new run state file for tracking automation progress.
 
@@ -80,7 +91,7 @@ Creates a new run state file for tracking automation progress.
 New-RunState [-RunId] <string> [-Phases <string[]>]
 ----
 
-==== Update-RunPhase
+=== Update-RunPhase
 
 Updates the status of a specific phase in the run state.
 
@@ -96,7 +107,7 @@ Update-RunPhase [-RunId] <string> [-Phase] <string> [-Status] <string> [-Details
 * `failed` — Encountered an error
 * `skipped` — Intentionally bypassed
 
-==== Test-PhaseCompleted
+=== Test-PhaseCompleted
 
 Checks if a phase has already completed (for resume support).
 
@@ -105,9 +116,9 @@ Checks if a phase has already completed (for resume support).
 Test-PhaseCompleted [-RunId] <string> [-Phase] <string>
 ----
 
-=== CredentialManager Module
+== CredentialManager Module
 
-==== Get-ManagedCredential
+=== Get-ManagedCredential
 
 Retrieves credentials from the configured source.
 
@@ -121,9 +132,9 @@ Get-ManagedCredential [-Name] <string> [-Source <string>] [-VaultConfig <string>
 * `Interactive` — Prompt user with `Get-Credential`
 * `Parameter` — Expect credential passed as parameter
 
-=== MonitoringManager Module
+== MonitoringManager Module
 
-==== Start-MetricCollection
+=== Start-MetricCollection
 
 Begins background metric collection for the specified categories.
 
@@ -132,7 +143,7 @@ Begins background metric collection for the specified categories.
 Start-MetricCollection [-Categories <string[]>] [-SampleIntervalSeconds <int>] [-OutputPath <string>]
 ----
 
-==== Stop-MetricCollection
+=== Stop-MetricCollection
 
 Stops background metric collection and finalizes output files.
 
@@ -141,9 +152,9 @@ Stops background metric collection and finalizes output files.
 Stop-MetricCollection [-CollectionId] <string>
 ----
 
-=== ReportGenerator Module
+== ReportGenerator Module
 
-==== New-TestReport
+=== New-TestReport
 
 Generates test reports in the specified formats.
 

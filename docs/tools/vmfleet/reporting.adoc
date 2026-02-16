@@ -1,8 +1,20 @@
-== Reporting
+= VMFleet Reporting
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-The reporting subsystem generates comprehensive test reports in three formats: PDF, Word (DOCX), and Excel (XLSX).
+image:https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square[Tool: VMFleet]
+image:https://img.shields.io/badge/Category-Tool%20Guide-3498DB?style=flat-square[Category: Tool Guide]
 
-=== Report Formats
+The reporting subsystem generates comprehensive VMFleet test reports in three formats: PDF, Word (DOCX), and Excel (XLSX).
+
+== Report Formats
 
 [cols="1,2,2"]
 |===
@@ -21,7 +33,7 @@ The reporting subsystem generates comprehensive test reports in three formats: P
 | Data analysis, pivot tables, custom charting
 |===
 
-=== Generating Reports
+== Generating Reports
 
 [source,powershell]
 ----
@@ -37,9 +49,17 @@ New-TestReport `
     -ClusterConfig "config/clusters/my-cluster.yml"
 ----
 
-=== Report Sections
+Or generate reports as part of the results collection:
 
-==== PDF / DOCX Report
+[source,powershell]
+----
+.\src\solutions\vmfleet\scripts\Collect-VMFleetResults.ps1 `
+    -ResultsPath "results/current-run/" `
+    -GenerateReports `
+    -ReportFormats @("PDF", "DOCX", "XLSX")
+----
+
+== PDF / DOCX Report Sections
 
 Both PDF and DOCX reports contain the same sections:
 
@@ -57,7 +77,7 @@ Both PDF and DOCX reports contain the same sections:
 . *Recommendations* — Automated assessment based on metric thresholds
 . *Appendix* — Raw configuration, full variable dump, log excerpts
 
-==== Excel Report
+== Excel Report
 
 The XLSX workbook contains multiple worksheets:
 
@@ -84,7 +104,7 @@ The XLSX workbook contains multiple worksheets:
 | Complete metric dump for custom analysis
 |===
 
-=== Custom Themes
+== Custom Themes
 
 The PDF report uses a custom AsciiDoc theme defined in `docs/themes/azurelocal-theme.yml`:
 
@@ -104,7 +124,7 @@ title-page:
   logo-image: image:azure-local-logo.png[width=200]
 ----
 
-=== Report Templates
+== Report Templates
 
 Templates in `reports/templates/` define the structure:
 
