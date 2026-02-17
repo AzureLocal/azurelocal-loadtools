@@ -1,0 +1,64 @@
+= VMFleet Prerequisites
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square[Tool: VMFleet]
+image:https://img.shields.io/badge/Category-Tool%20Guide-3498DB?style=flat-square[Category: Tool Guide]
+
+In addition to the link:../../getting-started/prerequisites.adoc[common prerequisites], VMFleet requires the following.
+
+== Cluster Storage Requirements
+
+[cols="1,2"]
+|===
+| Requirement | Details
+
+| Base VHD
+| Windows Server 2019+ Server Core VHDX for fleet VMs
+
+| Collect Volume
+| 200GB+ ReFS volume named "Collect" for VMFleet result aggregation
+
+| CSV Space
+| Sufficient free space on CSVs for fleet VMs (count × memory + data disk)
+|===
+
+== Software Requirements
+
+[cols="1,2"]
+|===
+| Requirement | Details
+
+| VMFleet Module
+| PowerShell VMFleet module (`Install-Module -Name VMFleet`)
+
+| DiskSpd
+| Included with VMFleet; no separate installation required
+|===
+
+== Validation
+
+Run pre-checks to verify VMFleet-specific readiness:
+
+[source,powershell]
+----
+.\src\solutions\vmfleet\scripts\Install-VMFleet.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -PreCheckOnly
+----
+
+Checks performed:
+
+* Cluster node connectivity via WinRM
+* Storage Spaces Direct health status
+* Required CSV volumes exist and are online
+* Base VHD file exists and is accessible
+* Sufficient disk space for fleet VMs
+* VMFleet PowerShell module availability

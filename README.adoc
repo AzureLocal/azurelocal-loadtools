@@ -4,10 +4,7 @@
 :icons: font
 :url-docs: docs/main.adoc
 
-image:https://img.shields.io/badge/PowerShell-7.2%2B-blue[PowerShell 7.2+]
-image:https://img.shields.io/badge/License-MIT-green[MIT License]
-image:https://img.shields.io/badge/VMFleet-2.1.0.0-orange[VMFleet 2.1.0.0]
-
+image:https://img.shields.io/badge/Platform-Azure%20Local-0078D4?style=flat-square&logo=microsoft-azure[Platform: Azure Local] image:https://img.shields.io/badge/PowerShell-7.2%2B-5391FE?style=flat-square&logo=powershell[PowerShell 7.2+] image:https://img.shields.io/badge/License-MIT-green?style=flat-square[License: MIT] image:https://img.shields.io/badge/Status-Pre--Release-orange?style=flat-square[Status: Pre-Release]
 
 [CAUTION]
 ====

@@ -1,0 +1,60 @@
+= stress-ng — System Stress Testing
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Tool-stress--ng-F39C12?style=flat-square[Tool: stress-ng]
+image:https://img.shields.io/badge/Status-Placeholder-lightgrey?style=flat-square[Status: Placeholder]
+
+CAUTION: *Placeholder* — Structure and Ansible roles scaffolded; implementation pending.
+
+== Purpose
+
+CPU, memory, cache, and system stress testing for capacity planning and burn-in validation.
+
+== When to Use
+
+* CPU stress testing for thermal and power validation
+* Memory stress testing for stability under pressure
+* Burn-in testing of new cluster nodes
+* Capacity planning — determine maximum safe utilization levels
+
+== Key Capabilities
+
+* 370+ stress tests across CPU, memory, filesystem, network categories
+* YAML job files for reproducible configurations
+* Metrics: bogo ops/s, thermal zones, power measurement
+* Stressor class system for targeted testing
+
+== Prerequisites
+
+In addition to the link:../../getting-started/prerequisites.adoc[common prerequisites]:
+
+* Linux VMs deployed on the Azure Local cluster
+* Ansible 2.14+ for deployment
+* stress-ng package installed on target VMs (automated via Ansible role)
+
+== File Locations
+
+[cols="1,2"]
+|===
+| Component | Path
+
+| Scripts
+| `src/solutions/stress-ng/scripts/`
+
+| Ansible Playbooks
+| `src/solutions/stress-ng/playbooks/`
+
+| Profiles
+| `config/profiles/stress-ng/`
+
+| Ansible Role
+| `src/core/ansible/roles/stress_ng/`
+|===

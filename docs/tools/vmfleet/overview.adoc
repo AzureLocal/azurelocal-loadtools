@@ -1,0 +1,104 @@
+= VMFleet Overview
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+:vmfleet-version: 2.1.0.0
+:diskspd-version: 2.2
+
+image:https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square[Tool: VMFleet]
+image:https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square[Status: Implemented]
+image:https://img.shields.io/badge/VMFleet-2.1.0.0-blue?style=flat-square[VMFleet 2.1.0.0]
+
+VMFleet is the primary storage load testing tool in the {project-name}. It deploys a fleet of VMs across Azure Local cluster nodes, each running DiskSpd workloads to stress-test Storage Spaces Direct (S2D).
+
+== At a Glance
+
+* **VMFleet Version:** {vmfleet-version}
+* **DiskSpd Version:** {diskspd-version}
+* **What it tests:** Storage IOPS, throughput, latency under simulated workload
+* **How it works:** Deploys lightweight Server Core VMs, each running DiskSpd to generate I/O
+* **Status:** ✅ Fully Implemented
+
+== Quick Start
+
+[source,powershell]
+----
+# Run the full VMFleet pipeline end-to-end
+.\src\solutions\vmfleet\orchestrator\Invoke-VMFleetPipeline.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -Profiles @("General", "Peak") `
+    -CredentialSource Interactive `
+    -GenerateReports
+----
+
+== Pipeline Phases
+
+The VMFleet orchestrator executes the following phases:
+
+. **Pre-Check** — Validate cluster connectivity, S2D health, CSV availability, base VHD
+. **Install** — Install VMFleet PowerShell module, create Collect volume
+. **Deploy** — Create fleet VMs with configured vCPU and memory settings
+. **Test** — Execute workload profiles (General, Peak IOPS, VDI, SQL OLTP)
+. **Monitor** — Collect storage, network, and compute metrics in parallel
+. **Collect** — Parse DiskSpd XML results, aggregate metrics per profile per node
+. **Report** — Generate PDF, DOCX, and XLSX reports from collected data
+. **Cleanup** — (Optional) Remove fleet VMs and volumes
+
+Each phase is checkpoint-tracked via `StateManager`, enabling resume after failure.
+
+== Resume After Failure
+
+If the pipeline fails mid-execution, resume from the last successful checkpoint:
+
+[source,powershell]
+----
+.\src\solutions\vmfleet\orchestrator\Invoke-VMFleetPipeline.ps1 `
+    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -Resume
+----
+
+The `StateManager` tracks completed phases and skips them on resume.
+
+== Running Individual Scripts
+
+Every script can be executed independently:
+
+[source,powershell]
+----
+# Each script is self-contained — reads config, validates params, logs actions
+.\src\solutions\vmfleet\scripts\Start-VMFleetTest.ps1 `
+    -Profile "Peak" `
+    -DurationSeconds 600 `
+    -VerboseOutput
+----
+
+== VMFleet Documentation
+
+[cols="1,3"]
+|===
+| Document | Description
+
+| link:prerequisites.adoc[Prerequisites]
+| VMFleet-specific requirements
+
+| link:deployment.adoc[Deployment]
+| Install and deploy fleet VMs
+
+| link:workload-profiles.adoc[Workload Profiles]
+| Test profiles and execution
+
+| link:monitoring.adoc[Monitoring]
+| Metric collection during tests
+
+| link:reporting.adoc[Reporting]
+| Report generation
+
+| link:troubleshooting.adoc[Troubleshooting]
+| Common issues and solutions
+|===

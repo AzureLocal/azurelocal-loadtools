@@ -1,8 +1,19 @@
-== Solution Architecture
+= Solution Architecture
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-This chapter describes the overall architecture of the {project-name}, including component relationships, data flow, and integration points.
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
 
-=== High-Level Architecture
+This document describes the overall architecture of the {project-name}, including component relationships, data flow, and integration points.
+
+== High-Level Architecture
 
 // TODO: Export from docs/diagrams/solution-architecture.drawio
 // image::solution-architecture.svg[Solution Architecture,width=100%,align=center]
@@ -16,7 +27,7 @@ Execution Layer:: Load testing tools (VMFleet, fio, iPerf3, HammerDB, stress-ng)
 Monitoring Layer:: PerfMon counter collection, Azure Monitor integration, real-time dashboards
 Reporting Layer:: Metric aggregation, AsciiDoc template population, multi-format output generation
 
-=== Configuration Flow
+== Configuration Flow
 
 // TODO: Export from docs/diagrams/config-flow.drawio
 // image::config-flow.svg[Configuration Flow,width=100%,align=center]
@@ -31,7 +42,7 @@ master-environment.yml    →    ConfigManager Module    →    vmfleet.json
 
 The `ConfigManager` PowerShell module reads the master environment file, filters variables by their solution tags, and generates solution-specific JSON files. Downstream scripts consume only the generated JSON — never the master YAML directly.
 
-=== Component Diagram
+== Component Diagram
 
 .Core Components
 [cols="1,2,1"]
@@ -63,25 +74,30 @@ The `ConfigManager` PowerShell module reads the master environment file, filters
 | `src/core/powershell/modules/ReportGenerator/`
 |===
 
-=== VMFleet Automation Workflow
+== Tool Automation Workflows
 
-// TODO: Export from docs/diagrams/vmfleet-workflow.drawio
-// image::vmfleet-workflow.svg[VMFleet Workflow,width=100%,align=center]
+Each tool follows a common workflow pattern, adapted to its specific requirements:
 
-The VMFleet orchestrator executes the following phases:
-
-. **Pre-Check** — Validate cluster connectivity, S2D health, CSV availability, base VHD
-. **Install** — Install VMFleet PowerShell module, create Collect volume
-. **Deploy** — Create fleet VMs with configured vCPU and memory settings
-. **Test** — Execute workload profiles (General, Peak IOPS, VDI, SQL OLTP)
-. **Monitor** — Collect storage, network, and compute metrics in parallel
-. **Collect** — Parse DiskSpd XML results, aggregate metrics per profile per node
-. **Report** — Generate PDF, DOCX, and XLSX reports from collected data
-. **Cleanup** — (Optional) Remove fleet VMs and volumes
+. **Pre-Check** — Validate cluster connectivity, tool-specific prerequisites
+. **Install** — Install required modules and dependencies on target nodes
+. **Deploy** — Deploy test workloads (VMs, containers, services)
+. **Test** — Execute workload profiles
+. **Monitor** — Collect metrics in parallel with test execution
+. **Collect** — Parse results, aggregate metrics
+. **Report** — Generate PDF, DOCX, and XLSX reports
+. **Cleanup** — (Optional) Remove test workloads
 
 Each phase is checkpoint-tracked via `StateManager`, enabling resume after failure.
 
-=== Network Topology
+See individual tool guides for tool-specific workflow details:
+
+* link:../tools/vmfleet/overview.adoc[VMFleet Workflow]
+* link:../tools/fio/overview.adoc[fio Workflow]
+* link:../tools/iperf/overview.adoc[iPerf3 Workflow]
+* link:../tools/hammerdb/overview.adoc[HammerDB Workflow]
+* link:../tools/stress-ng/overview.adoc[stress-ng Workflow]
+
+== Network Topology
 
 // TODO: Export from docs/diagrams/network-topology.drawio
 // image::network-topology.svg[Network Topology,width=100%,align=center]
@@ -93,7 +109,7 @@ A typical Azure Local cluster deployment includes:
 * **Compute/VM Network** — Virtual machine workload traffic
 * **Management Station** — Automation execution host with line-of-sight to management network
 
-=== Security Model
+== Security Model
 
 All credential handling follows the principle of least privilege:
 
@@ -102,3 +118,5 @@ All credential handling follows the principle of least privilege:
 * Key Vault access via managed identity or service principal
 * CI/CD pipelines use GitHub Secrets / Azure DevOps Service Connections / GitLab CI Variables
 * All credential access is logged (value masked) for audit trail
+
+See link:../operations/credential-management.adoc[Credential Management] for full details.

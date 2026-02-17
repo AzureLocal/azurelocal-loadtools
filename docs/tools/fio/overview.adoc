@@ -1,0 +1,63 @@
+= fio — Flexible I/O Tester
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Tool-fio-6C3483?style=flat-square[Tool: fio]
+image:https://img.shields.io/badge/Status-Placeholder-lightgrey?style=flat-square[Status: Placeholder]
+
+CAUTION: *Placeholder* — Structure and Ansible roles scaffolded; implementation pending.
+
+== Purpose
+
+Fine-grained storage I/O benchmarking with extensive control over workload parameters. Runs inside Linux VMs on the cluster.
+
+== When to Use
+
+* Need precise control over I/O patterns beyond VMFleet's profiles
+* Testing Linux VM storage performance specifically
+* Validating I/O scheduler behavior, queue depths, or specific block sizes
+* Client/server mode for distributed I/O testing
+
+== Key Capabilities
+
+* Job file-based workload definition
+* Multiple I/O engines (libaio, io_uring, Windows IOCP)
+* JSON output for automated parsing
+* Verification mode for data integrity testing
+
+== Prerequisites
+
+In addition to the link:../../getting-started/prerequisites.adoc[common prerequisites]:
+
+* Linux VMs deployed on the Azure Local cluster
+* Ansible 2.14+ for deployment (see link:../../getting-started/prerequisites.adoc#ansible-requirements-for-linux-based-tools[Ansible Requirements])
+* fio package installed on target VMs (automated via Ansible role)
+
+== File Locations
+
+[cols="1,2"]
+|===
+| Component | Path
+
+| Scripts
+| `src/solutions/fio/scripts/`
+
+| Ansible Playbooks
+| `src/solutions/fio/playbooks/`
+
+| Job Files
+| `src/solutions/fio/job-files/`
+
+| Profiles
+| `config/profiles/fio/`
+
+| Ansible Role
+| `src/core/ansible/roles/fio/`
+|===

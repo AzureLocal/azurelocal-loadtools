@@ -1,4 +1,14 @@
-== Glossary
+= Glossary
+:toc: left
+:toclevels: 2
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Category-Reference-7F8C8D?style=flat-square[Category: Reference]
 
 [glossary]
 Azure Local:: Microsoft's on-premises hyperconverged infrastructure (HCI) solution, formerly Azure Stack HCI. Runs Azure services on-premises.

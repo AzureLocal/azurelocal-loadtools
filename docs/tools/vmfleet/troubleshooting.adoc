@@ -1,10 +1,20 @@
-== Troubleshooting
+= VMFleet Troubleshooting
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-This chapter covers common issues and their resolutions.
+image:https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square[Tool: VMFleet]
+image:https://img.shields.io/badge/Category-Tool%20Guide-3498DB?style=flat-square[Category: Tool Guide]
 
-=== VMFleet Issues
+This guide covers common VMFleet issues and their resolutions.
 
-==== Fleet VMs Fail to Start
+== Fleet VMs Fail to Start
 
 *Symptom:* `New-Fleet` completes but VMs remain in "Off" state.
 
@@ -27,7 +37,7 @@ Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
 .\Deploy-VMFleet.ps1 -VmCountPerNode 5 -VmMemoryGb 1
 ----
 
-==== DiskSpd Results Show Zero IOPS
+== DiskSpd Results Show Zero IOPS
 
 *Symptom:* Test completes but IOPS, throughput, and latency are all zero.
 
@@ -48,7 +58,7 @@ Get-FleetVM | Format-Table Name, State, ComputerName
 Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 ----
 
-==== Pipeline Fails Mid-Execution
+== Pipeline Fails Mid-Execution
 
 *Symptom:* Orchestrator exits with an error during a specific phase.
 
@@ -64,9 +74,9 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 .\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/my-cluster.yml" -Resume
 ----
 
-=== Configuration Issues
+== Configuration Issues
 
-==== Schema Validation Fails
+=== Schema Validation Fails
 
 *Symptom:* `Export-SolutionConfig` reports schema validation errors.
 
@@ -78,11 +88,10 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 
 [source,powershell]
 ----
-# Validate master environment against schema
 .\src\core\powershell\helpers\Initialize-Environment.ps1 -ValidateOnly
 ----
 
-==== Solution JSON Not Generated
+=== Solution JSON Not Generated
 
 *Symptom:* Files in `config/variables/solutions/` are empty or outdated.
 
@@ -95,9 +104,9 @@ Import-Module ./src/core/powershell/modules/ConfigManager/ConfigManager.psm1
 Export-SolutionConfig -Solution "vmfleet"
 ----
 
-=== Credential Issues
+== Credential Issues
 
-==== Key Vault Access Denied
+=== Key Vault Access Denied
 
 *Symptom:* `Get-ManagedCredential -Source KeyVault` returns 403 Forbidden.
 
@@ -107,7 +116,7 @@ Export-SolutionConfig -Solution "vmfleet"
 * Check `config/credentials/keyvault-config.yml` for correct vault name
 * Ensure Azure authentication: `Connect-AzAccount`
 
-==== Interactive Credential Prompt Not Appearing
+=== Interactive Credential Prompt Not Appearing
 
 *Symptom:* Script hangs when using `-CredentialSource Interactive` in non-interactive context.
 
@@ -116,9 +125,9 @@ Export-SolutionConfig -Solution "vmfleet"
 * Use `-CredentialSource KeyVault` or `-CredentialSource Parameter` in CI/CD pipelines
 * Pass credentials explicitly: `-Credential (Get-Credential)`
 
-=== Monitoring Issues
+== Monitoring Issues
 
-==== No Metrics Collected
+=== No Metrics Collected
 
 *Symptom:* Metric files in `results/{run-id}/metrics/` are empty.
 
@@ -138,7 +147,7 @@ Invoke-Command -ComputerName $NodeName -ScriptBlock {
 }
 ----
 
-=== Log Locations
+== Log Locations
 
 [cols="1,2"]
 |===

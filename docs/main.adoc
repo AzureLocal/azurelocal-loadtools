@@ -59,46 +59,60 @@ The framework is designed to fully automate load testing of Azure Local (Azure S
 | Best practices and recommendations
 |===
 
-// Part I: Overview and Architecture
-= Overview
+// Part I: Getting Started
+= Getting Started
 
-include::chapters/01-introduction.adoc[leveloffset=+1]
+include::getting-started/introduction.adoc[leveloffset=+1]
 
-include::chapters/02-architecture.adoc[leveloffset=+1]
+include::getting-started/architecture.adoc[leveloffset=+1]
 
-// Part II: Setup and Configuration
-= Setup and Configuration
+include::getting-started/prerequisites.adoc[leveloffset=+1]
 
-include::chapters/03-prerequisites.adoc[leveloffset=+1]
+include::getting-started/installation.adoc[leveloffset=+1]
 
-include::chapters/04-installation.adoc[leveloffset=+1]
+include::getting-started/configuration.adoc[leveloffset=+1]
 
-include::chapters/05-configuration.adoc[leveloffset=+1]
+// Part II: Tool Guides — VMFleet
+= VMFleet
 
-// Part III: Load Testing Tools
-= Load Testing Tools
+include::tools/vmfleet/overview.adoc[leveloffset=+1]
 
-include::chapters/06-vmfleet-guide.adoc[leveloffset=+1]
+include::tools/vmfleet/prerequisites.adoc[leveloffset=+1]
 
-include::chapters/07-additional-tools.adoc[leveloffset=+1]
+include::tools/vmfleet/deployment.adoc[leveloffset=+1]
+
+include::tools/vmfleet/workload-profiles.adoc[leveloffset=+1]
+
+include::tools/vmfleet/monitoring.adoc[leveloffset=+1]
+
+include::tools/vmfleet/reporting.adoc[leveloffset=+1]
+
+include::tools/vmfleet/troubleshooting.adoc[leveloffset=+1]
+
+// Part III: Tool Guides — Additional Tools
+= Additional Tools
+
+include::tools/fio/overview.adoc[leveloffset=+1]
+
+include::tools/iperf/overview.adoc[leveloffset=+1]
+
+include::tools/hammerdb/overview.adoc[leveloffset=+1]
+
+include::tools/stress-ng/overview.adoc[leveloffset=+1]
 
 // Part IV: Operations
 = Operations
 
-include::chapters/08-monitoring.adoc[leveloffset=+1]
+include::operations/ci-cd.adoc[leveloffset=+1]
 
-include::chapters/09-reporting.adoc[leveloffset=+1]
-
-include::chapters/10-ci-cd.adoc[leveloffset=+1]
-
-include::chapters/11-troubleshooting.adoc[leveloffset=+1]
+include::operations/credential-management.adoc[leveloffset=+1]
 
 // Appendices
 [appendix]
-include::appendices/a-variable-reference.adoc[leveloffset=+1]
+include::reference/variable-reference.adoc[leveloffset=+1]
 
 [appendix]
-include::appendices/b-cmdlet-reference.adoc[leveloffset=+1]
+include::reference/cmdlet-reference.adoc[leveloffset=+1]
 
 [appendix]
-include::appendices/c-glossary.adoc[leveloffset=+1]
+include::reference/glossary.adoc[leveloffset=+1]

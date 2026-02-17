@@ -1,8 +1,19 @@
-== Variable Reference
+= Variable Reference
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
 
-This appendix provides a complete catalog of all variables defined in `master-environment.yml`.
+image:https://img.shields.io/badge/Category-Reference-7F8C8D?style=flat-square[Category: Reference]
 
-=== Cluster Variables
+This document provides a complete catalog of all variables defined in `master-environment.yml`.
+
+== Cluster Variables
 
 [cols="2,1,1,1,3"]
 |===
@@ -45,7 +56,7 @@ This appendix provides a complete catalog of all variables defined in `master-en
 | Path to the Windows Server Core base VHDX
 |===
 
-=== VMFleet Variables
+== VMFleet Variables
 
 [cols="2,1,1,1,3"]
 |===
@@ -94,7 +105,7 @@ This appendix provides a complete catalog of all variables defined in `master-en
 | Administrator password for fleet VMs (sensitive — use Key Vault)
 |===
 
-=== Monitoring Variables
+== Monitoring Variables
 
 [cols="2,1,1,1,3"]
 |===
@@ -131,7 +142,7 @@ This appendix provides a complete catalog of all variables defined in `master-en
 | Log Analytics shared key (sensitive — use Key Vault)
 |===
 
-=== Reporting Variables
+== Reporting Variables
 
 [cols="2,1,1,1,3"]
 |===
@@ -162,7 +173,7 @@ This appendix provides a complete catalog of all variables defined in `master-en
 | Include raw metrics in Excel report
 |===
 
-=== fio Variables
+== fio Variables
 
 [cols="2,1,1,1,3"]
 |===
@@ -187,7 +198,7 @@ This appendix provides a complete catalog of all variables defined in `master-en
 | I/O engine for fio (libaio, io_uring, etc.)
 |===
 
-=== iPerf Variables
+== iPerf Variables
 
 [cols="2,1,1,1,3"]
 |===
@@ -212,7 +223,7 @@ This appendix provides a complete catalog of all variables defined in `master-en
 | Protocol: TCP or UDP
 |===
 
-=== HammerDB Variables
+== HammerDB Variables
 
 [cols="2,1,1,1,3"]
 |===
@@ -237,7 +248,7 @@ This appendix provides a complete catalog of all variables defined in `master-en
 | Number of virtual users for workload generation
 |===
 
-=== stress-ng Variables
+== stress-ng Variables
 
 [cols="2,1,1,1,3"]
 |===

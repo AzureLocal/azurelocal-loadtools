@@ -1,8 +1,19 @@
-== Configuration System
+= Configuration System
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
 
 The configuration system is the backbone of the {project-name}. It ensures that *nothing is hardcoded* and every value is parameterizable.
 
-=== Configuration Architecture
+== Configuration Architecture
 
 .Configuration Hierarchy
 [source,text]
@@ -24,7 +35,7 @@ config/
     └── keyvault-config.yml          ← Key Vault connection settings
 ----
 
-=== Master Environment File
+== Master Environment File
 
 The `master-environment.yml` file contains *every* variable used across all solutions. Each variable is tagged with the solutions that consume it.
 
@@ -79,7 +90,7 @@ variables:
 | No
 |===
 
-=== Solution Configuration Generation
+== Solution Configuration Generation
 
 The `ConfigManager` module reads the master environment, filters by solution tag, and writes JSON:
 
@@ -106,7 +117,7 @@ The generated `vmfleet.json` contains only variables tagged with `vmfleet`:
 }
 ----
 
-=== Variable Override Chain
+== Variable Override Chain
 
 Every script supports a three-level override chain:
 
@@ -126,7 +137,7 @@ Start-VMFleetTest
 # 3. If vmfleet.json missing, falls back to master-environment.yml default
 ----
 
-=== Cluster Configuration
+== Cluster Configuration
 
 Cluster configs in `config/clusters/` define target cluster details. To switch clusters, change the `-ClusterConfig` parameter:
 
@@ -137,7 +148,7 @@ Cluster configs in `config/clusters/` define target cluster details. To switch c
 .\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/dev-cluster.yml"
 ----
 
-=== Workload Profiles
+== Workload Profiles
 
 Each solution has predefined workload profiles in `config/profiles/{solution}/`:
 
@@ -157,7 +168,7 @@ profile:
     warmup_seconds: 60
 ----
 
-=== Credential Configuration
+== Credential Configuration
 
 The `keyvault-config.yml` maps logical credential names to Key Vault secrets:
 
@@ -178,3 +189,13 @@ Scripts use `CredentialManager` to retrieve credentials without knowing the stor
 ----
 $cred = Get-ManagedCredential -Name "cluster_admin" -Source KeyVault
 ----
+
+See link:../operations/credential-management.adoc[Credential Management] for full details on the three credential modes.
+
+== Next Steps
+
+Choose a tool to get started:
+
+* link:../tools/vmfleet/overview.adoc[VMFleet Guide] — Storage load testing
+* link:../tools/fio/overview.adoc[fio Guide] — Flexible I/O benchmarking
+* link:../tools/iperf/overview.adoc[iPerf3 Guide] — Network testing
