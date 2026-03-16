@@ -1,0 +1,97 @@
+site_name: Azure Local Load Testing Framework
+site_description: Comprehensive performance and load testing tools for Azure Local infrastructure validation
+site_url: https://azurelocal.github.io/azurelocal-loadtools/
+repo_url: https://github.com/AzureLocal/azurelocal-loadtools
+repo_name: AzureLocal/azurelocal-loadtools
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Introduction: getting-started/introduction.md
+      - Architecture: getting-started/architecture.md
+      - Prerequisites: getting-started/prerequisites.md
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+  - Tools:
+      - VMFleet:
+          - Overview: tools/vmfleet/overview.md
+          - Prerequisites: tools/vmfleet/prerequisites.md
+          - Deployment: tools/vmfleet/deployment.md
+          - Workload Profiles: tools/vmfleet/workload-profiles.md
+          - Monitoring: tools/vmfleet/monitoring.md
+          - Reporting: tools/vmfleet/reporting.md
+          - Troubleshooting: tools/vmfleet/troubleshooting.md
+      - fio: tools/fio/overview.md
+      - iPerf3: tools/iperf/overview.md
+      - HammerDB: tools/hammerdb/overview.md
+      - stress-ng: tools/stress-ng/overview.md
+  - Operations:
+      - CI/CD Pipelines: operations/ci-cd.md
+      - Credential Management: operations/credential-management.md
+  - Reference:
+      - Variable Reference: reference/variable-reference.md
+      - Cmdlet Reference: reference/cmdlet-reference.md
+      - Glossary: reference/glossary.md
+  - Standards:
+      - Documentation: standards/documentation-standards.md
+      - Scripting: standards/scripting-standards.md
+      - Variables: standards/variables-environment-standards.md
+      - Badges: standards/badge-standards.md
+  - Contributing: contributing.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+
+plugins:
+  - search
+  - drawio
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/AzureLocal
+  homepage: https://azurelocal.cloud

@@ -1,0 +1,545 @@
+# Documentation Standards — Azure Local Load Tools
+
+![Category: Standards](https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square)
+
+This document defines the mandatory AsciiDoc documentation standards for all `.adoc` files in the Azure Local Load Tools repository.
+It covers document types, required attributes, formatting conventions, and templates.
+All documentation must conform to these standards before merging.
+
+## Quick Navigation
+
+- [Document Types](#document-types) — Three tiers: Standards, Guides, READMEs
+- [Header Attribute Standards](#header-attribute-standards) — Required attributes per document type
+- [Heading and Structure Rules](#heading-and-structure-rules) — Heading hierarchy, section numbering
+- [Formatting Conventions](#formatting-conventions) — Code blocks, tables, admonitions, links
+- [Cross-References and Linking](#cross-references-and-linking) — Anchors, xref, inter-document links
+- [Templates](#templates) — Copy-paste templates for each document type
+- [File Organization](#file-organization) — Where files go and how they are named
+
+---
+
+## Document Types
+
+This project uses three distinct document tiers. **Every document is standalone** — viewable independently on GitHub, in VS Code, or rendered to PDF.
+
+| Tier | Purpose | Location | Examples |
+| --- | --- | --- | --- |
+| **Standards** | Formal reference documents — rules and specifications | `docs/standards/` | This file, scripting-standards.adoc |
+| **Guides** | Standalone documentation — getting-started, tool guides, operations, reference | `docs/getting-started/`, `docs/tools/*/`, `docs/operations/`, `docs/reference/` | installation.adoc, tools/vmfleet/overview.adoc, ci-cd.adoc |
+| **READMEs** | Quick-start and overview pages — viewed on GitHub | Root and `src/solutions/*/` | README.adoc, src/solutions/vmfleet/README.md |
+
+### Tier Comparison
+
+| Feature | Standards | Guides | READMEs |
+| --- | --- | --- | --- |
+| `:toc:` placement | `left` (sidebar) | `left` (sidebar) | `macro` (inline) |
+| `:toclevels:` | `4` (deep) | `3` (standard) | `2` (light) |
+| `:sectnums:` | Yes | Yes | No |
+| Quick Navigation block | Yes | No | No |
+| Abstract block | Yes | No | No |
+| Admonition captions | Emoji (💡 ℹ️ ⚠️) | Font icons | Font icons |
+| Author / version line | Yes | No | No |
+| Badges | Yes — after attributes, before `[abstract]` | Yes — after attributes, before first content | Yes — after attributes, inline on one line |
+| Standalone rendering | Yes — self-contained | Yes — self-contained | Yes — self-contained |
+
+## Header Attribute Standards
+
+### Standards Documents
+
+Full self-contained header with sidebar TOC, emoji admonitions, and abstract:
+
+```asciidoc
+= Document Title — Subtitle
+Kristopher Turner
+v1.0, 2026-02-13
+
+:description: Brief description for metadata.
+:keywords: comma, separated, keywords
+:toc: left
+:toclevels: 4
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:tip-caption: 💡
+:note-caption: ℹ️
+:warning-caption: ⚠️
+:caution-caption: 🔥
+:important-caption: ❗
+
+image:https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square[Category: Standards]
+
+[abstract]
+One to three sentences describing the document's purpose and audience.
+
+[discrete]
+== Quick Navigation
+
+* <<section-anchor>> — Brief description
+* <<another-anchor>> — Brief description
+
+'''
+```
+
+### Guide Documents
+
+Standalone documents with their own sidebar TOC. Each guide has a level-1 title and includes project-wide attributes:
+
+```asciidoc
+= Guide Title
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
+
+Brief introduction to the topic.
+
+== First Section
+```
+
+!!! note
+    Replace the Category badge with the appropriate one for the document location (Tool Guide, Operations, Reference). See [Badge Standards](badge-standards.md) for the full catalog.
+
+!!! note
+    Adjust `:imagesdir:` based on folder depth — `../images` for one level deep, `../../images` for two levels (e.g., `tools/vmfleet/`).
+
+!!! tip
+    Guides are also included into `main.adoc` for optional combined PDF builds. When included, the level-1 title is shifted by `leveloffset=+1`.
+
+### README Documents
+
+GitHub-friendly inline TOC:
+
+```asciidoc
+= Project or Solution Name
+:toc: macro
+:toclevels: 2
+:icons: font
+
+image:https://img.shields.io/badge/Platform-Azure%20Local-0078D4?style=flat-square&logo=microsoft-azure[Platform] image:https://img.shields.io/badge/PowerShell-7.2%2B-5391FE?style=flat-square&logo=powershell[PowerShell] image:https://img.shields.io/badge/License-MIT-green?style=flat-square[License]
+
+Brief one-paragraph description.
+
+toc::[]
+
+== First Section
+```
+
+!!! tip
+    The `:toc: macro` + `toc::[]` pattern places the table of contents exactly where you put the macro — ideal for GitHub rendering where sidebar TOCs are not supported.
+
+### Book Document (`main.adoc` — Optional PDF Builder)
+
+`main.adoc` is retained as an optional combined PDF builder. It includes all standalone guides and is **not** the primary documentation entry point — `docs/index.adoc` is.
+
+```asciidoc
+= Book Title
+:author: AzureLocal
+:email: azurelocal@microsoft.com
+:revdate: 2026-02-13
+:revnumber: 0.1.0
+:doctype: book
+:toc: left
+:toclevels: 3
+:sectnums:
+:sectnumlevels: 3
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: images
+:pdf-themesdir: themes
+:pdf-theme: azurelocal-theme
+
+// Project-wide attributes (reusable variables)
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+```
+
+### Documentation Hub (`docs/index.adoc`)
+
+`index.adoc` is the landing page with links to all documentation organized by category. It uses the same header pattern as guides.
+
+## Heading and Structure Rules
+
+### Heading Levels
+
+| Level | Usage | Scope |
+| --- | --- | --- |
+| `=` | Document title | Every standalone document (guides, standards, READMEs, `main.adoc`) |
+| `==` | Major sections | Top-level sections within any document |
+| `===` | Subsections | Detailed topic areas within a section |
+| `====` | Sub-subsections | Granular detail, usually the deepest needed |
+| `=====` | Avoid | If you need this depth, consider restructuring |
+
+### Section Anchors
+
+AsciiDoc auto-generates anchors from headings, but for cross-reference stability, use explicit anchors for any section you link to:
+
+```asciidoc
+[[my-stable-anchor]]
+== My Section Title
+```
+
+!!! warning
+    Auto-generated anchors break when headings are renamed. Use explicit `[[anchor]]` IDs for any section referenced from other documents.
+
+### Section Numbering
+
+- Standards documents: `:sectnums:` is **on** — sections show as 1, 1.1, 1.2, etc.
+- READMEs: `:sectnums:` is **off** — no numbering for casual docs
+- Chapters: Inherit from `main.adoc` (on by default)
+
+## Formatting Conventions
+
+### Code Blocks
+
+Always specify the language for syntax highlighting:
+
+````asciidoc
+[source,powershell]
+----
+Get-Process | Where-Object { $_.CPU -gt 100 }
+----
+````
+
+Supported languages in this project:
+
+| Language | Usage |
+| --- | --- |
+| `powershell` | All PowerShell scripts and examples |
+| `yaml` | Configuration files |
+| `json` | Solution configs, schema files |
+| `xml` | PerfMon counter definitions, event log queries |
+| `bash` | Ansible playbooks, Linux commands |
+| `asciidoc` | Documentation examples (like in this file) |
+
+### Code Callouts
+
+Use numbered callouts to annotate code:
+
+````asciidoc
+[source,powershell]
+----
+$config = Import-MasterConfig   # <1>
+$filtered = $config | Where-Object { $_.solutions -contains 'vmfleet' }  # <2>
+----
+<1> Loads the master YAML and caches it
+<2> Filters to VMFleet-tagged variables only
+````
+
+!!! tip
+    Callouts make code examples self-documenting. Use them for any code block longer than three lines.
+
+### Tables
+
+Use the AsciiDoc table syntax with explicit column specs:
+
+```asciidoc
+[cols="1,2,3"]
+|===
+| Column A | Column B | Column C
+
+| Data 1
+| Data 2
+| Data 3
+|===
+```
+
+Rules for tables:
+
+- Always include `[cols="..."]` with relative widths
+- First row is always the header row
+- Put each cell on its own line for readability in source
+- Use `a` column type for cells containing AsciiDoc markup: `[cols="1,2a"]`
+
+### Admonitions
+
+Use admonition blocks for callouts. Each type has a specific purpose:
+
+| Type | Icon | When to Use |
+| --- | --- | --- |
+| `TIP` | 💡 | Helpful suggestions, best practices, shortcuts |
+| `NOTE` | ℹ️ | Additional context, clarifications, "good to know" |
+| `WARNING` | ⚠️ | Potential problems if instructions are not followed |
+| `CAUTION` | 🔥 | Risk of data loss, security exposure, or breaking changes |
+| `IMPORTANT` | ❗ | Critical information that must not be skipped |
+
+Inline syntax:
+
+```asciidoc
+TIP: Run the linter before committing.
+
+WARNING: This will delete all fleet VMs.
+```
+
+Block syntax (for multi-line content):
+
+```asciidoc
+[WARNING]
+====
+This operation is destructive and cannot be undone.
+Make sure you have a backup before proceeding.
+====
+```
+
+### Bold, Italic, and Monospace
+
+| Style | Syntax | Usage |
+| --- | --- | --- |
+| **Bold** | `**bold text**` | UI elements, emphasis on key terms |
+| *Italic* | `_italic text_` | First use of a defined term, file descriptions |
+| `Monospace` | `` `monospace` `` | Code references, file names, variable names, commands |
+| **`Bold mono`** | `` **`bold mono`** `` | Tool names in tables (e.g., **VMFleet**) |
+
+### Lists
+
+Use `*` for unordered lists, `.` for ordered lists:
+
+```asciidoc
+* First item
+* Second item
+** Nested item
+
+. Step one
+. Step two
+.. Sub-step
+```
+
+!!! important
+    Do not mix `*` and `-` for unordered lists. Always use `*` in this project.
+
+## Cross-References and Linking
+
+### Internal Cross-References
+
+Link to sections within the same document:
+
+```asciidoc
+See <<section-anchor>> for details.
+
+See <<section-anchor, custom link text>> for details.
+```
+
+### Inter-Document References
+
+Link to sections in other documents using `xref`:
+
+```asciidoc
+See xref:chapters/06-vmfleet-guide.adoc#deploy-phase[the deployment phase].
+```
+
+### External Links
+
+```asciidoc
+https://github.com/AzureLocal/azurelocal-loadtools[Azure Local Load Tools repository]
+
+https://docs.microsoft.com/en-us/azure-stack/hci/[Azure Stack HCI documentation]
+```
+
+### Image References
+
+```asciidoc
+image::diagram-name.png[Alt text, width=600]
+```
+
+- Store images in `docs/images/`
+- Use descriptive file names: `vmfleet-pipeline-workflow.png`, not `diagram1.png`
+- Always include alt text
+- Specify width for large images to control rendering
+
+## Templates
+
+### Standards Document Template
+
+```asciidoc
+= Title — Subtitle
+Kristopher Turner
+v1.0, 2026-02-13
+
+:description: Single sentence describing the document.
+:keywords: relevant, keywords
+:toc: left
+:toclevels: 4
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:tip-caption: 💡
+:note-caption: ℹ️
+:warning-caption: ⚠️
+:caution-caption: 🔥
+:important-caption: ❗
+
+image:https://img.shields.io/badge/Category-Standards-E67E22?style=flat-square[Category: Standards]
+
+[abstract]
+One to three sentences.
+
+[discrete]
+== Quick Navigation
+
+* <<first-section>> — Description
+* <<second-section>> — Description
+
+'''
+
+== First Section
+
+Content here.
+
+== Second Section
+
+Content here.
+```
+
+### Guide Template
+
+```asciidoc
+= Guide Title
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+:experimental:
+:imagesdir: ../images
+:project-name: Azure Local Load Testing Framework
+:project-repo: https://github.com/AzureLocal/azurelocal-loadtools
+
+image:https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square[Category: Getting Started]
+
+Brief introduction to the topic.
+
+== First Section
+
+Content here.
+
+== Second Section
+
+Content here.
+```
+
+### README Template (AsciiDoc)
+
+```asciidoc
+= Component Name
+:toc: macro
+:toclevels: 2
+:icons: font
+
+image:https://img.shields.io/badge/Platform-Azure%20Local-0078D4?style=flat-square&logo=microsoft-azure[Platform] image:https://img.shields.io/badge/License-MIT-green?style=flat-square[License]
+
+Brief one-paragraph description of what this component does.
+
+toc::[]
+
+== Overview
+
+What this component does and why it exists.
+
+== Quick Start
+
+[source,powershell]
+----
+# Minimal usage example
+----
+
+== Configuration
+
+Describe configuration options.
+
+== Usage
+
+Describe detailed usage.
+```
+
+### README Template (Markdown)
+
+For solution READMEs that use Markdown:
+
+````markdown
+# Component Name
+
+Brief description.
+
+## Overview
+
+What this component does.
+
+## Quick Start
+
+```powershell
+# Minimal usage example
+```
+
+## Configuration
+
+Options and settings.
+````
+
+!!! note
+    The root `README.adoc` uses AsciiDoc. Solution-level READMEs (`src/solutions/*/README.md`) currently use Markdown. Both are acceptable — but be consistent within each directory.
+
+## File Organization
+
+### Documentation Directory Structure
+
+```text
+docs/
+├── index.adoc                 # Documentation hub — links to everything
+├── main.adoc                  # Optional combined PDF builder
+├── getting-started/           # Shared setup docs (all tools)
+│   ├── introduction.adoc
+│   ├── architecture.adoc
+│   ├── prerequisites.adoc
+│   ├── installation.adoc
+│   └── configuration.adoc
+├── tools/                     # One folder per tool — self-contained
+│   ├── vmfleet/
+│   │   ├── overview.adoc
+│   │   ├── prerequisites.adoc
+│   │   ├── deployment.adoc
+│   │   ├── workload-profiles.adoc
+│   │   ├── monitoring.adoc
+│   │   ├── reporting.adoc
+│   │   └── troubleshooting.adoc
+│   ├── fio/
+│   │   └── overview.adoc
+│   ├── iperf/
+│   │   └── overview.adoc
+│   ├── hammerdb/
+│   │   └── overview.adoc
+│   └── stress-ng/
+│       └── overview.adoc
+├── operations/                # Cross-tool operational docs
+│   ├── ci-cd.adoc
+│   └── credential-management.adoc
+├── reference/                 # Reference material
+│   ├── variable-reference.adoc
+│   ├── cmdlet-reference.adoc
+│   └── glossary.adoc
+├── standards/                 # Standards documents (self-contained)
+│   ├── documentation-standards.adoc
+│   ├── scripting-standards.adoc
+│   └── variables-environment-standards.adoc
+├── diagrams/                  # Draw.io and other diagram sources
+├── images/                    # Rendered images and screenshots
+└── themes/                    # PDF theme files
+```
+
+### File Naming Rules
+
+| Location | Convention | Example |
+| --- | --- | --- |
+| `getting-started/` | `kebab-case.adoc` | `prerequisites.adoc` |
+| `tools/{tool}/` | `kebab-case.adoc` | `workload-profiles.adoc` |
+| `operations/` | `kebab-case.adoc` | `credential-management.adoc` |
