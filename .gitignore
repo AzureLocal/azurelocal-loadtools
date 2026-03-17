@@ -33,6 +33,9 @@ config/credentials/*.key
 config/credentials/*.pem
 config/credentials/.env
 
+# User-specific config (actual values — never commit)
+config/variables.yml
+
 # Generated solution config files (built from master-environment.yml)
 # Uncomment the next line if you want these regenerated every time:
 # config/variables/solutions/*.json

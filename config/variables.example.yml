@@ -1,0 +1,133 @@
+# =============================================================================
+# variables.example.yml
+# Central configuration — single source of truth for load testing deployments.
+#
+# Copy this file to variables.yml and fill in your values:
+#   cp config/variables.example.yml config/variables.yml
+#
+# DO NOT commit variables.yml — it is excluded by .gitignore.
+#
+# Key Vault References:
+#   Secrets use keyvault:// URIs and are resolved at runtime.
+#   Format: keyvault://<vault-name>/<secret-name>
+#   NEVER put actual passwords or secrets in this file.
+#
+# Detailed configs live in subdirectories:
+#   - config/clusters/         Cluster definitions (per-cluster YAML)
+#   - config/credentials/      Key Vault credential mappings
+#   - config/profiles/         Workload profiles (vmfleet, fio, iperf, etc.)
+#   - config/variables/        Master variable registry and solution schemas
+# =============================================================================
+
+
+# =============================================================================
+# Azure
+# =============================================================================
+azure:
+  subscription_id: "00000000-0000-0000-0000-000000000000"
+  tenant_id: "00000000-0000-0000-0000-000000000000"
+  resource_group: "rg-loadtools-eus-01"
+  location: "eastus"
+
+
+# =============================================================================
+# Key Vault
+# =============================================================================
+keyvault:
+  name: "kv-iic-loadtools"
+  auth_method: "az_cli"                       # managed_identity | service_principal | az_cli
+
+
+# =============================================================================
+# Azure Local Cluster
+# =============================================================================
+azure_local:
+  cluster_name: "azl-cluster-01"
+  cluster_domain: "iic.local"
+  nodes:
+    - name: "azl-node-01"
+      management_ip: "10.0.0.1"
+      storage_ip: "10.0.1.1"
+    - name: "azl-node-02"
+      management_ip: "10.0.0.2"
+      storage_ip: "10.0.1.2"
+
+
+# =============================================================================
+# Storage
+# =============================================================================
+storage:
+  csv_path: "C:\\ClusterStorage\\Volume1"
+  collect_volume_path: "C:\\ClusterStorage\\Collect"
+  base_vhd_path: "C:\\ClusterStorage\\Collect\\BaseImage.vhdx"
+
+
+# =============================================================================
+# Networking
+# =============================================================================
+networking:
+  management:
+    subnet: "10.0.0.0/24"
+    vlan_id: 0
+  storage:
+    subnet: "10.0.1.0/24"
+    vlan_id: 100
+    rdma_enabled: true
+  compute:
+    subnet: "10.0.2.0/24"
+    vlan_id: 200
+
+
+# =============================================================================
+# Credentials (mapped to Key Vault secrets)
+# =============================================================================
+credentials:
+  cluster_admin_username: "keyvault://kv-iic-loadtools/hci-cluster-admin-user"
+  cluster_admin_password: "keyvault://kv-iic-loadtools/hci-cluster-admin-pwd"
+  vmfleet_admin_username: "keyvault://kv-iic-loadtools/vmfleet-admin-user"
+  vmfleet_admin_password: "keyvault://kv-iic-loadtools/vmfleet-admin-pwd"
+
+
+# =============================================================================
+# Testing Defaults
+# =============================================================================
+testing:
+  default_tool: "vmfleet"                     # vmfleet | fio | iperf | hammerdb | stress-ng
+  default_profile: "general"                  # Profile name from config/profiles/<tool>/
+  duration_seconds: 300
+  warmup_seconds: 60
+
+
+# =============================================================================
+# Monitoring & Reporting
+# =============================================================================
+monitoring:
+  log_analytics_workspace_id: "00000000-0000-0000-0000-000000000000"
+  log_analytics_shared_key: "keyvault://kv-iic-loadtools/log-analytics-key"
+  enable_real_time: true
+  collection_interval_seconds: 10
+
+reporting:
+  output_dir: "reports"
+  format: "html"                              # html | json | csv
+  include_charts: true
+
+
+# =============================================================================
+# WinRM
+# =============================================================================
+winrm:
+  port: 5985
+  use_ssl: false
+  authentication: "Kerberos"                  # Kerberos | Negotiate | Basic
+  operation_timeout_seconds: 300
+
+
+# =============================================================================
+# Tags
+# =============================================================================
+tags:
+  project: "LoadTools"
+  environment: "production"
+  workload: "performance-testing"
+  solution: "loadtools-azure-local"
