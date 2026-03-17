@@ -60,10 +60,15 @@ nav:
       - Cmdlet Reference: reference/cmdlet-reference.md
       - Glossary: reference/glossary.md
   - Standards:
-      - Documentation: standards/documentation-standards.md
-      - Scripting: standards/scripting-standards.md
-      - Variables: standards/variables-environment-standards.md
-      - Badges: standards/badge-standards.md
+      - Overview: standards/index.md
+      - Documentation: standards/documentation.md
+      - Scripting: standards/scripting.md
+      - Variables: standards/variables.md
+      - Naming Conventions: standards/naming.md
+      - Solutions: standards/solutions.md
+      - Infrastructure: standards/infrastructure.md
+      - Automation: standards/automation.md
+      - Examples & IIC: standards/examples.md
   - Contributing: contributing.md
 
 markdown_extensions:
