@@ -56,7 +56,7 @@ nav:
       - CI/CD Pipelines: operations/ci-cd.md
       - Credential Management: operations/credential-management.md
   - Reference:
-      - Variable Reference: reference/variable-reference.md
+      - Variable Reference: reference/variables.md
       - Cmdlet Reference: reference/cmdlet-reference.md
       - Glossary: reference/glossary.md
   - Standards:
