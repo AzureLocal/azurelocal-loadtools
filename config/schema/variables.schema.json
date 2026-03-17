@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AzureLocal/azurelocal-loadtools/config/schema/variables.schema.json",
+  "title": "Load Tools Variables",
+  "description": "Schema for config/variables.example.yml — validates required sections and key structure.",
+  "type": "object",
+  "required": ["azure", "keyvault", "azure_local", "storage", "credentials", "testing", "tags"],
+  "properties": {
+    "azure": {
+      "type": "object",
+      "required": ["subscription_id", "tenant_id", "resource_group", "location"],
+      "properties": {
+        "subscription_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "resource_group": { "type": "string" },
+        "location": { "type": "string" }
+      }
+    },
+    "keyvault": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "auth_method": { "type": "string", "enum": ["managed_identity", "service_principal", "az_cli"] }
+      }
+    },
+    "azure_local": {
+      "type": "object",
+      "required": ["cluster_name", "nodes"],
+      "properties": {
+        "cluster_name": { "type": "string" },
+        "cluster_domain": { "type": "string" },
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "management_ip"],
+            "properties": {
+              "name": { "type": "string" },
+              "management_ip": { "type": "string" },
+              "storage_ip": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "required": ["csv_path"],
+      "properties": {
+        "csv_path": { "type": "string" },
+        "collect_volume_path": { "type": "string" },
+        "base_vhd_path": { "type": "string" }
+      }
+    },
+    "networking": {
+      "type": "object",
+      "properties": {
+        "management": {
+          "type": "object",
+          "properties": {
+            "subnet": { "type": "string" },
+            "vlan_id": { "type": "integer" }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "properties": {
+            "subnet": { "type": "string" },
+            "vlan_id": { "type": "integer" },
+            "rdma_enabled": { "type": "boolean" }
+          }
+        },
+        "compute": {
+          "type": "object",
+          "properties": {
+            "subnet": { "type": "string" },
+            "vlan_id": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "credentials": {
+      "type": "object",
+      "required": ["cluster_admin_username", "cluster_admin_password"],
+      "properties": {
+        "cluster_admin_username": { "type": "string" },
+        "cluster_admin_password": { "type": "string" },
+        "vmfleet_admin_username": { "type": "string" },
+        "vmfleet_admin_password": { "type": "string" }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "required": ["default_tool"],
+      "properties": {
+        "default_tool": { "type": "string", "enum": ["vmfleet", "fio", "iperf", "hammerdb", "stress-ng"] },
+        "default_profile": { "type": "string" },
+        "duration_seconds": { "type": "integer", "minimum": 1 },
+        "warmup_seconds": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "properties": {
+        "log_analytics_workspace_id": { "type": "string" },
+        "log_analytics_shared_key": { "type": "string" },
+        "enable_real_time": { "type": "boolean" },
+        "collection_interval_seconds": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "reporting": {
+      "type": "object",
+      "properties": {
+        "output_dir": { "type": "string" },
+        "format": { "type": "string", "enum": ["html", "json", "csv"] },
+        "include_charts": { "type": "boolean" }
+      }
+    },
+    "winrm": {
+      "type": "object",
+      "properties": {
+        "port": { "type": "integer" },
+        "use_ssl": { "type": "boolean" },
+        "authentication": { "type": "string", "enum": ["Kerberos", "Negotiate", "Basic"] },
+        "operation_timeout_seconds": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
