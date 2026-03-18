@@ -8,7 +8,7 @@
 
 ## Policy
 
-All examples, sample configurations, walkthroughs, and documentation across every AzureLocal repository use **one** fictional company: **Infinite Improbability Corp (IIC)**.
+All examples, sample configurations, and walkthroughs use **one** fictional company: **Infinite Improbability Corp (IIC)**.
 
 !!! warning "Mandatory"
     Never use `contoso`, `fabrikam`, `adventure-works`, `woodgrove`, `example.com`, or any real customer name.
@@ -27,33 +27,42 @@ All examples, sample configurations, walkthroughs, and documentation across ever
 | **NetBIOS Name** | `IMPROBABLE` |
 | **Entra ID Tenant** | `improbability.onmicrosoft.com` |
 | **Email Pattern** | `user@improbability.cloud` |
-| **Origin** | A nod to *The Hitchhiker's Guide to the Galaxy* |
 
 ---
 
-## LoadTools Naming Patterns
+## AzureLocal Naming Patterns
 
 ### Azure Resources
 
 | Resource | Pattern | Example |
 |----------|---------|---------|
-| Resource Group | `rg-iic-loadtools-<##>` | `rg-iic-loadtools-01` |
+| Resource Group | `rg-iic-<purpose>-<##>` | `rg-iic-platform-01` |
+| Virtual Network | `vnet-iic-<purpose>-<##>` | `vnet-iic-compute-01` |
+| Subnet | `snet-iic-<purpose>` | `snet-iic-management` |
+| Network Security Group | `nsg-iic-<purpose>` | `nsg-iic-compute` |
 | Key Vault | `kv-iic-<purpose>` | `kv-iic-platform` |
-| Storage Account | `stiic<purpose><##>` | `stiicresults01` |
+| Storage Account | `stiic<purpose><##>` | `stiicdata01` |
 | Log Analytics | `law-iic-<purpose>-<##>` | `law-iic-monitor-01` |
+| Managed Identity | `id-iic-<purpose>` | `id-iic-deploy` |
 
-### Cluster & Nodes
+### Active Directory
 
 | Resource | Pattern | Example |
 |----------|---------|---------|
-| Cluster | `iic-clus<NN>` | `iic-clus01` |
-| Test VMs | `iic-vm<tool>-<NN>` | `iic-vmfleet-01` |
+| OU path | `OU=<Purpose>,OU=Servers,DC=iic,DC=local` | — |
+| Service account | `svc.iic.<purpose>` | `svc.iic.deploy` |
+| Group | `grp-iic-<purpose>` | `grp-iic-admins` |
+
+### IP Addresses
+
+| Network | Range | Usage |
+|---------|-------|-------|
+| Management | `10.0.0.0/24` | Node management |
+| Compute | `10.0.2.0/24` | Workload traffic |
 
 ---
 
 ## Real Identities
-
-These are **not** fictional — use for authorship and attribution:
 
 | Name | Usage |
 |------|-------|
@@ -67,37 +76,28 @@ These are **not** fictional — use for authorship and attribution:
 ### In `config/variables.example.yml`
 
 ```yaml
-azure:
+subscription:
   subscription_id: "00000000-0000-0000-0000-000000000000"
-  resource_group: "rg-iic-loadtools-01"
+  tenant_id: "00000000-0000-0000-0000-000000000000"
   location: "eastus"
 
-keyvault:
-  name: "kv-iic-platform"
+security:
+  keyvault_name: "kv-iic-platform"
 
-testing:
-  cluster_name: "iic-clus01"
-  vm_count: 64
+azure_local:
+  resource_group: "rg-iic-platform-01"
+  cluster_name: "azlocal-iic-01"
 ```
 
 ### In Documentation
 
-> Infinite Improbability Corp validates storage performance on `iic-clus01` using
-> VMFleet with 64 test VMs across four Azure Local nodes.
-
-### In Scripts
-
-```powershell
-# Example: Start VMFleet workload on IIC cluster
-$clusterName = "iic-clus01"
-$credential = Get-Secret -Vault "kv-iic-platform" -Name "svc-iic-deploy"
-Invoke-VMFleetWorkload -ClusterName $clusterName -Credential $credential
-```
+> Infinite Improbability Corp deploys Azure Local clusters using IIC naming patterns,
+> with all configuration driven from a single `config/variables.yml` file.
 
 ---
 
 ## Enforcement
 
 - **PR review**: Reviewers flag any use of `contoso`, `fabrikam`, or other non-IIC names
-- **Config validation**: `variables.example.yml` uses IIC naming patterns in all placeholders
-- **CI**: Vale linting rules can flag non-IIC fictional company names (when configured)
+- **Config validation**: `variables.example.yml` uses IIC naming in all placeholders
+- **CI**: Vale linting rules flag non-IIC fictional company names (when configured)

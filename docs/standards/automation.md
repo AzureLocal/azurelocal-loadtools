@@ -8,7 +8,7 @@
 
 ## Overview
 
-This standard defines how automation tools interoperate within the Load Testing Framework. All tools share a single configuration source and follow consistent patterns for execution, logging, and error handling.
+This standard defines how multiple automation tools (Terraform, Bicep, ARM, PowerShell, Ansible) interoperate across AzureLocal solutions. All tools share a single configuration source and must produce identical infrastructure.
 
 ---
 
@@ -16,37 +16,42 @@ This standard defines how automation tools interoperate within the Load Testing 
 
 ```mermaid
 flowchart TB
-    A["config/variables.yml<br/>(single source of truth)"] --> B[Cluster Configs]
-    A --> C[Workload Profiles]
-    A --> D[Credential Templates]
-    B --> E[Test Execution]
-    C --> E
-    D --> E
-    E --> F[Results in reports/]
+    A["config/variables.yml<br/>(single source of truth)"] --> B[Terraform .tfvars]
+    A --> C[Bicep .bicepparam]
+    A --> D[ARM parameters.json]
+    A --> E[PowerShell ConvertFrom-Yaml]
+    A --> F[Ansible group_vars]
+    B --> G[Identical Infrastructure]
+    C --> G
+    D --> G
+    E --> G
+    F --> G
 ```
 
 ---
 
-## Tool Integration Matrix
+## Deployment Path Matrix
 
-| Tool | Storage Tests | Network Tests | Compute Tests | Database Tests |
+| Tool | Azure Resources | Configuration | Monitoring | Scaling |
 |------|:---:|:---:|:---:|:---:|
-| **VMFleet** | ✅ | — | — | — |
-| **fio** | ✅ | — | — | — |
-| **iPerf3** | — | ✅ | — | — |
-| **HammerDB** | — | — | — | ✅ |
-| **stress-ng** | — | — | ✅ | — |
+| **Terraform** | ✅ | Delegates | ✅ | ✅ |
+| **Bicep** | ✅ | Delegates | ✅ | ✅ |
+| **ARM** | ✅ | Delegates | ✅ | — |
+| **PowerShell** | ✅ | ✅ | ✅ | ✅ |
+| **Ansible** | ✅ | ✅ | ✅ | ✅ |
+
+!!! warning "Delegates"
+    "Delegates" means the IaC tool provisions Azure resources but does not configure the guest OS or application layer. A separate tool (PowerShell or Ansible) handles guest configuration.
 
 ---
 
 ## Interoperability Rules
 
-1. **Single source of truth** — `config/variables.yml` is the base config; tool-specific configs are in subdirectories.
-2. **Consistent execution** — All tools launched via `Invoke-` wrapper scripts.
-3. **Idempotency** — All scripts must be safe to re-run.
-4. **Error handling** — Every tool must validate config before executing tests.
+1. **Single source of truth** — `config/variables.yml` is the only config file. All tool-specific parameter files are derived.
+2. **Identical output** — Given the same config, every tool must produce the same infrastructure.
+3. **Idempotency** — All scripts and templates must be safe to re-run.
+4. **Error handling** — Every tool must validate config before executing changes.
 5. **Logging** — All operations logged to `./logs/` with consistent format.
-6. **Results** — All test results stored in `reports/` with timestamped output.
 
 ---
 

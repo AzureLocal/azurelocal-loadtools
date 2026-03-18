@@ -8,7 +8,7 @@
 
 ## Overview
 
-Standards for Infrastructure as Code (IaC), state management, and deployment processes for the Load Testing Framework.
+Standards for Infrastructure as Code (IaC), Terraform state management, and deployment processes for AzureLocal solutions.
 
 ---
 
@@ -32,29 +32,31 @@ flowchart LR
 | Remote state | Store Terraform state in Azure Storage Account |
 | State locking | Enable locking during all operations |
 | Backup | Regular state file backups before destructive operations |
-| Naming | `loadtools-<env>.tfstate` (e.g., `loadtools-prod.tfstate`) |
+| Naming | `<solution>-<env>.tfstate` (e.g., `platform-prod.tfstate`) |
 
 ---
 
-## LoadTools-Specific Infrastructure
+## IaC Tool Parity
 
-| Convention | Rule |
-|-----------|------|
-| Primary tooling | PowerShell scripts with config-driven execution |
-| Config source | `config/variables.yml` with `clusters/`, `credentials/`, `profiles/` subdirectories |
-| VM provisioning | VMFleet VMs provisioned via PowerShell or Hyper-V cmdlets |
-| Network validation | iPerf3 tests validate network throughput before storage tests |
+All tools must produce **identical infrastructure** when given the same configuration values:
 
-### Test Infrastructure Lifecycle
+| Tool | Primary Format | State Management |
+|------|---------------|-----------------|
+| Terraform | `.tf` / `.tfvars` | Remote state in Azure Storage |
+| Bicep | `.bicep` / `.bicepparam` | ARM deployment history |
+| ARM | `.json` | ARM deployment history |
+| PowerShell | `.ps1` | Config-driven, logged |
+| Ansible | `.yml` | Inventory-based |
 
-```mermaid
-flowchart TB
-    A[Provision Test VMs] --> B[Configure Workload Profiles]
-    B --> C[Run Baseline Tests]
-    C --> D[Store Results in reports/]
-    D --> E[Compare Against Baselines]
-    E --> F[Teardown or Retain]
-```
+---
+
+## Deployment Phases
+
+| Phase | Scope | Tools |
+|-------|-------|-------|
+| Phase 1: Azure Foundation | Resource groups, networking, Key Vault, storage | Terraform, Bicep, ARM |
+| Phase 2: Compute & Workload | VMs, clusters, workload deployment | Terraform, PowerShell |
+| Phase 3: Configuration | Guest config, monitoring, policies | PowerShell, Ansible |
 
 ---
 

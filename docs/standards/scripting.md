@@ -10,12 +10,12 @@
 
 | Script Type | Pattern | Example |
 |-------------|---------|---------|
-| PowerShell Core | `Verb-Noun.ps1` | `Start-VMFleetWorkload.ps1` |
+| PowerShell Core | `Verb-Noun.ps1` | `Deploy-Solution.ps1` |
 | Azure PowerShell | `Verb-AzResource.ps1` | `New-AzKeyVault.ps1` |
-| Azure CLI (PowerShell) | `az-verb-resource.ps1` | `az-create-vm.ps1` |
-| Azure CLI (Bash) | `az-verb-resource.sh` | `az-create-vm.sh` |
-| Standalone (no config) | `Verb-Noun-Standalone.ps1` | `Start-VMFleet-Standalone.ps1` |
-| Remote/orchestration | `Invoke-<Task>.ps1` | `Invoke-LoadTest.ps1` |
+| Azure CLI (PowerShell) | `az-verb-resource.ps1` | `az-deploy-resource.ps1` |
+| Azure CLI (Bash) | `az-verb-resource.sh` | `az-deploy-resource.sh` |
+| Standalone (no config) | `Verb-Noun-Standalone.ps1` | `Deploy-Solution-Standalone.ps1` |
+| Remote/orchestration | `Invoke-<Task>.ps1` | `Invoke-Deployment.ps1` |
 
 ---
 
@@ -23,18 +23,19 @@
 
 | Mode | Config File | Dependencies | Use Case |
 |------|-------------|-------------|----------|
-| Config-driven | `config/variables.yml` | Config loader, helpers, Key Vault | Multi-environment automation, CI/CD |
-| Standalone | Inline `#region CONFIGURATION` | None | Demos, single-use, external sharing |
+| Config-driven (Options 2-4) | `config/variables.yml` | Config loader, helpers, Key Vault | Multi-environment automation, CI/CD |
+| Standalone (Option 5) | Inline `#region CONFIGURATION` | None | Demos, single-use, external sharing |
 
 ### Config-Driven Rules
 
 - Read all values from `config/variables.yml` — never hardcode
 - Accept `-ConfigPath` parameter (auto-discover if not provided)
-- Use helper functions for YAML loading and Key Vault resolution
+- Use helper functions: `ConvertFrom-Yaml`, `Resolve-KeyVaultRef`, logging
 
 ### Standalone Rules
 
 - All variables in `#region CONFIGURATION` block at top
+- Variable names match `variables.yml` paths (e.g., `$subscription_id`)
 - Zero external dependencies — copy, paste, run
 
 ---
@@ -69,13 +70,13 @@ All `Invoke-` scripts must use `[CmdletBinding()]` to enable `-Verbose` and `-De
 
 ---
 
-## LoadTools-Specific Conventions
+## Solution Script Conventions
 
 | Convention | Rule |
 |-----------|------|
-| Config source | `config/variables.yml` with subdirectories for clusters, credentials, profiles |
-| Performance baselines | Store baseline results in `reports/` for comparison |
-| Tool wrappers | Each load tool (VMFleet, fio, iPerf, HammerDB, stress-ng) has its own script module |
+| IaC tools | Terraform, Bicep, ARM, PowerShell, Ansible |
+| Config source | `config/variables.yml` (single source of truth) |
+| Parameter derivation | All tool-specific param files derived from central config |
 | Idempotency | All scripts must be safe to re-run |
 
 ---

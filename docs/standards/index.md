@@ -4,7 +4,7 @@ This repository follows the **org-wide AzureLocal standards** maintained on the 
 
 !!! info "Central Standards"
     The full standards suite is at [azurelocal.cloud/standards](https://azurelocal.cloud/standards/).
-    This section provides the key rules adapted for the Load Testing Framework.
+    This section provides the key rules adapted for this solution.
 
 ---
 
@@ -32,9 +32,6 @@ This repository follows the **org-wide AzureLocal standards** maintained on the 
 
 ## Repo-Specific Conventions
 
-This repository follows additional conventions specific to the Load Testing Framework:
-
-- **Config file**: `config/variables.example.yml` with `clusters/`, `credentials/`, `profiles/`, `variables/` subdirectories — see [Variable Reference](../reference/variables.md)
-- **Load tools**: VMFleet, fio, iPerf3, HammerDB, stress-ng — each has dedicated script modules
-- **Performance baselines**: Store in `reports/` for comparison across runs
+- **IaC tooling**: Terraform, Bicep, ARM, PowerShell, Ansible
+- **Config file**: `config/variables.example.yml` — see [Variable Reference](../reference/variables.md)
 - **Fictional company**: Infinite Improbability Corp (IIC) — see [IIC Policy](examples.md)

@@ -21,48 +21,44 @@
 
 | Type | Convention | Pattern | Example |
 |------|-----------|---------|---------|
-| Directories | lowercase-with-hyphens | `^[a-z][a-z0-9-]*$` | `tools/`, `getting-started/` |
-| Markdown (docs/) | lowercase with hyphens | `*.md` | `workload-profiles.md` |
+| Directories | lowercase-with-hyphens | `^[a-z][a-z0-9-]*$` | `guides/`, `reference/` |
+| Markdown (docs/) | lowercase with hyphens | `*.md` | `deployment-guide.md` |
 | Root files | UPPERCASE | — | `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` |
-| PowerShell scripts | PascalCase | `Verb-Noun.ps1` | `Start-VMFleetWorkload.ps1` |
+| PowerShell scripts | PascalCase | `Verb-Noun.ps1` | `Deploy-Solution.ps1` |
 | Config files | lowercase-with-hyphens | — | `variables.example.yml` |
 
 ---
 
 ## MkDocs Material Conventions
 
-This repo uses **MkDocs Material** with:
+This repo uses **MkDocs Material** with the following conventions:
 
-- **Admonitions**: `!!! note`, `!!! warning`, `!!! danger`, `!!! info`, `!!! tip`
-- **Code blocks**: Always include a language identifier
+- **Admonitions**: Use `!!! note`, `!!! warning`, `!!! danger`, `!!! info`, `!!! tip`
+- **Code blocks**: Always include a language identifier (e.g., ` ```powershell `, ` ```yaml `)
 - **Code copy**: Enabled via `content.code.copy`
-- **Mermaid diagrams**: Supported via `pymdownx.superfences`
-- **Tables**: Standard Markdown tables
-- **Tabs**: `=== "Tab Name"` via `pymdownx.tabbed`
+- **Mermaid diagrams**: Supported via `pymdownx.superfences` custom fence
+- **Tables**: Use standard Markdown tables
+- **Tabs**: Use `=== "Tab Name"` via `pymdownx.tabbed`
 
 ---
 
-## Badges
+## Frontmatter & Metadata
 
-Use Shields.io Markdown badges for visual metadata at the top of documentation pages:
+Every documentation page should include:
 
 ```markdown
-[![Label](https://img.shields.io/badge/Label-Value-color?style=flat-square&logo=icon)](URL)
+# Page Title
+
+> Brief one-line description of the page's purpose.
+
+---
 ```
-
-| Badge | Markdown |
-|-------|----------|
-| Standard | `[![Standard](https://img.shields.io/badge/Type-Standard-green?style=flat-square)](./index.md)` |
-| AzureLocal | `[![AzureLocal](https://img.shields.io/badge/AzureLocal-Community-0078D4?style=flat-square)](https://azurelocal.cloud)` |
-| PowerShell | `[![PowerShell](https://img.shields.io/badge/Language-PowerShell-blue?style=flat-square&logo=powershell)](https://docs.microsoft.com/en-us/powershell/)` |
-
-**Placement rules**: 2–4 badges max per page, immediately after `# Title`, order: Type → Organization → Technology → Category, always `?style=flat-square`.
 
 ---
 
 ## Fictional Company — Infinite Improbability Corp (IIC)
 
-All examples must use IIC naming patterns:
+All examples must use IIC. See the [Examples & IIC Policy](examples.md) page for the full reference card.
 
 | Never Use | Use Instead |
 |-----------|-------------|
@@ -75,6 +71,5 @@ All examples must use IIC naming patterns:
 ## Related Standards
 
 - [Naming Conventions (full reference)](https://azurelocal.cloud/standards/documentation/naming-conventions)
-- [Badge Library (full reference)](https://azurelocal.cloud/standards/documentation/badge-library)
-- [Naming Conventions](naming.md)
+- [Badge Library](https://azurelocal.cloud/standards/documentation/badge-library)
 - [Scripting Standards](scripting.md)
