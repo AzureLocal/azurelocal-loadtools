@@ -39,7 +39,7 @@ stages:
             displayName: 'Initialize Environment'
             inputs:
               targetType: filePath
-              filePath: src/core/powershell/helpers/Initialize-Environment.ps1
+              filePath: common/helpers/Initialize-Environment.ps1
               arguments: >
                 -ProjectRoot $(Build.SourcesDirectory)
                 -ClusterConfigPath $(Build.SourcesDirectory)/config/clusters/${{ parameters.clusterConfig }}
@@ -57,7 +57,7 @@ stages:
 
                 $params = @{
                   ClusterConfigPath = "$(Build.SourcesDirectory)/config/clusters/${{ parameters.clusterConfig }}"
-                  ProfilePath       = "$(Build.SourcesDirectory)/config/profiles/vmfleet/${{ parameters.profile }}"
+                  ProfilePath       = "$(Build.SourcesDirectory)/tools/vmfleet/config/profiles/${{ parameters.profile }}"
                   ProjectRoot       = "$(Build.SourcesDirectory)"
                   Credential        = $credential
                   ReportFormats     = @('PDF', 'XLSX')
@@ -67,7 +67,7 @@ stages:
                   $params['SkipCleanup'] = $true
                 }
 
-                & "$(Build.SourcesDirectory)/src/solutions/vmfleet/Invoke-VMFleetPipeline.ps1" @params
+                & "$(Build.SourcesDirectory)/tools/vmfleet/Invoke-VMFleetPipeline.ps1" @params
 
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Reports'

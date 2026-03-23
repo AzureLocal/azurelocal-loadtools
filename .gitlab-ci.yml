@@ -18,8 +18,9 @@ lint-powershell:
     - pwsh -File tests/PSScriptAnalyzer.ps1 -ProjectRoot $CI_PROJECT_DIR
   rules:
     - changes:
-        - "src/**/*.ps1"
-        - "src/**/*.psm1"
+        - "common/**/*.ps1"
+        - "common/**/*.psm1"
+        - "tools/**/*.ps1"
         - "tests/**/*.ps1"
 
 validate-config:
@@ -52,7 +53,7 @@ pester-tests:
     - |
       pwsh -Command "
         \$config = New-PesterConfiguration
-        \$config.Run.Path = 'tests'
+        \$config.Run.Path = @('tests', 'tools')
         \$config.Run.Exit = \$true
         \$config.TestResult.Enabled = \$true
         \$config.TestResult.OutputPath = 'test-results.xml'
@@ -64,7 +65,8 @@ pester-tests:
       junit: test-results.xml
   rules:
     - changes:
-        - "src/**"
+        - "common/**"
+        - "tools/**"
         - "tests/**"
 
 # ---- Docs Stage ----

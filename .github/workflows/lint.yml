@@ -10,15 +10,17 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/**/*.ps1'
-      - 'src/**/*.psm1'
+      - 'common/**/*.ps1'
+      - 'common/**/*.psm1'
+      - 'tools/**/*.ps1'
       - 'tests/**/*.ps1'
       - '.github/workflows/lint.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'src/**/*.ps1'
-      - 'src/**/*.psm1'
+      - 'common/**/*.ps1'
+      - 'common/**/*.psm1'
+      - 'tools/**/*.ps1'
       - 'tests/**/*.ps1'
   workflow_dispatch:
 

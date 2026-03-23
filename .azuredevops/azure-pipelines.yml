@@ -11,7 +11,8 @@ trigger:
       - main
   paths:
     include:
-      - src/**
+      - common/**
+      - tools/**
       - tests/**
       - docs/**
       - config/**
@@ -52,9 +53,9 @@ stages:
               script: |
                 Install-Module powershell-yaml -Force -Scope CurrentUser
                 Import-Module powershell-yaml
-                # Validate master config loads without errors
-                $config = Get-Content config/variables/master-environment.yml -Raw | ConvertFrom-Yaml
-                Write-Host "Master config loaded: $($config.variables.Count) variables"
+                # Validate variables config loads without errors
+                $config = Get-Content config/variables/variables.yml -Raw | ConvertFrom-Yaml
+                Write-Host "Variables config loaded: $($config.variables.Count) variables"
 
   - stage: Test
     displayName: 'Unit Tests'
@@ -79,7 +80,7 @@ stages:
               pwsh: true
               script: |
                 $config = New-PesterConfiguration
-                $config.Run.Path = 'tests'
+                $config.Run.Path = @('tests', 'tools')
                 $config.Run.Exit = $true
                 $config.TestResult.Enabled = $true
                 $config.TestResult.OutputPath = '$(Build.ArtifactStagingDirectory)/test-results.xml'

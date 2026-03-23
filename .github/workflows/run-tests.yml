@@ -10,13 +10,15 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/**'
+      - 'common/**'
+      - 'tools/**'
       - 'tests/**'
       - '.github/workflows/run-tests.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'src/**'
+      - 'common/**'
+      - 'tools/**'
       - 'tests/**'
   workflow_dispatch:
 
@@ -42,14 +44,14 @@ jobs:
         shell: pwsh
         run: |
           $config = New-PesterConfiguration
-          $config.Run.Path = 'tests'
+          $config.Run.Path = @('tests', 'tools')
           $config.Run.Exit = $true
           $config.Output.Verbosity = 'Detailed'
           $config.TestResult.Enabled = $true
           $config.TestResult.OutputPath = 'test-results.xml'
           $config.TestResult.OutputFormat = 'NUnitXml'
           $config.CodeCoverage.Enabled = $true
-          $config.CodeCoverage.Path = @('src/core/powershell/modules')
+          $config.CodeCoverage.Path = @('common/modules')
           $config.CodeCoverage.OutputPath = 'coverage.xml'
           $config.CodeCoverage.OutputFormat = 'JaCoCo'
 

@@ -15,7 +15,7 @@ on:
         required: true
         default: 'example-cluster.yml'
       profile:
-        description: 'Workload profile (relative to config/profiles/vmfleet/)'
+        description: 'Workload profile (relative to tools/vmfleet/config/profiles/)'
         required: false
         default: 'general.yml'
       report_formats:
@@ -67,7 +67,7 @@ jobs:
       - name: Initialize environment
         shell: pwsh
         run: |
-          & "$env:PROJECT_ROOT\src\core\powershell\helpers\Initialize-Environment.ps1" `
+          & "$env:PROJECT_ROOT\common\helpers\Initialize-Environment.ps1" `
             -ProjectRoot $env:PROJECT_ROOT `
             -ClusterConfigPath "$env:PROJECT_ROOT\config\clusters\${{ inputs.cluster_config }}" `
             -Solution VMFleet
@@ -92,7 +92,7 @@ jobs:
 
           $profileInput = '${{ inputs.profile }}'
           if ($profileInput) {
-            $params['ProfilePath'] = "$env:PROJECT_ROOT\config\profiles\vmfleet\$profileInput"
+            $params['ProfilePath'] = "$env:PROJECT_ROOT\tools\vmfleet\config\profiles\$profileInput"
           }
 
           if ('${{ inputs.skip_cleanup }}' -eq 'true') {
@@ -103,7 +103,7 @@ jobs:
             $params['IncludeAzureMonitor'] = $true
           }
 
-          & "$env:PROJECT_ROOT\src\solutions\vmfleet\Invoke-VMFleetPipeline.ps1" @params
+          & "$env:PROJECT_ROOT\tools\vmfleet\Invoke-VMFleetPipeline.ps1" @params
 
       - name: Upload test reports
         if: always()

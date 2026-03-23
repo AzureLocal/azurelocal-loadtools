@@ -27,7 +27,8 @@ if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
 Import-Module PSScriptAnalyzer
 
 $scriptPaths = @(
-    (Join-Path $ProjectRoot 'src')
+    (Join-Path $ProjectRoot 'common')
+    (Join-Path $ProjectRoot 'tools')
     (Join-Path $ProjectRoot 'tests')
 )
 

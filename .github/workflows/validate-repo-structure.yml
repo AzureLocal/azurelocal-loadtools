@@ -55,8 +55,8 @@ jobs:
               echo "::error::Missing config/variables.example.yml"
               missing=$((missing + 1))
             fi
-            if [ ! -f "config/schema/variables.schema.json" ]; then
-              echo "::error::Missing config/schema/variables.schema.json"
+            if [ ! -f "config/variables/variables.schema.json" ]; then
+              echo "::error::Missing config/variables/variables.schema.json"
               missing=$((missing + 1))
             fi
             if [ $missing -gt 0 ]; then

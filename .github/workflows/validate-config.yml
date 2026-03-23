@@ -47,7 +47,7 @@ jobs:
           with open('config/variables.example.yml') as f:
               data = yaml.safe_load(f)
 
-          with open('config/schema/variables.schema.json') as f:
+          with open('config/variables/variables.schema.json') as f:
               schema = json.load(f)
 
           try:
