@@ -1,0 +1,41 @@
+{
+  "run_id": "vmfleet-20260323-184500",
+  "timestamp": "2026-03-23T18:45:00.000Z",
+  "cluster_name": "iic-azl-cluster-01",
+  "profile_name": "SQL OLTP",
+  "vms": [
+    {
+      "vm_name": "fleet-vm-001",
+      "host_node": "iic-azl-node-01",
+      "read_iops": 14820,
+      "write_iops": 9910,
+      "total_iops": 24730,
+      "avg_read_latency_ms": 2.05,
+      "avg_write_latency_ms": 4.38,
+      "read_throughput_mbps": 92.63,
+      "write_throughput_mbps": 61.94
+    },
+    {
+      "vm_name": "fleet-vm-002",
+      "host_node": "iic-azl-node-01",
+      "read_iops": 14350,
+      "write_iops": 9680,
+      "total_iops": 24030,
+      "avg_read_latency_ms": 2.12,
+      "avg_write_latency_ms": 4.52,
+      "read_throughput_mbps": 89.69,
+      "write_throughput_mbps": 60.50
+    },
+    {
+      "vm_name": "fleet-vm-011",
+      "host_node": "iic-azl-node-02",
+      "read_iops": 14580,
+      "write_iops": 9770,
+      "total_iops": 24350,
+      "avg_read_latency_ms": 2.20,
+      "avg_write_latency_ms": 4.71,
+      "read_throughput_mbps": 91.13,
+      "write_throughput_mbps": 61.06
+    }
+  ]
+}

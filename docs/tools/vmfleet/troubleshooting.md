@@ -24,7 +24,54 @@ Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
 }
 
 # Reduce VM count or memory per VM
-.\Deploy-VMFleet.ps1 -VmCountPerNode 5 -VmMemoryGb 1
+.\src\solutions\vmfleet\scripts\Deploy-VMFleet.ps1 `
+    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -VMCount 5 `
+    -VMMemoryGB 1
+```
+
+## Base VHD Not Found
+
+**Symptom:** Deployment fails with `Base VHD not found` in `Deploy-VMFleet.ps1`.
+
+**Resolution:**
+
+1. Run image preparation:
+
+```powershell
+.\src\infrastructure\Prepare-VMFleetBaseImage.ps1 `
+        -ConfigPath "config/variables.yml" `
+        -ClusterConfigPath "config/clusters/my-cluster.yml"
+```
+
+2. Copy returned VHDX path into `storage.base_vhd_path` in `config/variables.yml`.
+3. Re-run deployment.
+
+## Marketplace Image API Returns 400
+
+**Symptom:** `Invoke-AzRestMethod` PUT to `marketplaceGalleryImages` returns HTTP 400.
+
+**Resolution:**
+
+- Verify `azure_local.custom_location_id` uses full ARM resource ID format.
+- Verify `azure_local.storage_path_id` points to an existing `Microsoft.AzureStackHCI/storageContainers` resource.
+- Confirm image identifier values are valid for Azure Local marketplace:
+    - `publisher`: `MicrosoftWindowsServer`
+    - `offer`: `WindowsServer`
+    - `sku`: `2022-datacenter-core-g2`
+
+## provisioningState Stuck at Downloading
+
+**Symptom:** Image download remains in `Downloading` state for extended time.
+
+**Resolution:**
+
+- This can be normal for large image transfers (30 to 90 minutes depending on bandwidth and storage).
+- Keep polling instead of re-issuing PUT operations.
+- If timeout occurs, rerun with a larger timeout:
+
+```powershell
+.\src\infrastructure\Prepare-VMFleetBaseImage.ps1 -TimeoutMinutes 120
 ```
 
 ## DiskSpd Results Show Zero IOPS

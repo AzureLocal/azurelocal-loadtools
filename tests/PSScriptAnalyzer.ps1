@@ -35,6 +35,9 @@ $excludeRules = @(
     'PSAvoidUsingConvertToSecureStringWithPlainText'  # Demo/template code
 )
 
+$settingsFile = Join-Path $ProjectRoot '.psscriptanalyzer.psd1'
+$useSettingsFile = Test-Path $settingsFile
+
 $totalIssues = 0
 
 foreach ($path in $scriptPaths) {
@@ -43,9 +46,15 @@ foreach ($path in $scriptPaths) {
     Write-Host "`nAnalyzing: $path" -ForegroundColor Cyan
 
     $params = @{
-        Path        = $path
-        Recurse     = $true
-        ExcludeRule = $excludeRules
+        Path    = $path
+        Recurse = $true
+    }
+
+    if ($useSettingsFile) {
+        $params['Settings'] = $settingsFile
+    }
+    else {
+        $params['ExcludeRule'] = $excludeRules
     }
 
     if ($Fix) {

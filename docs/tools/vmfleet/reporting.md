@@ -13,6 +13,17 @@ The reporting subsystem generates comprehensive VMFleet test reports in three fo
 | DOCX (Word) | Pandoc (AsciiDoc → DocBook → DOCX) | Editable reports, stakeholder collaboration |
 | XLSX (Excel) | PowerShell ImportExcel module | Data analysis, pivot tables, custom charting |
 
+## Output Files
+
+| Artifact | Example path | Description |
+| --- | --- | --- |
+| Aggregate JSON | `reports/<run-id>/<run-id>-aggregate.json` | Run-level totals and averages |
+| Per-VM JSON | `reports/<run-id>/<run-id>-per-vm.json` | VM-level performance detail |
+| Dashboard HTML | `reports/<run-id>/dashboard.html` | Interactive summary dashboard |
+| PDF Report | `reports/<run-id>/<run-id>.pdf` | Executive/shareable report |
+| DOCX Report | `reports/<run-id>/<run-id>.docx` | Editable report |
+| XLSX Workbook | `reports/<run-id>/<run-id>.xlsx` | Detailed analysis workbook |
+
 ## Generating Reports
 
 ```powershell
@@ -55,6 +66,24 @@ Both PDF and DOCX reports contain the same sections:
 8. **Recommendations** — Automated assessment based on metric thresholds
 9. **Appendix** — Raw configuration, full variable dump, log excerpts
 
+## Aggregate JSON Example
+
+```json
+{
+  "run_id": "vmfleet-20260323-184500",
+  "timestamp": "2026-03-23T18:45:00.000Z",
+  "cluster_name": "iic-azl-cluster-01",
+  "vm_count": 40,
+  "profile_name": "SQL OLTP",
+  "total_read_iops": 142500,
+  "total_write_iops": 97500,
+  "total_iops": 240000,
+  "avg_latency_ms": 3.41,
+  "total_read_throughput_mbps": 890.15,
+  "total_write_throughput_mbps": 640.22
+}
+```
+
 ## Excel Report
 
 The XLSX workbook contains multiple worksheets:
@@ -93,4 +122,5 @@ Templates in `reports/templates/` define the structure:
 
 - `report-template.adoc` — AsciiDoc template with attribute placeholders for test data
 - `cover-page.adoc` — Separated cover page for PDF output
-- `excel-template.xlsx` — Pre-formatted Excel workbook with headers, styles, chart templates
+
+Excel workbooks are generated dynamically by the `ImportExcel` PowerShell module — no pre-built template is required.

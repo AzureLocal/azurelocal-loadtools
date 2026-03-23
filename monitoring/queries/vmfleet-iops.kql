@@ -1,0 +1,4 @@
+VMFleetMetrics_CL
+| where CounterName_s in ("CSVFS_ReadIOPS", "CSVFS_WriteIOPS")
+| summarize AvgValue = avg(Value_d) by bin(TimeGenerated, 1m), CounterName_s, Node_s
+| render timechart

@@ -1,0 +1,80 @@
+{
+  "run_id": "vmfleet-20260323-184500",
+  "timestamp": "2026-03-23T18:45:00.000Z",
+  "framework_version": "1.0.0",
+  "cluster_name": "iic-azl-cluster-01",
+  "cluster_nodes": [
+    "iic-azl-node-01",
+    "iic-azl-node-02",
+    "iic-azl-node-03",
+    "iic-azl-node-04"
+  ],
+  "vm_count": 40,
+  "profile_name": "SQL OLTP",
+  "profile_file": "config/profiles/vmfleet/sql-oltp.yml",
+  "parameters": {
+    "block_size": "8k",
+    "write_ratio": 40,
+    "random_ratio": 100,
+    "outstanding_io": 16,
+    "threads_per_vm": 4,
+    "duration_seconds": 300,
+    "warmup_seconds": 60
+  },
+  "results": {
+    "total_read_iops": 142500,
+    "total_write_iops": 97500,
+    "total_iops": 240000,
+    "avg_read_latency_ms": 2.18,
+    "avg_write_latency_ms": 4.63,
+    "avg_latency_ms": 3.41,
+    "p50_latency_ms": 2.10,
+    "p95_latency_ms": 8.45,
+    "p99_latency_ms": 15.22,
+    "total_read_throughput_mbps": 890.15,
+    "total_write_throughput_mbps": 640.22,
+    "total_throughput_mbps": 1530.37
+  },
+  "per_node_summary": [
+    {
+      "node": "iic-azl-node-01",
+      "vm_count": 10,
+      "total_iops": 61200,
+      "avg_latency_ms": 3.28,
+      "throughput_mbps": 389.06
+    },
+    {
+      "node": "iic-azl-node-02",
+      "vm_count": 10,
+      "total_iops": 59800,
+      "avg_latency_ms": 3.42,
+      "throughput_mbps": 380.12
+    },
+    {
+      "node": "iic-azl-node-03",
+      "vm_count": 10,
+      "total_iops": 60100,
+      "avg_latency_ms": 3.51,
+      "throughput_mbps": 383.94
+    },
+    {
+      "node": "iic-azl-node-04",
+      "vm_count": 10,
+      "total_iops": 58900,
+      "avg_latency_ms": 3.44,
+      "throughput_mbps": 377.25
+    }
+  ],
+  "threshold_evaluation": {
+    "min_iops_per_node": {
+      "threshold": 10000,
+      "actual_min": 58900,
+      "passed": true
+    },
+    "max_latency_ms": {
+      "threshold": 10,
+      "actual_p95": 8.45,
+      "passed": true
+    }
+  }
+}

@@ -1,0 +1,4 @@
+VMFleetMetrics_CL
+| where CounterName_s in ("CSVFS_ReadLatencyMs", "CSVFS_WriteLatencyMs")
+| summarize P50 = percentile(Value_d, 50), P95 = percentile(Value_d, 95), P99 = percentile(Value_d, 99) by bin(TimeGenerated, 1m), CounterName_s, Node_s
+| render timechart

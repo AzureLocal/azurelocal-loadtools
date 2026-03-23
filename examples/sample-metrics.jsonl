@@ -1,0 +1,14 @@
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-01","counter":"CSVFS_ReadIOPS","value":35450}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-01","counter":"CSVFS_WriteIOPS","value":24100}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-01","counter":"CSVFS_ReadLatencyMs","value":2.18}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-01","counter":"CSVFS_WriteLatencyMs","value":4.63}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-01","counter":"CSVFS_ReadMBps","value":221.56}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-01","counter":"CSVFS_WriteMBps","value":150.63}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-02","counter":"CSVFS_ReadIOPS","value":34800}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-02","counter":"CSVFS_WriteIOPS","value":23700}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-02","counter":"CSVFS_ReadLatencyMs","value":2.25}
+{"timestamp":"2026-03-23T18:30:05.000Z","node":"iic-azl-node-02","counter":"CSVFS_WriteLatencyMs","value":4.78}
+{"timestamp":"2026-03-23T18:30:10.000Z","node":"iic-azl-node-01","counter":"CSVFS_ReadIOPS","value":36100}
+{"timestamp":"2026-03-23T18:30:10.000Z","node":"iic-azl-node-01","counter":"CSVFS_WriteIOPS","value":24500}
+{"timestamp":"2026-03-23T18:30:10.000Z","node":"iic-azl-node-01","counter":"CSVFS_ReadLatencyMs","value":2.10}
+{"timestamp":"2026-03-23T18:30:10.000Z","node":"iic-azl-node-01","counter":"CSVFS_WriteLatencyMs","value":4.41}

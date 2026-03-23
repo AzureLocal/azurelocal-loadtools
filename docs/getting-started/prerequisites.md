@@ -56,6 +56,8 @@ Required only if using Azure Monitor integration or Azure Key Vault for credenti
 | Azure Key Vault | Provisioned Key Vault with secrets for cluster credentials |
 | Log Analytics Workspace | Provisioned workspace for Azure Monitor metric ingestion |
 | Service Principal or Managed Identity | For non-interactive Azure authentication in CI/CD |
+| Azure Local custom location | Required for marketplace image acquisition (`azure_local.custom_location_id`) |
+| Azure Local storage container | Required to resolve VHDX path (`azure_local.storage_path_id`) |
 
 ## Validating Prerequisites
 

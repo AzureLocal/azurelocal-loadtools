@@ -1,0 +1,23 @@
+# =============================================================================
+# VMFleet Workload Profile: Sequential Throughput
+# =============================================================================
+# Large-block sequential writes for maximum throughput (MB/s) measurement.
+# Tests the raw bandwidth ceiling of Storage Spaces Direct.
+# =============================================================================
+
+profile:
+  name: "Sequential Throughput"
+  description: "512K sequential writes for maximum storage throughput measurement"
+  category: "throughput"
+  parameters:
+    block_size: "512k"
+    write_ratio: 100
+    random_ratio: 0
+    outstanding_io: 32
+    threads_per_vm: 2
+    duration_seconds: 300
+    warmup_seconds: 60
+  expected_thresholds:
+    min_iops_per_node: 500
+    max_latency_ms: 50
+    min_throughput_mbps: 2000

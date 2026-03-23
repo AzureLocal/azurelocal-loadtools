@@ -1,0 +1,55 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# VMFleet Monitoring Workbook\n\nThis workbook visualizes VMFleet IOPS, throughput, and latency metrics from Log Analytics."
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "VMFleetMetrics_CL\n| where CounterName_s in (\"CSVFS_ReadIOPS\", \"CSVFS_WriteIOPS\")\n| summarize AvgValue=avg(Value_d) by bin(TimeGenerated, 1m), CounterName_s\n| render timechart",
+        "size": 0,
+        "title": "Read/Write IOPS",
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "VMFleetMetrics_CL\n| where CounterName_s in (\"CSVFS_ReadLatencyMs\", \"CSVFS_WriteLatencyMs\")\n| summarize P95=percentile(Value_d, 95) by bin(TimeGenerated, 1m), CounterName_s\n| render timechart",
+        "size": 0,
+        "title": "Read/Write Latency P95",
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "VMFleetMetrics_CL\n| where CounterName_s in (\"CSVFS_ReadMBps\", \"CSVFS_WriteMBps\")\n| summarize AvgValue=avg(Value_d) by bin(TimeGenerated, 1m), CounterName_s\n| render timechart",
+        "size": 0,
+        "title": "Read/Write Throughput (MB/s)",
+        "timeContext": {
+          "durationMs": 3600000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      }
+    }
+  ],
+  "isLocked": false,
+  "fallbackResourceIds": []
+}

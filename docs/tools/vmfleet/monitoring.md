@@ -21,6 +21,19 @@ PowerShell Get-Counter (remote sessions)
               Azure Portal dashboards, alerts
 ```
 
+## Live Console Monitoring
+
+Use the built-in watcher during active tests:
+
+```powershell
+.\src\solutions\vmfleet\scripts\Watch-VMFleetMonitor.ps1 `
+    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -RefreshIntervalSeconds 5 `
+    -DurationMinutes 30
+```
+
+The watcher prints rolling VM count, read/write IOPS, read/write latency, and throughput.
+
 ## Metric Categories
 
 ### Storage Metrics
@@ -105,6 +118,15 @@ Optionally push collected metrics to Azure Monitor for centralized dashboards an
     -CredentialSource KeyVault
 ```
 
+Each pushed metric contains these core fields:
+
+- `timestamp`
+- `node`
+- `counter_name`
+- `value`
+- `run_id`
+- `profile_name`
+
 !!! note
     Azure Monitor integration requires the `monitoring.bicep` infrastructure template to be deployed. See `src/infrastructure/bicep/monitoring.bicep`.
 
@@ -134,6 +156,37 @@ During test execution, use the monitoring dashboard wrapper:
 ```powershell
 # Launch real-time monitoring (combines VMFleet Watch-FleetCluster with custom metrics)
 .\src\solutions\vmfleet\monitoring\Export-MetricsDashboard.ps1 `
-    -ClusterConfig "config/clusters/my-cluster.yml" `
-    -RefreshIntervalSeconds 5
+    -InputPath "results/run-001/metrics/" `
+    -OutputPath "reports/run-001/" `
+    -Title "VMFleet Run 001"
+```
+
+## Counter Reference
+
+| Category | Counter name | Purpose |
+| --- | --- | --- |
+| Storage | `CSVFS_ReadIOPS` | CSVFS read operations per second |
+| Storage | `CSVFS_WriteIOPS` | CSVFS write operations per second |
+| Storage | `CSVFS_ReadMBps` | Read throughput |
+| Storage | `CSVFS_WriteMBps` | Write throughput |
+| Storage | `CSVFS_ReadLatencyMs` | Read latency |
+| Storage | `CSVFS_WriteLatencyMs` | Write latency |
+| Compute | `HostCpuPercent` | Host CPU saturation |
+| Compute | `HostAvailableMemoryMB` | Available memory headroom |
+| Compute | `HyperVLogicalProcessorRunTime` | Hypervisor CPU pressure |
+
+## KQL Examples
+
+```kusto
+VMFleetMetrics_CL
+| where CounterName_s in ("CSVFS_ReadIOPS", "CSVFS_WriteIOPS")
+| summarize AvgValue=avg(Value_d) by bin(TimeGenerated, 1m), CounterName_s
+| render timechart
+```
+
+```kusto
+VMFleetMetrics_CL
+| where CounterName_s in ("CSVFS_ReadLatencyMs", "CSVFS_WriteLatencyMs")
+| summarize P95=percentile(Value_d, 95) by bin(TimeGenerated, 1m), CounterName_s
+| render timechart
 ```

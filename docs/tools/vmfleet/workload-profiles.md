@@ -13,6 +13,7 @@ This guide covers the predefined workload profiles for VMFleet testing and how t
 | Peak IOPS | 100% random 4K reads — maximum IOPS measurement |
 | VDI | Mixed small block I/O simulating Virtual Desktop Infrastructure patterns |
 | SQL OLTP | 8K random read/write mix simulating SQL Server OLTP workloads |
+| Sequential Throughput | 100% sequential 512K writes for maximum MB/s measurement |
 
 ## Running Tests
 
@@ -20,16 +21,22 @@ This guide covers the predefined workload profiles for VMFleet testing and how t
 
 ```powershell
 .\src\solutions\vmfleet\scripts\Start-VMFleetTest.ps1 `
-    -Profile "General" `
+    -ProfilePath "config/profiles/vmfleet/general.yml" `
     -DurationSeconds 300
 ```
 
-### Multiple Profiles (Sweep)
+### Profile Sweep
 
 ```powershell
-.\src\solutions\vmfleet\scripts\Start-VMFleetTest.ps1 `
-    -Profiles @("General", "Peak", "VDI", "SQL") `
-    -DurationSeconds 300
+.\src\solutions\vmfleet\Invoke-VMFleetPipeline.ps1 `
+    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -ProfilePaths @(
+        "config/profiles/vmfleet/general.yml",
+        "config/profiles/vmfleet/peak-iops.yml",
+        "config/profiles/vmfleet/sql-oltp.yml",
+        "config/profiles/vmfleet/vdi.yml",
+        "config/profiles/vmfleet/sequential-throughput.yml"
+    )
 ```
 
 ## Profile Configuration
@@ -62,6 +69,36 @@ profile:
 | `threads_per_vm` | DiskSpd threads per fleet VM | `2` |
 | `duration_seconds` | Test duration (excluding warmup) | `300` |
 | `warmup_seconds` | Warmup before measurement starts | `60` |
+
+## DiskSpd Parameter Mapping
+
+| Profile key | DiskSpd switch | Meaning |
+| --- | --- | --- |
+| `block_size` | `-b` | I/O block size |
+| `write_ratio` | `-w` | Write ratio percentage |
+| `random_ratio` | `-r` | Random I/O ratio percentage |
+| `outstanding_io` | `-o` | Queue depth per thread |
+| `threads_per_vm` | `-t` | Threads per VM |
+| `duration_seconds` | `-d` | Measurement duration |
+| `warmup_seconds` | `-W` | Warmup duration |
+
+## Expected Thresholds
+
+| Profile | Primary metric focus | Typical pass criteria |
+| --- | --- | --- |
+| General | Balanced IOPS + latency | Stable mixed IOPS and latency under target |
+| Peak IOPS | Max read IOPS | Highest sustained random read IOPS |
+| SQL OLTP | Read/write DB pattern | Low latency under mixed random load |
+| VDI | Light mixed desktop load | Predictable latency across many VMs |
+| Sequential Throughput | MB/s | Highest sustained throughput |
+
+## Profile Selection Guide
+
+- Use `peak-iops.yml` for storage ceiling discovery.
+- Use `sql-oltp.yml` for database-aligned validation.
+- Use `vdi.yml` for desktop density readiness checks.
+- Use `sequential-throughput.yml` for bulk transfer throughput checks.
+- Use `general.yml` for a balanced baseline run.
 
 ## Collecting Results
 

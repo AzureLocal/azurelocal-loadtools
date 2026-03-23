@@ -44,6 +44,8 @@ keyvault:
 azure_local:
   cluster_name: "azl-cluster-01"
   cluster_domain: "iic.local"
+  custom_location_id: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ExtendedLocation/customLocations/azl-cluster-01-cl"
+  storage_path_id: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.AzureStackHCI/storageContainers/sp-vmstore-01"
   nodes:
     - name: "azl-node-01"
       management_ip: "10.0.0.1"
