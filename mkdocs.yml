@@ -33,12 +33,7 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started:
-      - Introduction: getting-started/introduction.md
-      - Architecture: getting-started/architecture.md
-      - Prerequisites: getting-started/prerequisites.md
-      - Installation: getting-started/installation.md
-      - Configuration: getting-started/configuration.md
+  - Getting Started: getting-started/introduction.md
   - Architecture:
       - Overview: architecture/overview.md
       - Tool Selection: architecture/tool-selection.md
@@ -81,6 +76,9 @@ nav:
           - Reporting: tools/stress-ng/reporting.md
           - Troubleshooting: tools/stress-ng/troubleshooting.md
   - Operations:
+      - Prerequisites: getting-started/prerequisites.md
+      - Framework Setup: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
       - CI/CD Pipelines: operations/ci-cd.md
       - Runner Setup: operations/runner-setup.md
       - Credential Management: operations/credential-management.md
