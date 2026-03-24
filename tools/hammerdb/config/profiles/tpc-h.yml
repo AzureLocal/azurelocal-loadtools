@@ -1,0 +1,23 @@
+# =============================================================================
+# HammerDB Workload Profile: TPC-H (PostgreSQL)
+# =============================================================================
+# Decision-support TPC-H benchmark targeting PostgreSQL.
+# Simulates complex analytical queries across large datasets.
+# =============================================================================
+
+profile:
+  name: "TPC-H PostgreSQL"
+  description: "Decision-support TPC-H benchmark targeting PostgreSQL — query throughput measurement"
+  category: "dss"
+  parameters:
+    benchmark_type: "tpch"
+    db_type: "postgresql"
+    db_server: ""           # Override with target DB server hostname/IP
+    db_name: "tpch"
+    warehouse_count: 5      # scale factor
+    virtual_users: 2
+    ramp_up_seconds: 60
+    test_duration_seconds: 600
+  expected_thresholds:
+    min_tpm: 1000
+    min_nopm: 500

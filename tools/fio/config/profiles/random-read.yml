@@ -1,0 +1,24 @@
+# =============================================================================
+# fio Workload Profile: Random Read
+# =============================================================================
+# 4K random reads for peak IOPS measurement.
+# Represents OLTP read-heavy workloads (database reads, caching).
+# =============================================================================
+
+profile:
+  name: "Random Read"
+  description: "4K random reads for peak read IOPS measurement"
+  category: "iops"
+  parameters:
+    block_size: "4k"
+    rw: "randread"
+    rwmixread: 100
+    io_engine: "libaio"
+    io_depth: 32
+    num_jobs: 4
+    runtime_seconds: 300
+    test_directory: "/tmp/fio-test"
+  expected_thresholds:
+    min_iops: 50000
+    max_lat_mean_ms: 5
+    max_lat_p99_ms: 20

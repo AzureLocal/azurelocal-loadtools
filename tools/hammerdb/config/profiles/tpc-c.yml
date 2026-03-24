@@ -1,0 +1,23 @@
+# =============================================================================
+# HammerDB Workload Profile: TPC-C (SQL Server)
+# =============================================================================
+# OLTP TPC-C benchmark targeting Microsoft SQL Server.
+# Simulates order-entry transactions across multiple warehouses.
+# =============================================================================
+
+profile:
+  name: "TPC-C SQL Server"
+  description: "OLTP TPC-C benchmark targeting SQL Server — NOPM/TPM measurement"
+  category: "oltp"
+  parameters:
+    benchmark_type: "tpcc"
+    db_type: "mssql"
+    db_server: ""           # Override with target DB server hostname/IP
+    db_name: "tpcc"
+    warehouse_count: 10
+    virtual_users: 4
+    ramp_up_seconds: 120
+    test_duration_seconds: 300
+  expected_thresholds:
+    min_nopm: 5000
+    min_tpm: 8000

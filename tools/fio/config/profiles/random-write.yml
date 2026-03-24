@@ -1,0 +1,24 @@
+# =============================================================================
+# fio Workload Profile: Random Write
+# =============================================================================
+# 4K random writes for write IOPS measurement.
+# Represents OLTP write-heavy workloads (database inserts/updates).
+# =============================================================================
+
+profile:
+  name: "Random Write"
+  description: "4K random writes for peak write IOPS measurement"
+  category: "iops"
+  parameters:
+    block_size: "4k"
+    rw: "randwrite"
+    rwmixread: 0
+    io_engine: "libaio"
+    io_depth: 32
+    num_jobs: 4
+    runtime_seconds: 300
+    test_directory: "/tmp/fio-test"
+  expected_thresholds:
+    min_iops: 30000
+    max_lat_mean_ms: 8
+    max_lat_p99_ms: 30

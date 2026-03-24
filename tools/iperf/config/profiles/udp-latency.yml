@@ -1,0 +1,22 @@
+# =============================================================================
+# iPerf3 Workload Profile: UDP Latency
+# =============================================================================
+# UDP jitter and packet loss test for latency-sensitive workload validation.
+# Measures jitter and packet loss at a controlled send rate.
+# =============================================================================
+
+profile:
+  name: "UDP Latency"
+  description: "UDP jitter and packet loss test for latency-sensitive workload assessment"
+  category: "latency"
+  parameters:
+    protocol: "UDP"
+    parallel_streams: 1
+    duration_seconds: 60
+    server_port: 5201
+    udp_bandwidth_mbps: 100       # Send rate control to avoid congestion
+    mesh_test: false
+  expected_thresholds:
+    max_jitter_ms: 1.0
+    max_packet_loss_percent: 0.1
+    min_throughput_mbps: 90

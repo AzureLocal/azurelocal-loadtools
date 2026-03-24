@@ -1,0 +1,24 @@
+# =============================================================================
+# fio Workload Profile: Sequential Write
+# =============================================================================
+# Full-sequential large-block writes for throughput measurement.
+# Represents streaming write workloads (log ingestion, backup targets).
+# =============================================================================
+
+profile:
+  name: "Sequential Write"
+  description: "128K sequential writes for maximum write throughput measurement"
+  category: "throughput"
+  parameters:
+    block_size: "128k"
+    rw: "write"
+    rwmixread: 0
+    io_engine: "libaio"
+    io_depth: 16
+    num_jobs: 4
+    runtime_seconds: 300
+    test_directory: "/tmp/fio-test"
+  expected_thresholds:
+    min_throughput_mbps: 400
+    max_lat_mean_ms: 100
+    min_iops: 3200

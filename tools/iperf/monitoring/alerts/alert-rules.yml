@@ -1,0 +1,67 @@
+# =============================================================================
+# Alert Rules - iPerf3 Network Load Testing
+# =============================================================================
+# Threshold-based alert rules for monitoring network metrics during iPerf3 tests.
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  description: "Alert rules for iPerf3 network load testing"
+
+alert_rules:
+  # ---- Network Throughput Alerts ----
+  - name: iperf_low_throughput
+    category: network
+    counter: '\Network Interface(*)\Bytes Total/sec'
+    condition: less_than
+    threshold: 875000000      # < 7 Gbps (875 MB/s) on 10GbE
+    severity: warning
+    message: "Network throughput below expected minimum on {node} ({instance}) during iPerf3"
+    cooldown_seconds: 60
+
+  - name: iperf_interface_saturation
+    category: network
+    counter: '\Network Interface(*)\Current Bandwidth'
+    condition: greater_than
+    threshold: 9900000000     # > 9.9 Gbps (99% of 10GbE)
+    severity: warning
+    message: "Network interface near full saturation on {node} ({instance}) — may cause TCP retransmissions"
+    cooldown_seconds: 30
+
+  - name: iperf_high_retransmits
+    category: network
+    counter: '\TCPv4\Segments Retransmitted/sec'
+    condition: greater_than
+    threshold: 100
+    severity: warning
+    message: "High TCP retransmit rate on {node} during iPerf3 — possible network quality issue"
+    cooldown_seconds: 60
+
+  # ---- Compute Alerts ----
+  - name: iperf_high_cpu
+    category: compute
+    counter: '\Processor(_Total)\% Processor Time'
+    condition: greater_than
+    threshold: 80
+    severity: warning
+    message: "CPU at {value}% on {node} — iPerf3 network results may be CPU-bound, not network-bound"
+    cooldown_seconds: 300
+
+  - name: iperf_interrupt_load
+    category: compute
+    counter: '\Processor(_Total)\% Interrupt Time'
+    condition: greater_than
+    threshold: 30
+    severity: warning
+    message: "High interrupt load ({value}%) on {node} — NIC interrupt affinity may need tuning"
+    cooldown_seconds: 300
+
+  # ---- Memory Alerts ----
+  - name: iperf_low_memory
+    category: memory
+    counter: '\Memory\Available MBytes'
+    condition: less_than
+    threshold: 512
+    severity: warning
+    message: "Low available memory on {node} during iPerf3 — network buffers may be constrained"
+    cooldown_seconds: 300

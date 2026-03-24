@@ -1,0 +1,68 @@
+# =============================================================================
+# Alert Rules - stress-ng System Load Testing
+# =============================================================================
+# Threshold-based alert rules for monitoring system health during stress-ng tests.
+# stress-ng intentionally saturates resources; alerts are set higher than normal.
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  description: "Alert rules for stress-ng system load testing"
+
+alert_rules:
+  # ---- CPU Alerts (expect high CPU, alert on unexpected conditions) ----
+  - name: stressng_cpu_throttling
+    category: compute
+    counter: '\Processor Information(_Total)\% of Maximum Frequency'
+    condition: less_than
+    threshold: 80             # CPU throttling below 80% of max during stress
+    severity: warning
+    message: "CPU throttling detected on {node} during stress-ng — thermal or power limit may be active"
+    cooldown_seconds: 60
+
+  - name: stressng_system_hang
+    category: compute
+    counter: '\Processor(_Total)\% Idle Time'
+    condition: greater_than
+    threshold: 20             # If idle > 20% during CPU stress, workers may have died
+    severity: warning
+    message: "Unexpected CPU idle time during stress-ng CPU run on {node} — stressors may have exited"
+    cooldown_seconds: 120
+
+  # ---- Memory Alerts ----
+  - name: stressng_oom_risk
+    category: memory
+    counter: '\Memory\Available MBytes'
+    condition: less_than
+    threshold: 128
+    severity: critical
+    message: "CRITICAL: Available memory below 128 MB on {node} during stress-ng — OOM killer may trigger"
+    cooldown_seconds: 30
+
+  - name: stressng_high_pagefile
+    category: memory
+    counter: '\Paging File(_Total)\% Usage'
+    condition: greater_than
+    threshold: 80
+    severity: warning
+    message: "Paging file usage exceeds 80% on {node} during stress-ng — memory pressure is high"
+    cooldown_seconds: 120
+
+  # ---- Storage Alerts ----
+  - name: stressng_disk_saturation
+    category: storage
+    counter: '\PhysicalDisk(*)\% Disk Time'
+    condition: greater_than
+    threshold: 98
+    severity: warning
+    message: "Disk fully saturated on {node} ({instance}) during stress-ng I/O stress"
+    cooldown_seconds: 60
+
+  - name: stressng_disk_error_rate
+    category: storage
+    counter: '\PhysicalDisk(*)\Disk Transfers/sec'
+    condition: less_than
+    threshold: 10             # If I/O rate drops during hdd stress, disk may have errored
+    severity: critical
+    message: "CRITICAL: Very low disk I/O rate on {node} during stress-ng — possible disk error"
+    cooldown_seconds: 60

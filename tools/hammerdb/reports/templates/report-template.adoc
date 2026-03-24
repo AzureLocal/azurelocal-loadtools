@@ -1,0 +1,75 @@
+= Azure Local Load Test Report — HammerDB
+:author: Azure Local Load Tools
+:revdate: {revdate}
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+
+// Attributes set by ReportGenerator module
+:run-id: {run-id}
+:cluster-name: {cluster-name}
+:solution: HammerDB
+:test-date: {test-date}
+
+include::cover-page.adoc[leveloffset=+0]
+
+== Executive Summary
+
+This report presents the database performance results of a HammerDB benchmark run on the Azure Local cluster *{cluster-name}*.
+HammerDB was used to execute TPC-C or TPC-H workloads against the target database, measuring NOPM (New Orders Per Minute) and TPM (Transactions Per Minute).
+
+[cols="2,3"]
+|===
+| *Property* | *Value*
+
+| Run ID | {run-id}
+| Test Date | {test-date}
+| Cluster | {cluster-name}
+| Solution | HammerDB
+| Report Generated | {revdate}
+|===
+
+== Test Configuration
+
+=== Benchmark Profile
+
+[cols="2,1"]
+|===
+| *Parameter* | *Value*
+
+| Benchmark Type | {hammerdb-benchmark-type}
+| Database Type | {hammerdb-db-type}
+| Database Server | {hammerdb-db-server}
+| Database Name | {hammerdb-db-name}
+| Warehouse Count | {hammerdb-warehouse-count}
+| Virtual Users | {hammerdb-virtual-users}
+| Ramp-Up Time | {hammerdb-ramp-up-seconds}s
+| Test Duration | {hammerdb-test-duration-seconds}s
+|===
+
+== Results
+
+=== NOPM / TPM Summary
+
+[cols="1,1,1"]
+|===
+| *Metric* | *Peak* | *Average*
+
+| NOPM (New Orders Per Minute) | {peak-nopm} | {avg-nopm}
+| TPM (Transactions Per Minute) | {peak-tpm} | {avg-tpm}
+|===
+
+=== Result Samples
+
+// Auto-populated from per-sample log data by ReportGenerator
+
+== Analysis and Recommendations
+
+// Auto-populated from threshold comparison
+
+== Appendix: Raw HammerDB Log
+
+// Raw log file included as attachment per run

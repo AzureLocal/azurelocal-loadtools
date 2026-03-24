@@ -1,0 +1,19 @@
+# =============================================================================
+# stress-ng Workload Profile: CPU Stress
+# =============================================================================
+# Maximum CPU load using all available stress-ng CPU stressors.
+# Validates CPU thermal performance, stability, and frequency scaling.
+# =============================================================================
+
+profile:
+  name: "CPU Stress"
+  description: "All-core CPU stress test for thermal and stability validation"
+  category: "cpu"
+  parameters:
+    stressors:
+      - cpu
+      - cpu-cache
+    workers: 0          # 0 = one worker per logical CPU
+    timeout: "5m"
+  expected_thresholds:
+    min_cpu_bogo_ops_per_sec: 10000

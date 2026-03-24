@@ -1,0 +1,77 @@
+# =============================================================================
+# Alert Rules - fio Load Testing
+# =============================================================================
+# Threshold-based alert rules for monitoring host metrics during fio tests.
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  description: "Alert rules for fio storage load testing"
+
+alert_rules:
+  # ---- Storage Alerts ----
+  - name: fio_high_disk_wait
+    category: storage
+    counter: '\PhysicalDisk(*)\% Disk Time'
+    condition: greater_than
+    threshold: 95
+    severity: warning
+    message: "Disk utilization exceeds 95% on {node} ({instance}) during fio test"
+    cooldown_seconds: 60
+
+  - name: fio_high_disk_latency
+    category: storage
+    counter: '\PhysicalDisk(*)\Avg. Disk sec/Transfer'
+    condition: greater_than
+    threshold: 0.050      # 50ms
+    severity: critical
+    message: "CRITICAL: Disk transfer latency exceeds 50ms on {node} ({instance})"
+    cooldown_seconds: 60
+
+  - name: fio_high_disk_queue
+    category: storage
+    counter: '\PhysicalDisk(*)\Current Disk Queue Length'
+    condition: greater_than
+    threshold: 64
+    severity: warning
+    message: "Disk queue length exceeds 64 on {node} ({instance}) during fio"
+    cooldown_seconds: 120
+
+  # ---- Compute Alerts ----
+  - name: fio_high_cpu
+    category: compute
+    counter: '\Processor(_Total)\% Processor Time'
+    condition: greater_than
+    threshold: 90
+    severity: warning
+    message: "CPU usage exceeds 90% on {node} during fio test (may affect accuracy)"
+    cooldown_seconds: 300
+
+  - name: fio_high_iowait
+    category: compute
+    counter: '\System\Processor Queue Length'
+    condition: greater_than
+    threshold: 32
+    severity: warning
+    message: "High processor queue length on {node} — potential CPU bottleneck affecting I/O results"
+    cooldown_seconds: 300
+
+  # ---- Memory Alerts ----
+  - name: fio_low_memory
+    category: memory
+    counter: '\Memory\Available MBytes'
+    condition: less_than
+    threshold: 512
+    severity: warning
+    message: "Available memory below 512 MB on {node} during fio — page cache pressure may affect results"
+    cooldown_seconds: 300
+
+  # ---- Network Alerts (for distributed fio) ----
+  - name: fio_network_saturation
+    category: network
+    counter: '\Network Interface(*)\Current Bandwidth'
+    condition: greater_than
+    threshold: 9000000000   # 9 Gbps (90% of 10GbE)
+    severity: warning
+    message: "Network interface near saturation on {node} during fio test"
+    cooldown_seconds: 120

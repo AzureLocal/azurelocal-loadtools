@@ -1,0 +1,24 @@
+# =============================================================================
+# fio Workload Profile: Sequential Read
+# =============================================================================
+# Full-sequential large-block reads for throughput measurement.
+# Represents streaming read workloads (backups, analytics, media).
+# =============================================================================
+
+profile:
+  name: "Sequential Read"
+  description: "128K sequential reads for maximum throughput measurement"
+  category: "throughput"
+  parameters:
+    block_size: "128k"
+    rw: "read"
+    rwmixread: 100
+    io_engine: "libaio"
+    io_depth: 16
+    num_jobs: 4
+    runtime_seconds: 300
+    test_directory: "/tmp/fio-test"
+  expected_thresholds:
+    min_throughput_mbps: 500
+    max_lat_mean_ms: 50
+    min_iops: 4000

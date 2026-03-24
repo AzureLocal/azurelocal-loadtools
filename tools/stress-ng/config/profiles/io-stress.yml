@@ -1,0 +1,19 @@
+# =============================================================================
+# stress-ng Workload Profile: I/O Stress
+# =============================================================================
+# Storage I/O stress using hdd and iomix stressors.
+# Validates I/O scheduler behavior and storage subsystem under random load.
+# =============================================================================
+
+profile:
+  name: "I/O Stress"
+  description: "Storage I/O stress for I/O scheduler and storage subsystem validation"
+  category: "io"
+  parameters:
+    stressors:
+      - hdd
+      - iomix
+    workers: 4
+    timeout: "5m"
+  expected_thresholds:
+    min_hdd_bogo_ops_per_sec: 100

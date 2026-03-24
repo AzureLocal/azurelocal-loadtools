@@ -1,0 +1,69 @@
+= Azure Local Load Test Report — stress-ng
+:author: Azure Local Load Tools
+:revdate: {revdate}
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+
+// Attributes set by ReportGenerator module
+:run-id: {run-id}
+:cluster-name: {cluster-name}
+:solution: stress-ng
+:test-date: {test-date}
+
+include::cover-page.adoc[leveloffset=+0]
+
+== Executive Summary
+
+This report presents the system stress results from a stress-ng benchmark run on the Azure Local cluster *{cluster-name}*.
+stress-ng was used to saturate CPU, memory, and I/O subsystems to validate system stability and measure raw resource performance via bogo-ops metrics.
+
+[cols="2,3"]
+|===
+| *Property* | *Value*
+
+| Run ID | {run-id}
+| Test Date | {test-date}
+| Cluster | {cluster-name}
+| Solution | stress-ng
+| Report Generated | {revdate}
+|===
+
+== Test Configuration
+
+=== Workload Profile
+
+[cols="2,1"]
+|===
+| *Parameter* | *Value*
+
+| Stressors | {stressng-stressors}
+| Workers per Stressor | {stressng-workers}
+| Timeout | {stressng-timeout}
+|===
+
+== Results
+
+=== Bogo-Ops Summary per Stressor
+
+[cols="2,1,1"]
+|===
+| *Stressor* | *Avg Bogo-Ops/s (per node)* | *Total Bogo-Ops*
+
+// Auto-populated from stressor_summary by ReportGenerator
+|===
+
+== Per-Node Results
+
+// Auto-populated from per-node JSON by ReportGenerator
+
+== Analysis and System Health Assessment
+
+// Auto-populated from threshold comparison
+
+== Appendix: Raw stress-ng YAML Output
+
+// Raw YAML files included as attachments per run

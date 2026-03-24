@@ -1,0 +1,20 @@
+# =============================================================================
+# stress-ng Workload Profile: Memory Stress
+# =============================================================================
+# Memory subsystem stress using vm and mmap stressors.
+# Validates memory bandwidth, NUMA topology, and allocation pressure.
+# =============================================================================
+
+profile:
+  name: "Memory Stress"
+  description: "Memory subsystem stress for bandwidth and allocation pressure testing"
+  category: "memory"
+  parameters:
+    stressors:
+      - vm
+      - mmap
+      - memrate
+    workers: 4
+    timeout: "5m"
+  expected_thresholds:
+    min_vm_bogo_ops_per_sec: 5000

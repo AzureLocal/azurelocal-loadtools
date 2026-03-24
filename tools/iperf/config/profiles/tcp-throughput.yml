@@ -1,0 +1,20 @@
+# =============================================================================
+# iPerf3 Workload Profile: TCP Throughput
+# =============================================================================
+# Maximum TCP throughput test between cluster nodes.
+# Measures peak bandwidth and identifies TCP bottlenecks.
+# =============================================================================
+
+profile:
+  name: "TCP Throughput"
+  description: "Multi-stream TCP throughput test for maximum bandwidth measurement"
+  category: "throughput"
+  parameters:
+    protocol: "TCP"
+    parallel_streams: 8
+    duration_seconds: 30
+    server_port: 5201
+    mesh_test: false
+  expected_thresholds:
+    min_throughput_mbps: 8000     # < 8 Gbps on 10GbE is a concern
+    max_retransmits_per_pair: 500

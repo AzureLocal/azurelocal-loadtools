@@ -1,0 +1,24 @@
+# =============================================================================
+# fio Workload Profile: Mixed 70/30
+# =============================================================================
+# 4K random mixed read/write (70% read, 30% write).
+# Represents typical production OLTP database workloads.
+# =============================================================================
+
+profile:
+  name: "Mixed 70/30"
+  description: "4K random mixed I/O — 70% read, 30% write (production OLTP simulation)"
+  category: "mixed"
+  parameters:
+    block_size: "4k"
+    rw: "randrw"
+    rwmixread: 70
+    io_engine: "libaio"
+    io_depth: 32
+    num_jobs: 4
+    runtime_seconds: 300
+    test_directory: "/tmp/fio-test"
+  expected_thresholds:
+    min_iops: 25000
+    max_lat_mean_ms: 10
+    max_lat_p99_ms: 40

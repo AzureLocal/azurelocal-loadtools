@@ -1,0 +1,85 @@
+= Azure Local Load Test Report — fio
+:author: Azure Local Load Tools
+:revdate: {revdate}
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+
+// Attributes set by ReportGenerator module
+:run-id: {run-id}
+:cluster-name: {cluster-name}
+:solution: fio
+:test-date: {test-date}
+
+include::cover-page.adoc[leveloffset=+0]
+
+== Executive Summary
+
+This report presents the storage performance results of a fio benchmark run on the Azure Local cluster *{cluster-name}*.
+fio was used to generate controlled I/O workloads against cluster storage volumes, measuring IOPS, throughput, and latency.
+
+[cols="2,3"]
+|===
+| *Property* | *Value*
+
+| Run ID | {run-id}
+| Test Date | {test-date}
+| Cluster | {cluster-name}
+| Solution | fio
+| Report Generated | {revdate}
+|===
+
+== Test Configuration
+
+=== Workload Profile
+
+[cols="2,1"]
+|===
+| *Parameter* | *Value*
+
+| Block Size | {fio-block-size}
+| I/O Pattern | {fio-rw}
+| Read Mix | {fio-rwmixread}%
+| I/O Engine | {fio-io-engine}
+| I/O Depth | {fio-io-depth}
+| Parallel Jobs | {fio-num-jobs}
+| Runtime | {fio-runtime-seconds}s
+|===
+
+== Results
+
+=== Aggregate IOPS
+
+[cols="1,1,1"]
+|===
+| *Metric* | *Read* | *Write*
+
+| Total IOPS | {total-read-iops} | {total-write-iops}
+| Mean Latency (ms) | {avg-read-lat-ms} | {avg-write-lat-ms}
+| P99 Latency (ms) | {p99-read-lat-ms} | {p99-write-lat-ms}
+|===
+
+=== Aggregate Throughput
+
+[cols="1,1"]
+|===
+| *Direction* | *Throughput (MB/s)*
+
+| Read | {total-read-throughput-mbps}
+| Write | {total-write-throughput-mbps}
+|===
+
+== Per-Node Results
+
+// Auto-populated from per-job JSON by ReportGenerator
+
+== Analysis and Recommendations
+
+// Auto-populated from threshold comparison
+
+== Appendix: Raw fio Output
+
+// Raw JSON files included as attachments per run

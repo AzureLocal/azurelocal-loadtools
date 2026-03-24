@@ -1,0 +1,21 @@
+# =============================================================================
+# iPerf3 Workload Profile: Mesh Throughput
+# =============================================================================
+# All-to-all TCP throughput test across all cluster nodes.
+# Identifies asymmetric bandwidth and network topology bottlenecks.
+# =============================================================================
+
+profile:
+  name: "Mesh Throughput"
+  description: "All-to-all TCP throughput across every node pair — identifies asymmetric bandwidth"
+  category: "mesh"
+  parameters:
+    protocol: "TCP"
+    parallel_streams: 4
+    duration_seconds: 30
+    server_port: 5201
+    mesh_test: true
+  expected_thresholds:
+    min_throughput_mbps: 7000
+    max_throughput_variance_percent: 10   # Asymmetry > 10% indicates topology issue
+    max_retransmits_per_pair: 200

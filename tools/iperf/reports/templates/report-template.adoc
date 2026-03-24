@@ -1,0 +1,85 @@
+= Azure Local Load Test Report — iPerf3
+:author: Azure Local Load Tools
+:revdate: {revdate}
+:doctype: article
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+
+// Attributes set by ReportGenerator module
+:run-id: {run-id}
+:cluster-name: {cluster-name}
+:solution: iPerf3
+:test-date: {test-date}
+
+include::cover-page.adoc[leveloffset=+0]
+
+== Executive Summary
+
+This report presents the network performance results of an iPerf3 benchmark run on the Azure Local cluster *{cluster-name}*.
+iPerf3 was used to measure TCP throughput, UDP jitter, and packet loss between cluster nodes.
+
+[cols="2,3"]
+|===
+| *Property* | *Value*
+
+| Run ID | {run-id}
+| Test Date | {test-date}
+| Cluster | {cluster-name}
+| Solution | iPerf3
+| Report Generated | {revdate}
+|===
+
+== Test Configuration
+
+=== Workload Profile
+
+[cols="2,1"]
+|===
+| *Parameter* | *Value*
+
+| Protocol | {iperf-protocol}
+| Parallel Streams | {iperf-parallel-streams}
+| Duration | {iperf-duration-seconds}s
+| Server Port | {iperf-server-port}
+| Mesh Test | {iperf-mesh-test}
+|===
+
+== Results
+
+=== TCP Throughput
+
+[cols="1,1"]
+|===
+| *Metric* | *Value (MB/s)*
+
+| Maximum Send Throughput | {tcp-max-send-throughput-mbps}
+| Minimum Send Throughput | {tcp-min-send-throughput-mbps}
+| Average Send Throughput | {tcp-avg-send-throughput-mbps}
+| Total Retransmits | {tcp-total-retransmits}
+|===
+
+=== UDP Performance
+
+[cols="1,1"]
+|===
+| *Metric* | *Value*
+
+| Average Throughput | {udp-avg-throughput-mbps} MB/s
+| Average Jitter | {udp-avg-jitter-ms} ms
+| Max Packet Loss | {udp-max-packet-loss-percent}%
+|===
+
+== Per-Pair Results
+
+// Auto-populated from per-pair JSON by ReportGenerator
+
+== Analysis and Recommendations
+
+// Auto-populated from threshold comparison
+
+== Appendix: Raw iPerf3 Output
+
+// Raw JSON files included as attachments per run

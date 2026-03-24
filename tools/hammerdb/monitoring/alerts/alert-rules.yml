@@ -1,0 +1,78 @@
+# =============================================================================
+# Alert Rules - HammerDB Load Testing
+# =============================================================================
+# Threshold-based alert rules for monitoring host and DB metrics during
+# HammerDB TPC-C/TPC-H benchmark runs.
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  description: "Alert rules for HammerDB database load testing"
+
+alert_rules:
+  # ---- Compute Alerts ----
+  - name: hammerdb_high_cpu
+    category: compute
+    counter: '\Processor(_Total)\% Processor Time'
+    condition: greater_than
+    threshold: 95
+    severity: warning
+    message: "CPU usage exceeds 95% on {node} during HammerDB — may indicate CPU bottleneck"
+    cooldown_seconds: 120
+
+  - name: hammerdb_high_cpu_critical
+    category: compute
+    counter: '\Processor(_Total)\% Processor Time'
+    condition: greater_than
+    threshold: 99
+    severity: critical
+    message: "CRITICAL: CPU at 99%+ on {node} — HammerDB results will be unreliable"
+    cooldown_seconds: 60
+
+  # ---- Memory Alerts ----
+  - name: hammerdb_low_memory
+    category: memory
+    counter: '\Memory\Available MBytes'
+    condition: less_than
+    threshold: 1024
+    severity: warning
+    message: "Low available memory ({value} MB) on {node} during HammerDB — may cause buffer pool pressure"
+    cooldown_seconds: 300
+
+  - name: hammerdb_critical_memory
+    category: memory
+    counter: '\Memory\Available MBytes'
+    condition: less_than
+    threshold: 256
+    severity: critical
+    message: "CRITICAL: Memory critically low on {node} — HammerDB test may fail"
+    cooldown_seconds: 60
+
+  # ---- Storage Alerts (DB I/O) ----
+  - name: hammerdb_db_disk_latency
+    category: storage
+    counter: '\PhysicalDisk(*)\Avg. Disk sec/Write'
+    condition: greater_than
+    threshold: 0.020      # 20ms write latency
+    severity: warning
+    message: "DB disk write latency exceeds 20ms on {node} ({instance}) — may affect NOPM/TPM scores"
+    cooldown_seconds: 300
+
+  - name: hammerdb_log_disk_saturation
+    category: storage
+    counter: '\PhysicalDisk(*)\Avg. Disk Queue Length'
+    condition: greater_than
+    threshold: 32
+    severity: warning
+    message: "Disk queue length exceeds 32 on {node} — transaction log I/O may be bottlenecked"
+    cooldown_seconds: 300
+
+  # ---- Network Alerts ----
+  - name: hammerdb_network_high_latency
+    category: network
+    counter: '\Network Interface(*)\Current Bandwidth'
+    condition: greater_than
+    threshold: 9000000000
+    severity: warning
+    message: "Network interface near saturation on {node} — DB client connections may be affected"
+    cooldown_seconds: 120
