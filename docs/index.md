@@ -2,6 +2,9 @@
 
 Automated performance and load testing for Azure Local clusters — storage, network, database, and system stress — with standardised reporting.
 
+!!! warning "Under Active Development"
+    This repository is a work in progress. Scripts, templates, and automation are not guaranteed to work at this time. Use at your own risk and expect breaking changes.
+
 !!! tip "Each test is standalone"
     Every tool in this framework runs independently from a PowerShell terminal. No CI/CD pipeline is required. Pick a tool, follow the steps on its page, and run your test.
 
