@@ -8,7 +8,7 @@ The Azure Local Load Testing Framework is organised into five layers that take a
 
 ## Five-Layer Stack
 
-![Five-Layer Architecture](../assets/diagrams/solution-architecture.drawio)
+![Solution Architecture](../assets/diagrams/solution-architecture.drawio)
 
 ---
 
