@@ -50,9 +50,11 @@ azure_local:
     - name: "azl-node-01"
       management_ip: "10.0.0.1"
       storage_ip: "10.0.1.1"
+      role: "worker"                           # worker | controller | management
     - name: "azl-node-02"
       management_ip: "10.0.0.2"
       storage_ip: "10.0.1.2"
+      role: "worker"
 
 
 # =============================================================================
@@ -88,6 +90,8 @@ credentials:
   cluster_admin_password: "keyvault://kv-iic-loadtools/hci-cluster-admin-pwd"
   vmfleet_admin_username: "keyvault://kv-iic-loadtools/vmfleet-admin-user"
   vmfleet_admin_password: "keyvault://kv-iic-loadtools/vmfleet-admin-pwd"
+  linux_ssh_username: "azurelocaladmin"       # SSH user for fio/iPerf3/stress-ng on cluster nodes
+  linux_ssh_key_path: "~/.ssh/id_rsa"         # Path to SSH private key on the runner
 
 
 # =============================================================================
@@ -98,6 +102,42 @@ testing:
   default_profile: "general"                  # Profile name from config/profiles/<tool>/
   duration_seconds: 300
   warmup_seconds: 60
+
+
+# =============================================================================
+# VMFleet
+# =============================================================================
+vmfleet:
+  # Installation
+  version: "2.0.0.0"                          # VMFleet module version to install
+  diskspd_version: "2.1.0"                    # DiskSpd version to install alongside VMFleet
+
+  # VM Fleet sizing (per-node)
+  vm_count: 10                                # Fleet VMs per cluster node
+  vm_memory_gb: 2                             # Memory per fleet VM (GB)
+  vm_processors: 2                            # vCPU count per fleet VM
+  data_disk_size_gb: 20                       # Data disk size per fleet VM (GB)
+  data_disk_count: 1                          # Number of data disks per fleet VM
+
+  # Workload defaults (override per profile in config/profiles/vmfleet/)
+  block_size: "4k"                            # Default I/O block size
+  write_ratio: 0                              # Write percentage (0=read-only, 100=write-only)
+  random_ratio: 100                           # Random I/O percentage (0=sequential)
+  outstanding_io: 8                           # Outstanding I/O per thread
+  threads_per_vm: 2                           # I/O threads per fleet VM
+  test_duration_seconds: 300                  # Default test duration
+  warmup_seconds: 60                          # Warmup period before measurement
+
+
+# =============================================================================
+# HammerDB
+# =============================================================================
+hammerdb:
+  db_server: ""                               # Hostname or IP of the target SQL Server instance
+  db_type: "mssql"                            # Target database: mssql | postgresql | mysql
+  db_name: "tpcc"                             # Database name for TPC-C workload
+  warehouse_count: 10                         # Number of TPC-C warehouses
+  virtual_users: 4                            # Concurrent virtual users
 
 
 # =============================================================================
