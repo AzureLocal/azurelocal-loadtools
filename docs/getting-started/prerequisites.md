@@ -81,10 +81,10 @@ This will check:
 Each tool may have additional requirements beyond the common set above:
 
 - [VMFleet Prerequisites](../tools/vmfleet/prerequisites.md) — Base VHD, Collect volume, VMFleet module
-- [fio Prerequisites](../tools/fio/overview.md) — Linux VMs, fio package
-- [iPerf3 Prerequisites](../tools/iperf/overview.md) — iPerf3 binaries, RDMA configuration
-- [HammerDB Prerequisites](../tools/hammerdb/overview.md) — SQL Server, HammerDB installation
-- [stress-ng Prerequisites](../tools/stress-ng/overview.md) — Linux VMs, stress-ng package
+- [fio Prerequisites](../tools/fio/index.md) — Linux VMs, fio package
+- [iPerf3 Prerequisites](../tools/iperf/index.md) — iPerf3 binaries, RDMA configuration
+- [HammerDB Prerequisites](../tools/hammerdb/index.md) — SQL Server, HammerDB installation
+- [stress-ng Prerequisites](../tools/stress-ng/index.md) — Linux VMs, stress-ng package
 
 ## Next Steps
 

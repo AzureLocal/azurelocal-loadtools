@@ -2,50 +2,69 @@
 
 Automated performance and load testing for Azure Local clusters — storage, network, database, and system stress — with standardised reporting.
 
+!!! tip "Each test is standalone"
+    Every tool in this framework runs independently from a PowerShell terminal. No CI/CD pipeline is required. Pick a tool, follow the steps on its page, and run your test.
+
 ## Quick Start
 
 ```powershell
 # 1. Clone and configure
 git clone https://github.com/AzureLocal/azurelocal-loadtools
+cd azurelocal-loadtools
 Copy-Item config\variables.example.yml config\variables.yml
 # Edit config\variables.yml with your cluster details
 
-# 2. Run a storage benchmark
-.\scripts\Start-FioTest.ps1 -RunId "fio-$(Get-Date -f yyyyMMddHHmm)" -Profile "sequential-read"
-.\scripts\Collect-FioResults.ps1 -RunId "fio-$(Get-Date -f yyyyMMddHHmm)"
+# 2. Run a VMFleet storage benchmark (fully implemented)
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
+    -ConfigPath "config\variables.yml" `
+    -Profiles @("General") `
+    -CredentialSource Interactive `
+    -GenerateReports
 
-# 3. Generate a report
-.\scripts\New-LoadReport.ps1 -RunId "fio-$(Get-Date -f yyyyMMddHHmm)" -Tool fio
+# Or run individual steps for any tool:
+.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterName "hci01.corp.infiniteimprobability.com" -Nodes @("hci01-node1")
+.\tools\vmfleet\scripts\Start-VMFleetTest.ps1 -Profile "General" -DurationSeconds 600
+.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 -Nodes @("hci01-node1") -RunId "<run-id>"
 ```
 
-## Architecture at a Glance
+## Pick a Test
 
-The framework is organised into five layers:
+Each tool targets a specific performance domain. Click a tool to see exactly how to run it.
+
+| Tool | What It Tests | Target OS | Status |
+|------|--------------|-----------|--------|
+| [VMFleet](tools/vmfleet/index.md) | Storage IOPS, throughput, latency via DiskSpd VM fleet | Windows (HCI host) | :white_check_mark: Fully Implemented |
+| [fio](tools/fio/index.md) | Fine-grained storage I/O benchmarking | Linux VMs | :construction: Structure Ready |
+| [iPerf3](tools/iperf/index.md) | Network bandwidth, jitter, packet loss | Linux / Windows | :construction: Structure Ready |
+| [HammerDB](tools/hammerdb/index.md) | SQL Server OLTP / OLAP benchmarking | Windows VMs | :construction: Structure Ready |
+| [stress-ng](tools/stress-ng/index.md) | CPU, memory, and system stress testing | Linux VMs | :construction: Structure Ready |
+
+For a detailed comparison and selection guide, see [Tools Overview](tools/index.md).
+
+## How It Works
+
+Every tool follows the same three-step pattern:
 
 ```
-Configuration → Automation → Execution → Monitoring → Reporting
+Install → Run Test → Collect Results
 ```
 
-All scripts consume ConfigManager-generated JSON (never the raw YAML). Results flow from target nodes via SSH/SCP or WinRM to JSON aggregates, then into AsciiDoc report templates. See the [Architecture Overview](architecture/overview.md) for the full breakdown.
+All scripts are in `tools/<tool>/scripts/` and can be called directly from PowerShell. No pipeline setup required.
 
-## Tools
+For the full architecture breakdown, see [Architecture Overview](architecture/overview.md).
 
-| Tool | Target OS | Category | Status | Profiles |
-|------|-----------|----------|--------|---------|
-| [fio](tools/fio/overview.md) | Linux | Storage I/O | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 5 |
-| [iPerf3](tools/iperf/overview.md) | Linux / Windows | Network | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 3 |
-| [HammerDB](tools/hammerdb/overview.md) | Windows | Database | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 2 |
-| [stress-ng](tools/stress-ng/overview.md) | Linux | CPU / Memory / I/O | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 3 |
-| [VMFleet](tools/vmfleet/overview.md) | Windows (HCI) | VM fleet | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | — |
+## Want to Automate?
+
+CI/CD pipelines are available as an **optional addition** if you want to run tests on a schedule, trigger them from pull requests, or integrate into your deployment workflow. See [CI/CD Pipelines](operations/ci-cd.md).
 
 ## Navigation
 
 | Section | Description |
 |---------|-------------|
 | [Getting Started](getting-started/introduction.md) | Prerequisites, installation, and first run |
+| [Tools Overview](tools/index.md) | All tools at a glance with selection guide |
 | [Architecture](architecture/overview.md) | Five-layer stack, tool selection, data flow |
-| [Tools](tools/fio/overview.md) | Per-tool installation, profiles, monitoring, reporting, troubleshooting |
-| [Operations](operations/ci-cd.md) | CI/CD pipelines, runner setup, troubleshooting |
+| [Operations](operations/ci-cd.md) | CI/CD pipelines (optional), runner setup, troubleshooting |
 | [Reference](reference/cmdlet-reference.md) | Cmdlet reference, variables, tool comparison |
 | [Roadmap](roadmap.md) | Milestone tracker and planned features |
 

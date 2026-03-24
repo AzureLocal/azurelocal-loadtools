@@ -123,4 +123,4 @@ All tests should pass, confirming modules load correctly and configuration is va
 ## Next Steps
 
 - [Configuration](configuration.md) — Understand the configuration system
-- [VMFleet Guide](../tools/vmfleet/overview.md) — Start with VMFleet storage testing
+- [VMFleet Guide](../tools/vmfleet/index.md) — Start with VMFleet storage testing

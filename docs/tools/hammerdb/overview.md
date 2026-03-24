@@ -1,5 +1,8 @@
 # HammerDB — Database Benchmarking
 
+!!! note "This page has moved"
+    The main HammerDB landing page with run instructions is now at [HammerDB](index.md). This page contains additional technical details.
+
 ![Tool: HammerDB](https://img.shields.io/badge/Tool-HammerDB-E74C3C?style=flat-square)
 ![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
 

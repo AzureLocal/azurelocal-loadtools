@@ -65,11 +65,11 @@ Each phase is checkpoint-tracked via `StateManager`, enabling resume after failu
 
 See individual tool guides for tool-specific workflow details:
 
-- [VMFleet Workflow](../tools/vmfleet/overview.md)
-- [fio Workflow](../tools/fio/overview.md)
-- [iPerf3 Workflow](../tools/iperf/overview.md)
-- [HammerDB Workflow](../tools/hammerdb/overview.md)
-- [stress-ng Workflow](../tools/stress-ng/overview.md)
+- [VMFleet Workflow](../tools/vmfleet/index.md)
+- [fio Workflow](../tools/fio/index.md)
+- [iPerf3 Workflow](../tools/iperf/index.md)
+- [HammerDB Workflow](../tools/hammerdb/index.md)
+- [stress-ng Workflow](../tools/stress-ng/index.md)
 
 ## Network Topology
 

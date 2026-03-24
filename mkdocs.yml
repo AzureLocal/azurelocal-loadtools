@@ -33,14 +33,19 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started: getting-started/introduction.md
+  - Getting Started:
+      - Introduction: getting-started/introduction.md
+      - Prerequisites: getting-started/prerequisites.md
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
   - Architecture:
       - Overview: architecture/overview.md
       - Tool Selection: architecture/tool-selection.md
       - Data Flow: architecture/data-flow.md
   - Tools:
+      - Overview: tools/index.md
       - VMFleet:
-          - Overview: tools/vmfleet/overview.md
+          - VMFleet: tools/vmfleet/index.md
           - Prerequisites: tools/vmfleet/prerequisites.md
           - Deployment: tools/vmfleet/deployment.md
           - Workload Profiles: tools/vmfleet/workload-profiles.md
@@ -48,37 +53,34 @@ nav:
           - Reporting: tools/vmfleet/reporting.md
           - Troubleshooting: tools/vmfleet/troubleshooting.md
       - fio:
-          - Overview: tools/fio/overview.md
+          - fio: tools/fio/index.md
           - Installation: tools/fio/installation.md
           - Workload Profiles: tools/fio/workload-profiles.md
           - Monitoring: tools/fio/monitoring.md
           - Reporting: tools/fio/reporting.md
           - Troubleshooting: tools/fio/troubleshooting.md
       - iPerf3:
-          - Overview: tools/iperf/overview.md
+          - iPerf3: tools/iperf/index.md
           - Installation: tools/iperf/installation.md
           - Workload Profiles: tools/iperf/workload-profiles.md
           - Monitoring: tools/iperf/monitoring.md
           - Reporting: tools/iperf/reporting.md
           - Troubleshooting: tools/iperf/troubleshooting.md
       - HammerDB:
-          - Overview: tools/hammerdb/overview.md
+          - HammerDB: tools/hammerdb/index.md
           - Installation: tools/hammerdb/installation.md
           - Workload Profiles: tools/hammerdb/workload-profiles.md
           - Monitoring: tools/hammerdb/monitoring.md
           - Reporting: tools/hammerdb/reporting.md
           - Troubleshooting: tools/hammerdb/troubleshooting.md
       - stress-ng:
-          - Overview: tools/stress-ng/overview.md
+          - stress-ng: tools/stress-ng/index.md
           - Installation: tools/stress-ng/installation.md
           - Workload Profiles: tools/stress-ng/workload-profiles.md
           - Monitoring: tools/stress-ng/monitoring.md
           - Reporting: tools/stress-ng/reporting.md
           - Troubleshooting: tools/stress-ng/troubleshooting.md
   - Operations:
-      - Prerequisites: getting-started/prerequisites.md
-      - Framework Setup: getting-started/installation.md
-      - Configuration: getting-started/configuration.md
       - CI/CD Pipelines: operations/ci-cd.md
       - Runner Setup: operations/runner-setup.md
       - Credential Management: operations/credential-management.md

@@ -155,6 +155,6 @@ See [Credential Management](../operations/credential-management.md) for full det
 
 Choose a tool to get started:
 
-- [VMFleet Guide](../tools/vmfleet/overview.md) — Storage load testing
-- [fio Guide](../tools/fio/overview.md) — Flexible I/O benchmarking
-- [iPerf3 Guide](../tools/iperf/overview.md) — Network testing
+- [VMFleet Guide](../tools/vmfleet/index.md) — Storage load testing
+- [fio Guide](../tools/fio/index.md) — Flexible I/O benchmarking
+- [iPerf3 Guide](../tools/iperf/index.md) — Network testing

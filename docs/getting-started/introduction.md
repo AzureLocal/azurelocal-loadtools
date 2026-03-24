@@ -17,11 +17,13 @@ Azure Local clusters represent significant infrastructure investments. Before co
 
 | Tool | Purpose | Status |
 |------|---------|--------|
-| [VMFleet](../tools/vmfleet/overview.md) | Storage load generation via VM fleet running DiskSpd workloads | ✅ Fully Implemented |
-| [fio](../tools/fio/overview.md) | Fine-grained storage I/O benchmarking (Linux VMs) | ✅ Implemented |
-| [iPerf3](../tools/iperf/overview.md) | Network bandwidth and latency testing | ✅ Implemented |
-| [HammerDB](../tools/hammerdb/overview.md) | Database workload benchmarking (OLTP/OLAP) | ✅ Implemented |
-| [stress-ng](../tools/stress-ng/overview.md) | CPU, memory, and system stress testing | ✅ Implemented |
+| [VMFleet](../tools/vmfleet/index.md) | Storage load generation via VM fleet running DiskSpd workloads | :white_check_mark: Fully Implemented |
+| [fio](../tools/fio/index.md) | Fine-grained storage I/O benchmarking (Linux VMs) | :construction: Structure Ready |
+| [iPerf3](../tools/iperf/index.md) | Network bandwidth and latency testing | :construction: Structure Ready |
+| [HammerDB](../tools/hammerdb/index.md) | Database workload benchmarking (OLTP/OLAP) | :construction: Structure Ready |
+| [stress-ng](../tools/stress-ng/index.md) | CPU, memory, and system stress testing | :construction: Structure Ready |
+
+Each tool is standalone — pick one and follow the "Run This Test" instructions on its page. No CI/CD pipeline is required.
 
 ## Key Features
 
