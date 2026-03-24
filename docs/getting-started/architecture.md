@@ -2,12 +2,7 @@
 
 ![Category: Getting Started](https://img.shields.io/badge/Category-Getting%20Started-2ECC71?style=flat-square)
 
-This document describes the overall architecture of the Azure Local Load Testing Framework, including component relationships, data flow, and integration points.
-
-## High-Level Architecture
-
-<!-- TODO: Export from docs/diagrams/solution-architecture.drawio -->
-<!-- image: solution-architecture.svg -->
+> **This page is a summary.** For the full architecture documentation, see the [Architecture](../architecture/overview.md) section.
 
 The framework consists of five major layers:
 
@@ -16,6 +11,14 @@ The framework consists of five major layers:
 - **Execution Layer** — Load testing tools (VMFleet, fio, iPerf3, HammerDB, stress-ng) running on cluster nodes and VMs
 - **Monitoring Layer** — PerfMon counter collection, Azure Monitor integration, real-time dashboards
 - **Reporting Layer** — Metric aggregation, AsciiDoc template population, multi-format output generation
+
+## Architecture Guides
+
+| Guide | Description |
+|-------|-------------|
+| [Architecture Overview](../architecture/overview.md) | Five-layer stack, component table, and common workflow lifecycle |
+| [Tool Selection](../architecture/tool-selection.md) | Decision flowchart and comparison matrix for choosing the right tool |
+| [Data Flow](../architecture/data-flow.md) | End-to-end config, results, and monitoring data paths |
 
 ## Configuration Flow
 

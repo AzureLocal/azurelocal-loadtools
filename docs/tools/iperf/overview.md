@@ -1,10 +1,7 @@
 # iPerf3 — Network Performance Testing
 
 ![Tool: iPerf3](https://img.shields.io/badge/Tool-iPerf3-1ABC9C?style=flat-square)
-![Status: Placeholder](https://img.shields.io/badge/Status-Placeholder-lightgrey?style=flat-square)
-
-!!! caution
-    **Placeholder** — Structure and Ansible roles scaffolded; implementation pending.
+![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
 
 ## Purpose
 
@@ -32,11 +29,38 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 - RDMA configuration validated (for RDMA testing)
 - Ansible 2.14+ for Linux VM deployment
 
+## Quick Start
+
+```powershell
+# Run TCP throughput between all nodes
+.\tools\iperf\scripts\Start-IperfTest.ps1 `
+    -ClusterName "hci01.corp.infiniteimprobability.com" `
+    -Nodes @("hci01-node1", "hci01-node2", "hci01-node3") `
+    -Profile "tcp-throughput"
+
+# Collect and normalize results
+.\tools\iperf\scripts\Collect-IperfResults.ps1 `
+    -ClusterName "hci01.corp.infiniteimprobability.com" `
+    -Nodes @("hci01-node1", "hci01-node2", "hci01-node3") `
+    -RunId "<run-id-from-previous-step>"
+```
+
 ## File Locations
 
 | Component | Path |
 | --- | --- |
 | Scripts | `tools/iperf/scripts/` |
-| Ansible Playbooks | `tools/iperf/playbooks/` |
 | Profiles | `tools/iperf/config/profiles/` |
-| Ansible Role | `tools/iperf/ansible/roles/iperf/` |
+| Alert Rules | `tools/iperf/monitoring/alerts/alert-rules.yml` |
+| Report Templates | `tools/iperf/reports/templates/` |
+| Tests | `tools/iperf/tests/` |
+
+## iPerf3 Documentation
+
+| Document | Description |
+| --- | --- |
+| [Installation](installation.md) | Install iPerf3 on cluster nodes |
+| [Workload Profiles](workload-profiles.md) | TCP, UDP, and mesh profile configuration |
+| [Monitoring](monitoring.md) | Alert rules active during iPerf3 runs |
+| [Reporting](reporting.md) | Result collection and report generation |
+| [Troubleshooting](troubleshooting.md) | Common issues and resolutions |

@@ -1,10 +1,7 @@
 # fio — Flexible I/O Tester
 
 ![Tool: fio](https://img.shields.io/badge/Tool-fio-6C3483?style=flat-square)
-![Status: Placeholder](https://img.shields.io/badge/Status-Placeholder-lightgrey?style=flat-square)
-
-!!! caution
-    **Placeholder** — Structure and Ansible roles scaffolded; implementation pending.
+![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
 
 ## Purpose
 
@@ -32,12 +29,43 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 - Ansible 2.14+ for deployment (see [Ansible Requirements](../../getting-started/prerequisites.md#ansible-requirements-for-linux-based-tools))
 - fio package installed on target VMs (automated via Ansible role)
 
+## Quick Start
+
+```powershell
+# 1. Deploy fio to Linux VMs
+.\tools\fio\scripts\Install-Fio.ps1 `
+    -ClusterName "hci01.corp.infiniteimprobability.com" `
+    -Nodes @("hci01-node1", "hci01-node2")
+
+# 2. Run a workload profile
+.\tools\fio\scripts\Start-FioTest.ps1 `
+    -ClusterName "hci01.corp.infiniteimprobability.com" `
+    -Nodes @("hci01-node1", "hci01-node2") `
+    -Profile "random-read"
+
+# 3. Collect and normalize results
+.\tools\fio\scripts\Collect-FioResults.ps1 `
+    -ClusterName "hci01.corp.infiniteimprobability.com" `
+    -Nodes @("hci01-node1", "hci01-node2") `
+    -RunId "<run-id-from-previous-step>"
+```
+
 ## File Locations
 
 | Component | Path |
 | --- | --- |
 | Scripts | `tools/fio/scripts/` |
-| Ansible Playbooks | `tools/fio/playbooks/` |
-| Job Files | `tools/fio/` |
 | Profiles | `tools/fio/config/profiles/` |
-| Ansible Role | `tools/fio/ansible/roles/fio/` |
+| Alert Rules | `tools/fio/monitoring/alerts/alert-rules.yml` |
+| Report Templates | `tools/fio/reports/templates/` |
+| Tests | `tools/fio/tests/` |
+
+## fio Documentation
+
+| Document | Description |
+| --- | --- |
+| [Installation](installation.md) | Deploy fio to Linux VMs via Ansible |
+| [Workload Profiles](workload-profiles.md) | Built-in profiles and profile configuration |
+| [Monitoring](monitoring.md) | Alert rules active during fio runs |
+| [Reporting](reporting.md) | Result collection and report generation |
+| [Troubleshooting](troubleshooting.md) | Common issues and resolutions |

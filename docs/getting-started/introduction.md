@@ -18,10 +18,10 @@ Azure Local clusters represent significant infrastructure investments. Before co
 | Tool | Purpose | Status |
 |------|---------|--------|
 | [VMFleet](../tools/vmfleet/overview.md) | Storage load generation via VM fleet running DiskSpd workloads | ✅ Fully Implemented |
-| [fio](../tools/fio/overview.md) | Fine-grained storage I/O benchmarking (Linux VMs) | 🔲 Placeholder |
-| [iPerf3](../tools/iperf/overview.md) | Network bandwidth and latency testing | 🔲 Placeholder |
-| [HammerDB](../tools/hammerdb/overview.md) | Database workload benchmarking (OLTP/OLAP) | 🔲 Placeholder |
-| [stress-ng](../tools/stress-ng/overview.md) | CPU, memory, and system stress testing | 🔲 Placeholder |
+| [fio](../tools/fio/overview.md) | Fine-grained storage I/O benchmarking (Linux VMs) | ✅ Implemented |
+| [iPerf3](../tools/iperf/overview.md) | Network bandwidth and latency testing | ✅ Implemented |
+| [HammerDB](../tools/hammerdb/overview.md) | Database workload benchmarking (OLTP/OLAP) | ✅ Implemented |
+| [stress-ng](../tools/stress-ng/overview.md) | CPU, memory, and system stress testing | ✅ Implemented |
 
 ## Key Features
 

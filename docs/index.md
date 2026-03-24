@@ -1,33 +1,53 @@
 # Azure Local Load Testing Framework
 
-!!! warning "Under Active Development"
-    This repository is a work in progress. Scripts, templates, and automation are **not guaranteed to work** at this time. Use at your own risk and expect breaking changes.
+Automated performance and load testing for Azure Local clusters — storage, network, database, and system stress — with standardised reporting.
 
-Comprehensive performance and load testing tools for Azure Local infrastructure validation.
+## Quick Start
 
-## Overview
+```powershell
+# 1. Clone and configure
+git clone https://github.com/AzureLocal/azurelocal-loadtools
+Copy-Item config\variables.example.yml config\variables.yml
+# Edit config\variables.yml with your cluster details
 
-This framework provides automated deployment, configuration, and execution of industry-standard load testing tools on Azure Local clusters. It supports storage, compute, network, and database benchmarking with standardized reporting.
+# 2. Run a storage benchmark
+.\scripts\Start-FioTest.ps1 -RunId "fio-$(Get-Date -f yyyyMMddHHmm)" -Profile "sequential-read"
+.\scripts\Collect-FioResults.ps1 -RunId "fio-$(Get-Date -f yyyyMMddHHmm)"
 
-## Quick Navigation
+# 3. Generate a report
+.\scripts\New-LoadReport.ps1 -RunId "fio-$(Get-Date -f yyyyMMddHHmm)" -Tool fio
+```
 
-| Section | Description |
-|---------|-------------|
-| [Introduction](getting-started/introduction.md) | Framework overview and capabilities |
-| [Architecture](getting-started/architecture.md) | System architecture and design |
-| [Prerequisites](getting-started/prerequisites.md) | Requirements and preparation |
-| [Installation](getting-started/installation.md) | Setup and deployment steps |
-| [Configuration](getting-started/configuration.md) | Variable hierarchy and customization |
+## Architecture at a Glance
+
+The framework is organised into five layers:
+
+```
+Configuration → Automation → Execution → Monitoring → Reporting
+```
+
+All scripts consume ConfigManager-generated JSON (never the raw YAML). Results flow from target nodes via SSH/SCP or WinRM to JSON aggregates, then into AsciiDoc report templates. See the [Architecture Overview](architecture/overview.md) for the full breakdown.
 
 ## Tools
 
-| Tool | Purpose |
-|------|---------|
-| [VMFleet](tools/vmfleet/overview.md) | Storage I/O benchmarking at scale |
-| [fio](tools/fio/overview.md) | Flexible I/O tester for storage |
-| [iPerf3](tools/iperf/overview.md) | Network throughput testing |
-| [HammerDB](tools/hammerdb/overview.md) | Database benchmark testing |
-| [stress-ng](tools/stress-ng/overview.md) | CPU, memory, and system stress testing |
+| Tool | Target OS | Category | Status | Profiles |
+|------|-----------|----------|--------|---------|
+| [fio](tools/fio/overview.md) | Linux | Storage I/O | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 5 |
+| [iPerf3](tools/iperf/overview.md) | Linux / Windows | Network | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 3 |
+| [HammerDB](tools/hammerdb/overview.md) | Windows | Database | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 2 |
+| [stress-ng](tools/stress-ng/overview.md) | Linux | CPU / Memory / I/O | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | 3 |
+| [VMFleet](tools/vmfleet/overview.md) | Windows (HCI) | VM fleet | ![Implemented](https://img.shields.io/badge/-Implemented-brightgreen?style=flat-square) | — |
+
+## Navigation
+
+| Section | Description |
+|---------|-------------|
+| [Getting Started](getting-started/introduction.md) | Prerequisites, installation, and first run |
+| [Architecture](architecture/overview.md) | Five-layer stack, tool selection, data flow |
+| [Tools](tools/fio/overview.md) | Per-tool installation, profiles, monitoring, reporting, troubleshooting |
+| [Operations](operations/ci-cd.md) | CI/CD pipelines, runner setup, troubleshooting |
+| [Reference](reference/cmdlet-reference.md) | Cmdlet reference, variables, tool comparison |
+| [Roadmap](roadmap.md) | Milestone tracker and planned features |
 
 ## Repository
 
