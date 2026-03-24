@@ -1,13 +1,29 @@
-<mxfile host="app.diagrams.net" modified="2026-02-13T00:00:00.000Z" agent="Azure Local Load Tools" version="24.0.0" type="device">
+<mxfile host="app.diagrams.net" modified="2026-03-24T00:00:00.000Z" agent="Azure Local Load Tools" version="24.0.0" type="device">
   <diagram id="solution-architecture" name="Solution Architecture">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="940" pageHeight="570" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <!-- TODO: Design the full solution architecture diagram -->
-        <!-- Layers: Configuration, Automation, Execution, Monitoring, Reporting -->
-        <mxCell id="2" value="Azure Local Load Testing Framework&#xa;Solution Architecture&#xa;&#xa;TODO: Design this diagram in draw.io Desktop" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="300" y="350" width="500" height="100" as="geometry" />
+        <mxCell id="2" value="Azure Local Load Testing Framework — Five-Layer Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="20" width="900" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3" value="&lt;b&gt;Layer 5 — Reporting&lt;/b&gt;&lt;br/&gt;AsciiDoc templates · PDF · DOCX · XLSX output via ReportGenerator module" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=13;verticalAlign=middle;align=left;spacingLeft=20;" vertex="1" parent="1">
+          <mxGeometry x="20" y="78" width="900" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="4" value="&lt;b&gt;Layer 4 — Monitoring&lt;/b&gt;&lt;br/&gt;PerfMon counters · Azure Monitor push · Real-time alert evaluation · Grafana dashboards" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontSize=13;verticalAlign=middle;align=left;spacingLeft=20;" vertex="1" parent="1">
+          <mxGeometry x="20" y="165" width="900" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="5" value="&lt;b&gt;Layer 3 — Execution&lt;/b&gt;&lt;br/&gt;fio · iPerf3 · HammerDB · stress-ng · VMFleet — load testing tools on cluster nodes and guest VMs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontSize=13;verticalAlign=middle;align=left;spacingLeft=20;" vertex="1" parent="1">
+          <mxGeometry x="20" y="252" width="900" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="6" value="&lt;b&gt;Layer 2 — Automation&lt;/b&gt;&lt;br/&gt;PowerShell orchestrators · Ansible roles · Logger · StateManager · CredentialManager modules" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=13;verticalAlign=middle;align=left;spacingLeft=20;" vertex="1" parent="1">
+          <mxGeometry x="20" y="339" width="900" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="7" value="&lt;b&gt;Layer 1 — Configuration&lt;/b&gt;&lt;br/&gt;Master variables.yml → ConfigManager → solution-scoped JSON · JSON Schema validation · Workload profiles" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=13;verticalAlign=middle;align=left;spacingLeft=20;" vertex="1" parent="1">
+          <mxGeometry x="20" y="426" width="900" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="8" value="Data flows upward" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=10;fontColor=#aaaaaa;rotation=-90;" vertex="1" parent="1">
+          <mxGeometry x="-20" y="280" width="120" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

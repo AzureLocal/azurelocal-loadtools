@@ -8,28 +8,7 @@ This page traces the three primary data flows through the framework: configurati
 
 ## Configuration Data Flow
 
-```
-config/variables.yml
-        │
-        ▼
-  ConfigManager.psm1
-  ┌────────────────────────┐
-  │ 1. Load master YAML    │
-  │ 2. Filter by solution  │
-  │ 3. Validate vs schema  │
-  │ 4. Apply overrides     │
-  └────────────────────────┘
-        │
-        ├──► config/json/fio.json
-        ├──► config/json/iperf.json
-        ├──► config/json/hammerdb.json
-        ├──► config/json/stress-ng.json
-        └──► config/json/vmfleet.json
-                 │
-                 ▼
-        scripts/Start-*.ps1
-        (consumes only generated JSON)
-```
+![Configuration Data Flow](../assets/diagrams/config-flow.drawio)
 
 ### Key Rules
 
@@ -41,51 +20,7 @@ config/variables.yml
 
 ## Results Data Flow
 
-```
-Target Nodes (Linux / Windows)
-        │
-        │  (SSH/WinRM — batch execution)
-        ▼
-scripts/Start-<Tool>.ps1
-        │
-        │  Tool runs on node: writes raw output to /tmp or C:\
-        │
-        ▼
-Raw results on node:
-  /tmp/fio-results/<RunId>/<node>-<job>.json          (fio)
-  /tmp/iperf-results/<RunId>/<client>-to-<server>.json (iPerf3)
-  /tmp/stress-ng-results/<RunId>/stress-ng-results.yml (stress-ng)
-  C:\hammerdb-results\<RunId>\hammerdb-output.log      (HammerDB)
-        │
-        │  (SCP / WinRM copy)
-        ▼
-scripts/Collect-<Tool>.ps1
-  ┌─────────────────────────────────────┐
-  │ 1. Copy raw files from all nodes    │
-  │ 2. Parse tool-specific format       │
-  │ 3. Normalise metric fields          │
-  │ 4. Compute aggregate statistics     │
-  │ 5. Write aggregate + per-node JSON  │
-  └─────────────────────────────────────┘
-        │
-        ▼
-logs\<tool>\<RunId>\
-  ├── <RunId>-aggregate.json     ← Primary report input
-  ├── <RunId>-per-<node|job>.json
-  └── <node>-raw-output.*        (preserved for audit)
-        │
-        ▼
-scripts/New-LoadReport.ps1
-  ┌──────────────────────────────────────────────┐
-  │ 1. Read aggregate JSON                       │
-  │ 2. Populate reports/templates/<tool>-*.adoc  │
-  │ 3. Invoke asciidoctor-pdf / pandoc           │
-  │ 4. Write PDF / DOCX / XLSX to reports/       │
-  └──────────────────────────────────────────────┘
-        │
-        ▼
-reports/<RunId>.<pdf|docx|xlsx>
-```
+![Results Data Flow](../assets/diagrams/data-flow-results.drawio)
 
 ### Aggregate JSON Contract
 
@@ -108,28 +43,7 @@ Report templates rely on this envelope structure; adding a new tool requires a c
 
 ## Monitoring Data Flow
 
-```
-Target Nodes
-        │
-        │  (WMI / WinRM)
-        ▼
-MonitoringManager.psm1
-  ┌────────────────────────────────────────┐
-  │ Runs in parallel with Start-<Tool>.ps1 │
-  │ 1. Read monitoring/<tool>/alert-rules  │
-  │ 2. Sample PerfMon counters every N sec │
-  │ 3. Evaluate each rule condition        │
-  │ 4. On trigger: log alert + send        │
-  └────────────────────────────────────────┘
-        │
-        ├──► logs\<tool>\<RunId>\monitor-<node>.jsonl  (all samples)
-        ├──► logs\<tool>\<RunId>\alerts-<node>.jsonl   (triggered alerts only)
-        └──► Azure Monitor (if configured)
-                 │
-                 ▼
-            Grafana Dashboard
-            (reads from Azure Monitor workspace)
-```
+![Monitoring Data Flow](../assets/diagrams/data-flow-monitoring.drawio)
 
 ### Alert Rule Evaluation
 

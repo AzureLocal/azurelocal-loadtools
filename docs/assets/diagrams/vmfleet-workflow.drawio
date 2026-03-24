@@ -1,14 +1,70 @@
-<mxfile host="app.diagrams.net" modified="2026-02-13T00:00:00.000Z" agent="Azure Local Load Tools" version="24.0.0" type="device">
-  <diagram id="vmfleet-workflow" name="VMFleet Workflow">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+<mxfile host="app.diagrams.net" modified="2026-03-24T00:00:00.000Z" agent="Azure Local Load Tools" version="24.0.0" type="device">
+  <diagram id="vmfleet-workflow" name="VMFleet Pipeline Workflow">
+    <mxGraphModel dx="1422" dy="762" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="320" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <!-- TODO: Design VMFleet workflow diagram -->
-        <!-- Phases: Pre-check → Install → Deploy → Test → Monitor → Collect → Report → Cleanup -->
-        <mxCell id="2" value="VMFleet Automation Workflow&#xa;&#xa;TODO: Design this diagram in draw.io Desktop" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;" vertex="1" parent="1">
-          <mxGeometry x="350" y="380" width="400" height="80" as="geometry" />
+        <mxCell id="2" value="VMFleet Pipeline — Eight-Phase Workflow" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=15;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="18" width="1160" height="36" as="geometry" />
         </mxCell>
+        <mxCell id="p1" value="&lt;b&gt;1&lt;/b&gt;&lt;br/&gt;Pre-Check&lt;br/&gt;&lt;font style='font-size:9px'&gt;Connectivity · S2D health · CSV · VHD&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="20" y="70" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="&lt;b&gt;2&lt;/b&gt;&lt;br/&gt;Install&lt;br/&gt;&lt;font style='font-size:9px'&gt;VMFleet module · Collect volume&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="165" y="70" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="&lt;b&gt;3&lt;/b&gt;&lt;br/&gt;Deploy&lt;br/&gt;&lt;font style='font-size:9px'&gt;Create fleet VMs · vCPU · memory&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="310" y="70" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="&lt;b&gt;4&lt;/b&gt;&lt;br/&gt;Test&lt;br/&gt;&lt;font style='font-size:9px'&gt;Execute DiskSpd workload profiles&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="455" y="70" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p5" value="&lt;b&gt;5&lt;/b&gt;&lt;br/&gt;Monitor&lt;br/&gt;&lt;font style='font-size:9px'&gt;PerfMon · Azure Monitor · alerts&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="70" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p6" value="&lt;b&gt;6&lt;/b&gt;&lt;br/&gt;Collect&lt;br/&gt;&lt;font style='font-size:9px'&gt;Parse DiskSpd XML · aggregate metrics&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="745" y="70" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p7" value="&lt;b&gt;7&lt;/b&gt;&lt;br/&gt;Report&lt;br/&gt;&lt;font style='font-size:9px'&gt;PDF · DOCX · XLSX generation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="890" y="70" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p8" value="&lt;b&gt;8&lt;/b&gt;&lt;br/&gt;Cleanup&lt;br/&gt;&lt;font style='font-size:9px'&gt;Remove VMs · volumes (optional)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;strokeDashArray=6 3;fontColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1035" y="70" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c1" value="pre-check-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="20" y="158" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="install-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="165" y="158" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="deploy-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="310" y="158" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="test-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="455" y="158" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" value="monitor-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="600" y="158" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" value="collect-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="745" y="158" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" value="report-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="890" y="158" width="130" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" value="cleanup-complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=9;fontColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="1035" y="158" width="140" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="StateManager checkpoints enable resume from any phase after failure" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="330" y="200" width="540" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=2;" edge="1" source="p1" target="p2" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e23" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=2;" edge="1" source="p2" target="p3" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e34" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=2;" edge="1" source="p3" target="p4" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e45" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=2;" edge="1" source="p4" target="p5" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e56" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=2;" edge="1" source="p5" target="p6" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e67" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#555555;strokeWidth=2;" edge="1" source="p6" target="p7" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e78" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;strokeColor=#999999;strokeWidth=2;strokeDashArray=6 3;" edge="1" source="p7" target="p8" parent="1"><mxGeometry relative="1" as="geometry" /></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

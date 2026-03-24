@@ -8,24 +8,7 @@ The Azure Local Load Testing Framework is organised into five layers that take a
 
 ## Five-Layer Stack
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│  5. Reporting Layer                                          │
-│     AsciiDoc templates → PDF / DOCX / XLSX reports          │
-├──────────────────────────────────────────────────────────────┤
-│  4. Monitoring Layer                                         │
-│     PerfMon counters, Azure Monitor, real-time alerts        │
-├──────────────────────────────────────────────────────────────┤
-│  3. Execution Layer                                          │
-│     fio · iPerf3 · HammerDB · stress-ng · VMFleet           │
-├──────────────────────────────────────────────────────────────┤
-│  2. Automation Layer                                         │
-│     PowerShell orchestrators, Ansible roles, modules         │
-├──────────────────────────────────────────────────────────────┤
-│  1. Configuration Layer                                      │
-│     Master YAML → ConfigManager → solution JSON              │
-└──────────────────────────────────────────────────────────────┘
-```
+![Five-Layer Architecture](../assets/diagrams/solution-architecture.drawio)
 
 ---
 
