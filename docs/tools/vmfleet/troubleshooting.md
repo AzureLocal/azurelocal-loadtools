@@ -71,7 +71,7 @@ Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
 - If timeout occurs, rerun with a larger timeout:
 
 ```powershell
-.\src\infrastructure\Prepare-VMFleetBaseImage.ps1 -TimeoutMinutes 120
+.\tools\vmfleet\infrastructure\Prepare-VMFleetBaseImage.ps1 -TimeoutMinutes 120
 ```
 
 ## DiskSpd Results Show Zero IOPS
@@ -122,7 +122,7 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 3. Run schema validation:
 
 ```powershell
-.\src\core\powershell\helpers\Initialize-Environment.ps1 -ValidateOnly
+.\common\helpers\Initialize-Environment.ps1 -ValidateOnly
 ```
 
 ### Solution JSON Not Generated
@@ -133,7 +133,7 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 
 ```powershell
 # Regenerate all solution configs
-Import-Module ./src/core/powershell/modules/ConfigManager/ConfigManager.psm1
+Import-Module ./common/modules/ConfigManager/ConfigManager.psm1
 Export-SolutionConfig -Solution "vmfleet"
 ```
 
@@ -193,5 +193,5 @@ All logs use JSON-lines format. Use PowerShell to filter:
 
 ```powershell
 # Find all errors in VMFleet logs
-Get-Content logs/vmfleet/*.jsonl | ConvertFrom-Json | Where-Object Severity -eq "ERROR"
+Get-Content tools/vmfleet/logs/*.jsonl | ConvertFrom-Json | Where-Object Severity -eq "ERROR"
 ```

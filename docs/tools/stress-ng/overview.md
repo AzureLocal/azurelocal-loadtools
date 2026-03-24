@@ -36,7 +36,7 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 
 | Component | Path |
 | --- | --- |
-| Scripts | `src/solutions/stress-ng/scripts/` |
-| Ansible Playbooks | `src/solutions/stress-ng/playbooks/` |
-| Profiles | `config/profiles/stress-ng/` |
-| Ansible Role | `src/core/ansible/roles/stress_ng/` |
+| Scripts | `tools/stress-ng/scripts/` |
+| Ansible Playbooks | `tools/stress-ng/playbooks/` |
+| Profiles | `tools/stress-ng/config/profiles/` |
+| Ansible Role | `tools/stress-ng/ansible/roles/stress_ng/` |

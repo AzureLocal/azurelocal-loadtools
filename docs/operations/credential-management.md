@@ -56,7 +56,7 @@ Use the provided Bicep template:
 ```powershell
 az deployment group create `
     -g "my-resource-group" `
-    -f "src/infrastructure/bicep/keyvault.bicep" `
+    -f "common/bicep/keyvault.bicep" `
     -p vaultName="my-keyvault-name"
 ```
 

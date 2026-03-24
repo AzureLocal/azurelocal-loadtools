@@ -56,19 +56,19 @@ Install-Module powershell-yaml -Force
 Install-Module ImportExcel -Force
 Install-Module VMFleet -Force
 
-# 3. Copy and edit cluster configuration
-cp config/clusters/example-cluster.yml config/clusters/my-cluster.yml
-# Edit my-cluster.yml with your cluster details
+# 3. Copy and edit environment configuration
+cp config/variables.example.yml config/variables/variables.yml
+# Edit variables.yml with your cluster details
 
 # 4. Initialize environment
-.\src\core\powershell\helpers\Initialize-Environment.ps1 `
-    -ClusterConfigPath config\clusters\my-cluster.yml `
+.\common\helpers\Initialize-Environment.ps1 `
+    -ClusterConfigPath config\variables\variables.yml `
     -Solution VMFleet
 
 # 5. Run the full VMFleet pipeline
-.\src\solutions\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath config\clusters\my-cluster.yml `
-    -ProfilePath config\profiles\vmfleet\general.yml `
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
+    -ClusterConfigPath config\variables\variables.yml `
+    -ProfilePath tools\vmfleet\config\profiles\general.yml `
     -ReportFormats @('PDF', 'XLSX')
 ----
 
@@ -77,37 +77,31 @@ cp config/clusters/example-cluster.yml config/clusters/my-cluster.yml
 [source]
 ----
 azurelocal-loadtools/
-├── config/                     # All configuration
-│   ├── variables/              # Master config + schema + solution JSONs
-│   ├── clusters/               # Cluster-specific configs
-│   ├── profiles/               # Workload profiles per solution
-│   └── credentials/            # Key Vault configuration
-├── docs/                       # AsciiDoc documentation (book format)
-│   ├── chapters/               # 11 chapters
-│   ├── appendices/             # Variable reference, cmdlet ref, glossary
-│   ├── diagrams/               # draw.io source files
-│   └── themes/                 # Custom PDF theme
-├── src/
-│   ├── core/
-│   │   ├── powershell/
-│   │   │   ├── modules/        # 6 core modules
-│   │   │   └── helpers/        # Bootstrap & common functions
-│   │   └── ansible/            # Roles for Linux tool deployment
-│   ├── solutions/
-│   │   ├── vmfleet/            # Full implementation
-│   │   │   ├── scripts/        # 7 pipeline scripts
-│   │   │   └── monitoring/     # 5 metric collection scripts
-│   │   ├── fio/                # Placeholder
-│   │   ├── iperf/              # Placeholder
-│   │   ├── hammerdb/           # Placeholder
-│   │   └── stress-ng/          # Placeholder
-│   └── infrastructure/         # Bicep templates (Key Vault, monitoring)
-├── monitoring/                 # Alert rules, counter configs, dashboards
-├── reports/                    # Generated reports & templates
-├── logs/                       # Structured JSON-lines logs
+├── common/                     # Shared modules, helpers, ansible roles, bicep
+│   ├── modules/                # 6 core PowerShell modules
+│   ├── helpers/                # Bootstrap & common functions
+│   ├── ansible/                # Roles for Linux tool deployment
+│   └── bicep/                  # Shared Bicep templates (Key Vault)
+├── config/                     # Global configuration
+│   └── variables/              # Master config + schema
+├── docs/                       # MkDocs documentation
+├── tools/                      # One directory per load tool
+│   ├── vmfleet/                # Full implementation
+│   │   ├── scripts/            # 7 pipeline scripts
+│   │   ├── monitoring/         # 5 metric collection scripts
+│   │   ├── infrastructure/     # Bicep templates (monitoring)
+│   │   ├── config/profiles/    # Workload profiles
+│   │   ├── logs/               # Runtime logs
+│   │   └── reports/templates/  # Report templates
+│   ├── fio/                    # Placeholder
+│   ├── iperf/                  # Placeholder
+│   ├── hammerdb/               # Placeholder
+│   └── stress-ng/              # Placeholder
+├── examples/                   # Sample result files
+├── logs/                       # Pipeline-level logs
 ├── state/                      # Run state files
 ├── tests/                      # Pester tests & PSScriptAnalyzer
-└── .github/workflows/          # 5 GitHub Actions workflows
+└── .github/workflows/          # GitHub Actions workflows
 ----
 
 == Documentation

@@ -38,12 +38,12 @@ The `ConfigManager` PowerShell module reads the master environment file, filters
 
 | Component | Responsibility | Location |
 |-----------|---------------|----------|
-| ConfigManager | Variable management, filtering, override chain | `src/core/powershell/modules/ConfigManager/` |
-| Logger | Structured JSON-lines logging with correlation IDs | `src/core/powershell/modules/Logger/` |
-| StateManager | Run state tracking, checkpoints, resume capability | `src/core/powershell/modules/StateManager/` |
-| CredentialManager | KeyVault, interactive, or parameter-based credential retrieval | `src/core/powershell/modules/CredentialManager/` |
-| MonitoringManager | PerfMon collection, Azure Monitor push | `src/core/powershell/modules/MonitoringManager/` |
-| ReportGenerator | PDF, DOCX, XLSX report generation | `src/core/powershell/modules/ReportGenerator/` |
+| ConfigManager | Variable management, filtering, override chain | `common/modules/ConfigManager/` |
+| Logger | Structured JSON-lines logging with correlation IDs | `common/modules/Logger/` |
+| StateManager | Run state tracking, checkpoints, resume capability | `common/modules/StateManager/` |
+| CredentialManager | KeyVault, interactive, or parameter-based credential retrieval | `common/modules/CredentialManager/` |
+| MonitoringManager | PerfMon collection, Azure Monitor push | `common/modules/MonitoringManager/` |
+| ReportGenerator | PDF, DOCX, XLSX report generation | `common/modules/ReportGenerator/` |
 
 ## Tool Automation Workflows
 

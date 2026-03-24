@@ -36,7 +36,7 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 
 | Component | Path |
 | --- | --- |
-| Scripts | `src/solutions/iperf/scripts/` |
-| Ansible Playbooks | `src/solutions/iperf/playbooks/` |
-| Profiles | `config/profiles/iperf/` |
-| Ansible Role | `src/core/ansible/roles/iperf/` |
+| Scripts | `tools/iperf/scripts/` |
+| Ansible Playbooks | `tools/iperf/playbooks/` |
+| Profiles | `tools/iperf/config/profiles/` |
+| Ansible Role | `tools/iperf/ansible/roles/iperf/` |

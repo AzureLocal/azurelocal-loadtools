@@ -36,8 +36,8 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 
 | Component | Path |
 | --- | --- |
-| Scripts | `src/solutions/fio/scripts/` |
-| Ansible Playbooks | `src/solutions/fio/playbooks/` |
-| Job Files | `src/solutions/fio/job-files/` |
-| Profiles | `config/profiles/fio/` |
-| Ansible Role | `src/core/ansible/roles/fio/` |
+| Scripts | `tools/fio/scripts/` |
+| Ansible Playbooks | `tools/fio/playbooks/` |
+| Job Files | `tools/fio/` |
+| Profiles | `tools/fio/config/profiles/` |
+| Ansible Role | `tools/fio/ansible/roles/fio/` |

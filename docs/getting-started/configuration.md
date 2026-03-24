@@ -62,7 +62,7 @@ The `ConfigManager` module reads the master environment, filters by solution tag
 
 ```powershell
 # Generate VMFleet-specific configuration
-Import-Module ./src/core/powershell/modules/ConfigManager/ConfigManager.psm1
+Import-Module ./common/modules/ConfigManager/ConfigManager.psm1
 
 Export-SolutionConfig -Solution "vmfleet" `
     -MasterConfigPath "./config/variables/master-environment.yml" `

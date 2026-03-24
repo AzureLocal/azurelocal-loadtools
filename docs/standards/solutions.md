@@ -33,7 +33,7 @@ All tool-specific parameter files MUST be derivable from `config/variables.yml`:
 | Bicep | `src/bicep/main.bicepparam` | Map YAML sections to Bicep parameters |
 | ARM | `src/arm/azuredeploy.parameters.json` | Map YAML sections to ARM parameter schema |
 | PowerShell | *(reads config directly)* | `ConvertFrom-Yaml` from config file |
-| Ansible | `src/ansible/inventory/hosts.yml` | Map YAML sections to `group_vars` |
+| Ansible | `common/ansible/inventory/hosts.yml` | Map YAML sections to `group_vars` |
 
 The central config is the **single source of truth**. Tool-specific files are convenience copies that should be regenerable.
 

@@ -36,7 +36,7 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 
 | Component | Path |
 | --- | --- |
-| Scripts | `src/solutions/hammerdb/scripts/` |
-| Ansible Playbooks | `src/solutions/hammerdb/playbooks/` |
-| Profiles | `config/profiles/hammerdb/` |
-| Ansible Role | `src/core/ansible/roles/hammerdb/` |
+| Scripts | `tools/hammerdb/scripts/` |
+| Ansible Playbooks | `tools/hammerdb/playbooks/` |
+| Profiles | `tools/hammerdb/config/profiles/` |
+| Ansible Role | `tools/hammerdb/ansible/roles/hammerdb/` |

@@ -28,7 +28,7 @@ The reporting subsystem generates comprehensive VMFleet test reports in three fo
 
 ```powershell
 # Generate all three formats from a completed test run
-Import-Module ./src/core/powershell/modules/ReportGenerator/ReportGenerator.psm1
+Import-Module ./common/modules/ReportGenerator/ReportGenerator.psm1
 
 New-TestReport `
     -RunId "run-2026-02-13-001" `
@@ -42,7 +42,7 @@ New-TestReport `
 Or generate reports as part of the results collection:
 
 ```powershell
-.\src\solutions\vmfleet\scripts\Collect-VMFleetResults.ps1 `
+.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 `
     -ResultsPath "results/current-run/" `
     -GenerateReports `
     -ReportFormats @("PDF", "DOCX", "XLSX")

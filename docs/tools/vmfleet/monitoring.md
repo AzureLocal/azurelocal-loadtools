@@ -84,17 +84,17 @@ Local collection is always active during test runs:
 
 ```powershell
 # Collect all metric categories with 5-second intervals
-.\src\solutions\vmfleet\monitoring\Collect-StorageMetrics.ps1 `
+.\tools\vmfleet\monitoring\Collect-StorageMetrics.ps1 `
     -ClusterConfig "config/clusters/my-cluster.yml" `
     -SampleIntervalSeconds 5 `
     -OutputPath "results/run-001/metrics/storage/"
 
-.\src\solutions\vmfleet\monitoring\Collect-NetworkMetrics.ps1 `
+.\tools\vmfleet\monitoring\Collect-NetworkMetrics.ps1 `
     -ClusterConfig "config/clusters/my-cluster.yml" `
     -SampleIntervalSeconds 5 `
     -OutputPath "results/run-001/metrics/network/"
 
-.\src\solutions\vmfleet\monitoring\Collect-ComputeMetrics.ps1 `
+.\tools\vmfleet\monitoring\Collect-ComputeMetrics.ps1 `
     -ClusterConfig "config/clusters/my-cluster.yml" `
     -SampleIntervalSeconds 5 `
     -OutputPath "results/run-001/metrics/compute/"
@@ -112,7 +112,7 @@ Output format is JSON-lines for machine parsing:
 Optionally push collected metrics to Azure Monitor for centralized dashboards and alerting:
 
 ```powershell
-.\src\solutions\vmfleet\monitoring\Push-MetricsToAzureMonitor.ps1 `
+.\tools\vmfleet\monitoring\Push-MetricsToAzureMonitor.ps1 `
     -MetricsPath "results/run-001/metrics/" `
     -WorkspaceId "your-log-analytics-workspace-id" `
     -CredentialSource KeyVault
@@ -128,7 +128,7 @@ Each pushed metric contains these core fields:
 - `profile_name`
 
 !!! note
-    Azure Monitor integration requires the `monitoring.bicep` infrastructure template to be deployed. See `src/infrastructure/bicep/monitoring.bicep`.
+    Azure Monitor integration requires the `monitoring.bicep` infrastructure template to be deployed. See `tools/vmfleet/infrastructure/bicep/monitoring.bicep`.
 
 ## Alert Rules
 
@@ -155,7 +155,7 @@ During test execution, use the monitoring dashboard wrapper:
 
 ```powershell
 # Launch real-time monitoring (combines VMFleet Watch-FleetCluster with custom metrics)
-.\src\solutions\vmfleet\monitoring\Export-MetricsDashboard.ps1 `
+.\tools\vmfleet\monitoring\Export-MetricsDashboard.ps1 `
     -InputPath "results/run-001/metrics/" `
     -OutputPath "reports/run-001/" `
     -Title "VMFleet Run 001"
