@@ -180,6 +180,32 @@ function Test-ConfigFiles {
     }
 }
 
+function Initialize-MasterConfig {
+    [CmdletBinding()]
+    param(
+        [string]$ProjectRoot,
+        [string]$MasterConfigPath
+    )
+
+    if (Test-Path $MasterConfigPath) {
+        return
+    }
+
+    $exampleCandidates = @(
+        (Join-Path $ProjectRoot 'config\variables\variables.example.yml'),
+        (Join-Path $ProjectRoot 'config\variables.example.yml')
+    )
+
+    $examplePath = $exampleCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $examplePath) {
+        Write-Error "Master config not found: $MasterConfigPath. No variables.example.yml template found."
+    }
+
+    New-Item -ItemType Directory -Path (Split-Path -Parent $MasterConfigPath) -Force | Out-Null
+    Copy-Item -Path $examplePath -Destination $MasterConfigPath -Force
+    Write-Host "[WARN] Master config was missing. Created $MasterConfigPath from $examplePath" -ForegroundColor Yellow
+}
+
 # ---- Directory Structure ----
 function Initialize-DirectoryStructure {
     [CmdletBinding(SupportsShouldProcess)]
@@ -228,6 +254,8 @@ $defaultCluster = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
 
 $masterConfig  = if ($MasterConfigPath) { $MasterConfigPath } else { $defaultMaster }
 $clusterConfig = if ($ClusterConfigPath) { $ClusterConfigPath } else { $defaultCluster }
+
+Initialize-MasterConfig -ProjectRoot $ProjectRoot -MasterConfigPath $masterConfig
 
 Test-ConfigFiles -MasterConfigPath $masterConfig -ClusterConfigPath $clusterConfig
 

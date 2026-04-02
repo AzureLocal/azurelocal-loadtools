@@ -69,7 +69,7 @@ keyvault:
 ```yaml
 azure_local:
   cluster_name: "azl-cluster-01"
-  cluster_domain: "iic.local"
+  cluster_domain: "contoso.local"
   nodes:
     - name: "azl-node-01"
       management_ip: "10.0.0.1"
