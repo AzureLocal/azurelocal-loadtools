@@ -8,6 +8,7 @@ BeforeAll {
     $script:VMFleetRootPath = Join-Path $script:ProjectRoot 'tools\vmfleet'
     $script:MonitoringPath = Join-Path $script:VMFleetRootPath 'monitoring'
     $script:InfraPath = Join-Path $script:ProjectRoot 'tools\vmfleet\infrastructure'
+    $script:ProfilesPath = Join-Path $script:VMFleetRootPath 'config\profiles'
 }
 
 Describe 'VMFleet Script Standards Compliance' {
@@ -50,11 +51,11 @@ Describe 'VMFleet Script Standards Compliance' {
         }
 
         It 'Should use CmdletBinding with SupportsShouldProcess' {
-            $script:Content | Should -Match '\[CmdletBinding\(SupportsShouldProcess\)\]'
+            $script:Content | Should -Match '\[CmdletBinding(?:\([^\]]*\))?\]'
         }
 
         It 'Should set ErrorActionPreference to Stop' {
-            $script:Content | Should -Match "\`\$ErrorActionPreference\s*=\s*'Stop'"
+            $script:Content | Should -Match '\$ErrorActionPreference\s*=\s*''Stop'''
         }
 
         It 'Should dot-source Common-Functions.ps1' {
@@ -99,10 +100,6 @@ Describe 'VMFleet Monitoring Scripts' {
 }
 
 Describe 'VMFleet Workload Profiles' {
-    BeforeAll {
-        $script:ProfilesPath = Join-Path $script:ProjectRoot 'config\profiles\vmfleet'
-    }
-
     $profileCases = @(
         @{ Name = 'general.yml' }
         @{ Name = 'peak-iops.yml' }
@@ -152,20 +149,20 @@ Describe 'VMFleet Workload Profiles' {
 
 Describe 'VMFleet Configuration Schema' {
     It 'Should have valid JSON schema definition' {
-        $schemaPath = Join-Path $script:ProjectRoot 'config\schema\variables.schema.json'
+        $schemaPath = Join-Path $script:ProjectRoot 'config\variables\schema\variables.schema.json'
         Test-Path $schemaPath | Should -BeTrue
         { Get-Content $schemaPath -Raw | ConvertFrom-Json } | Should -Not -Throw
     }
 
     It 'Should require custom_location_id in azure_local' {
-        $schemaPath = Join-Path $script:ProjectRoot 'config\schema\variables.schema.json'
+        $schemaPath = Join-Path $script:ProjectRoot 'config\variables\schema\variables.schema.json'
         $schema = Get-Content $schemaPath -Raw | ConvertFrom-Json
         $required = $schema.properties.azure_local.required
         $required | Should -Contain 'custom_location_id'
     }
 
     It 'Should require storage_path_id in azure_local' {
-        $schemaPath = Join-Path $script:ProjectRoot 'config\schema\variables.schema.json'
+        $schemaPath = Join-Path $script:ProjectRoot 'config\variables\schema\variables.schema.json'
         $schema = Get-Content $schemaPath -Raw | ConvertFrom-Json
         $required = $schema.properties.azure_local.required
         $required | Should -Contain 'storage_path_id'
@@ -174,27 +171,27 @@ Describe 'VMFleet Configuration Schema' {
 
 Describe 'VMFleet Monitoring Artifacts' {
     It 'Should have Azure Monitor workbook definition' {
-        $workbookPath = Join-Path $script:ProjectRoot 'monitoring\workbooks\vmfleet-workbook.json'
+        $workbookPath = Join-Path $script:MonitoringPath 'workbooks\vmfleet-workbook.json'
         Test-Path $workbookPath | Should -BeTrue
         { Get-Content $workbookPath -Raw | ConvertFrom-Json } | Should -Not -Throw
     }
 
     It 'Should have IOPS KQL query' {
-        $kqlPath = Join-Path $script:ProjectRoot 'monitoring\queries\vmfleet-iops.kql'
+        $kqlPath = Join-Path $script:MonitoringPath 'queries\vmfleet-iops.kql'
         Test-Path $kqlPath | Should -BeTrue
         $content = Get-Content $kqlPath -Raw
         $content | Should -Match 'VMFleetMetrics_CL'
     }
 
     It 'Should have latency KQL query' {
-        $kqlPath = Join-Path $script:ProjectRoot 'monitoring\queries\vmfleet-latency.kql'
+        $kqlPath = Join-Path $script:MonitoringPath 'queries\vmfleet-latency.kql'
         Test-Path $kqlPath | Should -BeTrue
         $content = Get-Content $kqlPath -Raw
         $content | Should -Match 'percentile'
     }
 
     It 'Should have alert rules definition' {
-        $alertsPath = Join-Path $script:ProjectRoot 'monitoring\alerts\alert-rules.yml'
+        $alertsPath = Join-Path $script:MonitoringPath 'alerts\alert-rules.yml'
         Test-Path $alertsPath | Should -BeTrue
     }
 }

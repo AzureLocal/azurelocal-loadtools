@@ -114,17 +114,7 @@ try {
 
             Import-Module VMFleet -ErrorAction Stop
 
-            $startParams = @{
-                b = $BlockSize
-                w = $WriteRatio
-                r = $RandomRatio
-                o = $OutstandingIO
-                t = $Threads
-                d = $Duration
-                W = $Warmup
-            }
-
-            Start-Fleet @startParams
+            Start-Fleet -b $BlockSize -w $WriteRatio -r $RandomRatio -o $OutstandingIO -t $Threads -d $Duration -W $Warmup
 
             Write-Output "VMFleet workload started with DiskSpd parameters: -b$BlockSize -w$WriteRatio -r$RandomRatio -o$OutstandingIO -t$Threads -d$Duration -W$Warmup"
         } -ArgumentList @($blockSz, $writeR, $randomR, $outIO, $threads, $duration, $warmup)
