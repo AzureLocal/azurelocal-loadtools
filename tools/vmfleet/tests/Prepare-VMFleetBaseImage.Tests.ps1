@@ -3,7 +3,7 @@
 # =============================================================================
 
 BeforeAll {
-    $script:ScriptPath = Join-Path $PSScriptRoot '..\Prepare-VMFleetBaseImage.ps1'
+    $script:ScriptPath = Join-Path $PSScriptRoot '..\infrastructure\Prepare-VMFleetBaseImage.ps1'
     $script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 }
 

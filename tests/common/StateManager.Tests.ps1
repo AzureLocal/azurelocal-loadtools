@@ -8,62 +8,67 @@ BeforeAll {
 }
 
 Describe 'StateManager Module' {
+    BeforeEach {
+        $testStateDir = Join-Path $TestDrive 'state'
+        InModuleScope StateManager {
+            $script:StateDir = $using:testStateDir
+            $script:HistoryDir = Join-Path $using:testStateDir 'history'
+        }
+    }
+
     Context 'New-RunState' {
         It 'Should create a new run state file' {
-            $stateDir = Join-Path $TestDrive 'state'
             $state = New-RunState -RunId 'test-001' -Solution 'VMFleet' `
-                -Phases @('Install', 'Deploy', 'Test') -StateDirectory $stateDir
+                -Phases @('Install', 'Deploy', 'Test')
 
             $state | Should -Not -BeNullOrEmpty
             $state.run_id | Should -Be 'test-001'
             $state.solution | Should -Be 'VMFleet'
             $state.phases.Count | Should -Be 3
 
-            Test-Path (Join-Path $stateDir 'test-001.json') | Should -BeTrue
+            $stateDir = InModuleScope StateManager { $script:StateDir }
+            Test-Path (Join-Path $stateDir 'run-state.json') | Should -BeTrue
         }
     }
 
     Context 'Update-RunPhase' {
         It 'Should update phase status' {
-            $stateDir = Join-Path $TestDrive 'state2'
             New-RunState -RunId 'test-002' -Solution 'VMFleet' `
-                -Phases @('Install', 'Deploy') -StateDirectory $stateDir
+                -Phases @('Install', 'Deploy')
 
-            Update-RunPhase -RunId 'test-002' -Phase 'Install' -Status 'Running' -StateDirectory $stateDir
-            $state = Get-RunState -StateDirectory $stateDir
+            Update-RunPhase -Phase 'Install' -Status 'Running'
+            $state = Get-RunState
 
-            ($state.phases | Where-Object { $_.name -eq 'Install' }).status | Should -Be 'Running'
+            $state.phases.Install.status | Should -Be 'Running'
         }
 
         It 'Should set start_time when status is Running' {
-            $stateDir = Join-Path $TestDrive 'state3'
             New-RunState -RunId 'test-003' -Solution 'VMFleet' `
-                -Phases @('Install') -StateDirectory $stateDir
+                -Phases @('Install')
 
-            Update-RunPhase -RunId 'test-003' -Phase 'Install' -Status 'Running' -StateDirectory $stateDir
-            $state = Get-RunState -StateDirectory $stateDir
+            Update-RunPhase -Phase 'Install' -Status 'running'
+            $state = Get-RunState
 
-            ($state.phases | Where-Object { $_.name -eq 'Install' }).start_time | Should -Not -BeNullOrEmpty
+            $state.phases.Install.started_at | Should -Not -BeNullOrEmpty
         }
     }
 
     Context 'Test-PhaseCompleted' {
         It 'Should return true for completed phases' {
-            $stateDir = Join-Path $TestDrive 'state4'
             New-RunState -RunId 'test-004' -Solution 'VMFleet' `
-                -Phases @('Install') -StateDirectory $stateDir
+                -Phases @('Install')
 
-            Update-RunPhase -RunId 'test-004' -Phase 'Install' -Status 'Completed' -StateDirectory $stateDir
+            Update-RunPhase -Phase 'Install' -Status 'completed'
 
-            Test-PhaseCompleted -RunId 'test-004' -Phase 'Install' -StateDirectory $stateDir | Should -BeTrue
+            Test-PhaseCompleted -Phase 'Install' | Should -BeTrue
         }
 
         It 'Should return false for pending phases' {
-            $stateDir = Join-Path $TestDrive 'state5'
             New-RunState -RunId 'test-005' -Solution 'VMFleet' `
-                -Phases @('Install') -StateDirectory $stateDir
+                -Phases @('Install')
 
-            Test-PhaseCompleted -RunId 'test-005' -Phase 'Install' -StateDirectory $stateDir | Should -BeFalse
+            Test-PhaseCompleted -Phase 'Install' | Should -BeFalse
         }
     }
 }
+

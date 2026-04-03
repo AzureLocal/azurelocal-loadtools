@@ -11,26 +11,25 @@ Describe 'Logger Module' {
     Context 'Start-LogSession' {
         It 'Should create a log session with correlation ID' {
             $logRoot = Join-Path $TestDrive 'logs'
-            $session = Start-LogSession -Component 'TestComponent' -LogRootPath $logRoot
-            $session | Should -Not -BeNullOrEmpty
-            $session.CorrelationId | Should -Not -BeNullOrEmpty
-            $session.Component | Should -Be 'TestComponent'
-            Stop-LogSession
+            $sessionId = Start-LogSession -Component 'TestComponent' -LogBasePath $logRoot
+            $sessionId | Should -Not -BeNullOrEmpty
+            (Get-LogSession -SessionId $sessionId).Component | Should -Be 'TestComponent'
+            Stop-LogSession -SessionId $sessionId
         }
 
         It 'Should create log directory' {
             $logRoot = Join-Path $TestDrive 'logs2'
-            Start-LogSession -Component 'DirTest' -LogRootPath $logRoot
+            $sessionId = Start-LogSession -Component 'DirTest' -LogBasePath $logRoot
             Test-Path $logRoot | Should -BeTrue
-            Stop-LogSession
+            Stop-LogSession -SessionId $sessionId
         }
     }
 
     Context 'Write-Log' {
         It 'Should write JSON-lines log entry' {
             $logRoot = Join-Path $TestDrive 'logs3'
-            $session = Start-LogSession -Component 'WriteTest' -LogRootPath $logRoot
-            Write-Log -Message 'Test message' -Severity Information
+            $sessionId = Start-LogSession -Component 'WriteTest' -LogBasePath $logRoot
+            Write-Log -Message 'Test message' -Severity 'INFO' -SessionId $sessionId
 
             $logFiles = Get-ChildItem -Path $logRoot -Filter '*.jsonl' -Recurse
             $logFiles.Count | Should -BeGreaterThan 0
@@ -38,32 +37,32 @@ Describe 'Logger Module' {
             $lastLine = Get-Content -Path $logFiles[0].FullName -Tail 1
             $entry = $lastLine | ConvertFrom-Json
             $entry.message | Should -Be 'Test message'
-            $entry.severity | Should -Be 'Information'
-            Stop-LogSession
+            $entry.severity | Should -Be 'INFO'
+            Stop-LogSession -SessionId $sessionId
         }
 
         It 'Should respect severity threshold' {
             $logRoot = Join-Path $TestDrive 'logs4'
-            Start-LogSession -Component 'ThresholdTest' -LogRootPath $logRoot -MinimumSeverity Warning
-            Write-Log -Message 'Debug message' -Severity Information
-            Write-Log -Message 'Warning message' -Severity Warning
+            $sessionId = Start-LogSession -Component 'ThresholdTest' -LogBasePath $logRoot -LogLevel 'WARNING'
+            Write-Log -Message 'Debug message' -Severity 'INFO' -SessionId $sessionId
+            Write-Log -Message 'Warning message' -Severity 'WARNING' -SessionId $sessionId
 
             $logFiles = Get-ChildItem -Path $logRoot -Filter '*.jsonl' -Recurse
             if ($logFiles.Count -gt 0) {
                 $lines = Get-Content -Path $logFiles[0].FullName
                 $lines | Should -Not -Contain '*Debug message*'
             }
-            Stop-LogSession
+            Stop-LogSession -SessionId $sessionId
         }
     }
 
     Context 'Get-LogSession' {
         It 'Should return current session info' {
             $logRoot = Join-Path $TestDrive 'logs5'
-            Start-LogSession -Component 'SessionTest' -LogRootPath $logRoot
-            $session = Get-LogSession
+            $sessionId = Start-LogSession -Component 'SessionTest' -LogBasePath $logRoot
+            $session = Get-LogSession -SessionId $sessionId
             $session | Should -Not -BeNullOrEmpty
-            Stop-LogSession
+            Stop-LogSession -SessionId $sessionId
         }
     }
 }

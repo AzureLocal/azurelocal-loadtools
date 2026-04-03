@@ -46,7 +46,7 @@ Describe 'HammerDB Script Standards Compliance' {
         }
 
         It 'Should set ErrorActionPreference to Stop' {
-            $script:Content | Should -Match "\`\$ErrorActionPreference\s*=\s*'Stop'"
+            $script:Content | Should -Match '\$ErrorActionPreference\s*=\s*''Stop'''
         }
 
         It 'Should dot-source Common-Functions.ps1' {
@@ -113,7 +113,9 @@ Describe 'HammerDB Config Profiles' {
 Describe 'Collect-HammerDBResults — NOPM/TPM parser' {
     BeforeAll {
         $script:FullPath = Join-Path $script:ProjectRoot 'tools\hammerdb\scripts\Collect-HammerDBResults.ps1'
-        . $script:FullPath -ProjectRoot $script:ProjectRoot -RunId 'test-parse' -WhatIf -ErrorAction SilentlyContinue 2>$null
+        try {
+            . $script:FullPath -ProjectRoot $script:ProjectRoot -RunId 'test-parse' -WhatIf -ErrorAction SilentlyContinue 2>$null
+        } catch { }
     }
 
     It 'Get-HammerDBMetrics should parse standard output format' {

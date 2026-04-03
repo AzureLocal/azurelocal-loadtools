@@ -93,7 +93,7 @@ try {
 
         $scpOut = & scp @scpArgs 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Log -Message "SCP failed for $node: $scpOut" -Severity Warning
+            Write-Log -Message "SCP failed for ${node}: $scpOut" -Severity Warning
             continue
         }
 

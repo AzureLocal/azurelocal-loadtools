@@ -46,7 +46,7 @@ Describe 'Fio Script Standards Compliance' {
         }
 
         It 'Should set ErrorActionPreference to Stop' {
-            $script:Content | Should -Match "\`\$ErrorActionPreference\s*=\s*'Stop'"
+            $script:Content | Should -Match '\$ErrorActionPreference\s*=\s*''Stop'''
         }
 
         It 'Should dot-source Common-Functions.ps1' {

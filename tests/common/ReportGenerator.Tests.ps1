@@ -40,6 +40,7 @@ Describe 'ReportGenerator Module' {
             $resultsDir = Join-Path $TestDrive 'report-results'
             $outputDir = Join-Path $TestDrive 'report-output'
             New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
+            New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 
             # This will create the dir but may not generate PDF without asciidoctor-pdf
             New-TestReport -RunId 'test-rpt' -ResultsPath $resultsDir `

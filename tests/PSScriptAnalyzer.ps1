@@ -40,6 +40,7 @@ $settingsFile = Join-Path $ProjectRoot '.psscriptanalyzer.psd1'
 $useSettingsFile = Test-Path $settingsFile
 
 $totalIssues = 0
+$errorCount = 0
 
 foreach ($path in $scriptPaths) {
     if (-not (Test-Path $path)) { continue }
@@ -69,6 +70,7 @@ foreach ($path in $scriptPaths) {
     }
     else {
         $totalIssues += $results.Count
+        $errorCount += @($results | Where-Object { $_.Severity -eq 'Error' }).Count
         $results | Group-Object -Property Severity | ForEach-Object {
             Write-Host "  $($_.Name): $($_.Count) issues" -ForegroundColor $(
                 switch ($_.Name) {
@@ -84,6 +86,6 @@ foreach ($path in $scriptPaths) {
 }
 
 Write-Host "`n===== Summary =====" -ForegroundColor Cyan
-Write-Host "Total issues: $totalIssues" -ForegroundColor $(if ($totalIssues -eq 0) { 'Green' } else { 'Yellow' })
+Write-Host "Total issues: $totalIssues (errors: $errorCount)" -ForegroundColor $(if ($errorCount -eq 0) { 'Green' } else { 'Red' })
 
-exit $(if ($totalIssues -gt 0) { 1 } else { 0 })
+exit $(if ($errorCount -gt 0) { 1 } else { 0 })

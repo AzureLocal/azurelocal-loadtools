@@ -12,7 +12,7 @@ Describe 'ConfigManager Module' {
         It 'Should load a valid master config YAML' {
             $configPath = Join-Path $PSScriptRoot '..\..\config\variables\variables.yml'
             if (Test-Path $configPath) {
-                $config = Import-MasterConfig -ConfigPath $configPath
+                $config = Import-MasterConfig -MasterConfigPath $configPath
                 $config | Should -Not -BeNullOrEmpty
                 $config.metadata | Should -Not -BeNullOrEmpty
                 $config.variables | Should -Not -BeNullOrEmpty
@@ -23,14 +23,14 @@ Describe 'ConfigManager Module' {
         }
 
         It 'Should throw on non-existent config file' {
-            { Import-MasterConfig -ConfigPath 'nonexistent.yml' } | Should -Throw
+            { Import-MasterConfig -MasterConfigPath 'nonexistent.yml' } | Should -Throw
         }
 
         It 'Should cache repeated loads' {
             $configPath = Join-Path $PSScriptRoot '..\..\config\variables\variables.yml'
             if (Test-Path $configPath) {
-                $first = Import-MasterConfig -ConfigPath $configPath
-                $second = Import-MasterConfig -ConfigPath $configPath
+                $first = Import-MasterConfig -MasterConfigPath $configPath
+                $second = Import-MasterConfig -MasterConfigPath $configPath
                 $second | Should -Not -BeNullOrEmpty
             }
             else {
@@ -45,7 +45,7 @@ Describe 'ConfigManager Module' {
             $outputPath = Join-Path $TestDrive 'test-vmfleet.json'
 
             if (Test-Path $configPath) {
-                Export-SolutionConfig -ConfigPath $configPath -Solution 'VMFleet' -OutputPath $outputPath
+                Export-SolutionConfig -MasterConfigPath $configPath -Solution 'VMFleet' -OutputPath $outputPath
                 Test-Path $outputPath | Should -BeTrue
                 $content = Get-Content $outputPath -Raw | ConvertFrom-Json
                 $content._metadata.solution | Should -Be 'VMFleet'
@@ -57,18 +57,20 @@ Describe 'ConfigManager Module' {
     }
 
     Context 'Get-ConfigValue' {
-        It 'Should return explicit parameter value first' {
-            $result = Get-ConfigValue -ExplicitValue 'explicit' -ConfigValue 'config' -DefaultValue 'default'
+        It 'Should return explicit override value first' {
+            $result = Get-ConfigValue -Name 'anyvar' -Override 'explicit' -DefaultValue 'default'
             $result | Should -Be 'explicit'
         }
 
-        It 'Should fall back to config value' {
-            $result = Get-ConfigValue -ExplicitValue $null -ConfigValue 'config' -DefaultValue 'default'
-            $result | Should -Be 'config'
+        It 'Should fall back to default when no config and no override' {
+            Mock Import-MasterConfig { return [PSCustomObject]@{ variables = @() } }
+            $result = Get-ConfigValue -Name 'nonexistent-xyz-9999' -DefaultValue 'fallback'
+            $result | Should -Be 'fallback'
         }
 
         It 'Should fall back to default value' {
-            $result = Get-ConfigValue -ExplicitValue $null -ConfigValue $null -DefaultValue 'default'
+            Mock Import-MasterConfig { return [PSCustomObject]@{ variables = @() } }
+            $result = Get-ConfigValue -Name 'nonexistent-abc-9999' -Override $null -DefaultValue 'default'
             $result | Should -Be 'default'
         }
     }
