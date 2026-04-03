@@ -97,7 +97,7 @@ Every script in the pipeline (existing and new) must satisfy all rows below. The
 
 | Rule | Standard | Source | Status |
 |---|---|---|---|
-| `#Requires -Version 7.2` | All scripts | `docs/standards/scripting.md` | ✅ All existing / must add to new |
+| `#Requires -Version 7.2` | All scripts | `standards/scripting.md` | ✅ All existing / must add to new |
 | `[CmdletBinding(SupportsShouldProcess)]` | All scripts | scripting.md | ✅ All existing / must add to new |
 | `$ErrorActionPreference = 'Stop'` | All scripts | scripting.md | ✅ All existing / must add to new |
 | Dot-source `Common-Functions.ps1` | All scripts | architecture | ✅ All existing / must add to new |
@@ -113,8 +113,8 @@ Every script in the pipeline (existing and new) must satisfy all rows below. The
 | `-WhatIf` via `SupportsShouldProcess` — dry-run safe | All scripts | scripting.md | ✅ All existing / must add to new |
 | `Invoke-RemoteCommand` for all WinRM operations | All cluster-touching scripts | `Common-Functions.ps1` | ✅ All existing / must add to new |
 | `Test-ClusterConnectivity` before any remote action | All cluster-touching scripts | `Common-Functions.ps1` | ✅ All existing / must add to new |
-| IIC naming in all placeholder/example values | Config files, doc examples | `docs/standards/examples.md` | ⚠️ Verify in new config fields |
-| `snake_case` for all YAML config keys | Config files | `docs/standards/variables.md` | ✅ Maintain for new fields |
+| IIC naming in all placeholder/example values | Config files, doc examples | `standards/examples.md` | ⚠️ Verify in new config fields |
+| `snake_case` for all YAML config keys | Config files | `standards/variables.md` | ✅ Maintain for new fields |
 | Idempotent — safe to re-run | All scripts | automation.md | Must design into new script |
 | Logs to `logs/vmfleet/<timestamp>.log` | All VMFleet scripts | scripting.md Logger | ✅ via Logger |
 | `StateManager` checkpoint tracking | Orchestrator phases | StateManager module | ✅ in orchestrator — not needed in infra script |
