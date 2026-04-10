@@ -1,5 +1,6 @@
 site_name: Azure Local Load Testing Framework
 site_description: Comprehensive performance and load testing tools for Azure Local infrastructure validation
+site_author: Azure Local Cloud
 site_url: https://azurelocal.github.io/azurelocal-loadtools/
 repo_url: https://github.com/AzureLocal/azurelocal-loadtools
 repo_name: AzureLocal/azurelocal-loadtools
@@ -145,5 +146,5 @@ extra:
   homepage: https://azurelocal.cloud
 
 copyright: >-
-  Copyright &copy; 2025 Azure Local. Designed and maintained by
+  Copyright &copy; 2026 Azure Local. Designed and maintained by
   <a href="https://www.hybridsolutions.cloud">Hybrid Cloud Solutions</a>.
