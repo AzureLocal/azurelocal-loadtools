@@ -1,5 +1,11 @@
 # azurelocal-loadtools
 
+![Azure Local Load Testing Framework](docs/assets/images/azurelocal-loadtools-banner.svg)
+
+[![Azure Local](https://img.shields.io/badge/Azure%20Local-azurelocal.cloud-0078D4?logo=microsoft-azure)](https://azurelocal.cloud)
+
+Documentation: [azurelocal.cloud](https://azurelocal.cloud) | Solutions: [Azure Local Solutions](https://azurelocal.cloud)
+
 Automated performance and load testing for **Azure Local** clusters — storage, network, database, and system stress — with standardised reporting.
 
 > **Note:** This repository is under active development. Scripts, templates, and automation are not guaranteed to work at this time. Use at your own risk and expect breaking changes.
