@@ -30,6 +30,8 @@ theme:
     - content.code.annotate
     - search.suggest
     - search.highlight
+  logo: assets/images/loadtools-icon.svg
+  favicon: assets/images/loadtools-icon.svg
   icon:
     repo: fontawesome/brands/github
 
