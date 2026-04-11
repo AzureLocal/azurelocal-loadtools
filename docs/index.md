@@ -1,5 +1,7 @@
 # Azure Local Load Testing Framework
 
+![Azure Local Load Testing Framework](assets/images/azurelocal-loadtools-banner.svg)
+
 Automated performance and load testing for Azure Local clusters — storage, network, database, and system stress — with standardised reporting.
 
 !!! warning "Under Active Development"
