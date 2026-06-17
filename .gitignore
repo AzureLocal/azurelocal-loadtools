@@ -86,3 +86,8 @@ package-lock.json
 .bundle/
 vendor/bundle/
 Gemfile.lock
+
+
+# Claude Code local settings (logs and machine-local overrides only)
+.claude/logs/
+.claude/settings.local.json
