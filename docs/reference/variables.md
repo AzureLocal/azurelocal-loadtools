@@ -2,13 +2,14 @@
 
 All load testing tools read from a single central configuration file: `config/variables.yml`. This file is the **single source of truth** — cluster details, credentials, testing defaults, and monitoring settings are all declared here and consumed by every automation tool.
 
-!!! tip "Getting started"
-    Copy the example and fill in your values:
-    ```powershell
-    cp config/variables.example.yml config/variables.yml
-    ```
-    **Never commit** `variables.yml` — it is excluded by `.gitignore` because it contains environment-specific values and Key Vault references.
-
+> [!TIP]
+> **Getting started**
+> Copy the example and fill in your values:
+> ```powershell
+> cp config/variables.example.yml config/variables.yml
+> ```
+> **Never commit** `variables.yml` — it is excluded by `.gitignore` because it contains environment-specific values and Key Vault references.
+>
 !!! info "Additional configs"
     Detailed configs live in subdirectories under `config/`:
 

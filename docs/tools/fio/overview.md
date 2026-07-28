@@ -1,8 +1,9 @@
 # fio — Flexible I/O Tester
 
-!!! note "This page has moved"
-    The main fio landing page with run instructions is now at [fio](index.md). This page contains additional technical details.
-
+> [!NOTE]
+> **This page has moved**
+> The main fio landing page with run instructions is now at [fio](index.md). This page contains additional technical details.
+>
 ![Tool: fio](https://img.shields.io/badge/Tool-fio-6C3483?style=flat-square)
 ![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
 

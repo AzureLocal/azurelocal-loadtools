@@ -127,9 +127,9 @@ Each pushed metric contains these core fields:
 - `run_id`
 - `profile_name`
 
-!!! note
-    Azure Monitor integration requires the `monitoring.bicep` infrastructure template to be deployed. See `tools/vmfleet/infrastructure/bicep/monitoring.bicep`.
-
+> [!NOTE]
+> Azure Monitor integration requires the `monitoring.bicep` infrastructure template to be deployed. See `tools/vmfleet/infrastructure/bicep/monitoring.bicep`.
+>
 ## Alert Rules
 
 Predefined alert thresholds in `monitoring/alerts/alert-rules.yml`:

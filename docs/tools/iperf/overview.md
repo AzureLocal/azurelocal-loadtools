@@ -1,8 +1,9 @@
 # iPerf3 — Network Performance Testing
 
-!!! note "This page has moved"
-    The main iPerf3 landing page with run instructions is now at [iPerf3](index.md). This page contains additional technical details.
-
+> [!NOTE]
+> **This page has moved**
+> The main iPerf3 landing page with run instructions is now at [iPerf3](index.md). This page contains additional technical details.
+>
 ![Tool: iPerf3](https://img.shields.io/badge/Tool-iPerf3-1ABC9C?style=flat-square)
 ![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
 

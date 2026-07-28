@@ -1,8 +1,9 @@
 # stress-ng — System Stress Testing
 
-!!! note "This page has moved"
-    The main stress-ng landing page with run instructions is now at [stress-ng](index.md). This page contains additional technical details.
-
+> [!NOTE]
+> **This page has moved**
+> The main stress-ng landing page with run instructions is now at [stress-ng](index.md). This page contains additional technical details.
+>
 ![Tool: stress-ng](https://img.shields.io/badge/Tool-stress--ng-F39C12?style=flat-square)
 ![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
 

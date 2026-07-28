@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  base: '/azurelocal-loadtools/',
   title: "azurelocal-loadtools Documentation",
   description: "Governed centrally by HCS Platform Engineering standards",
   themeConfig: {
@@ -26,4 +27,5 @@ export default defineConfig({
     }
   }
 })
+
 

@@ -92,5 +92,6 @@ Architecture and workflow diagrams are maintained as draw.io files in [`docs/ass
 | CI/CD Pipeline | `ci-cd-pipeline.drawio` | GitHub Actions / Azure DevOps flow |
 | Network Topology | `network-topology.drawio` | Cluster network paths for testing |
 
-!!! info "Exporting Diagrams"
-    To export updated PNGs from draw.io source files, the MkDocs `drawio` plugin handles this automatically during site builds. You can also export manually from draw.io desktop or VS Code extension.
+> [!NOTE]
+> **Exporting Diagrams**
+> To export updated PNGs from draw.io source files, the MkDocs `drawio` plugin handles this automatically during site builds. You can also export manually from draw.io desktop or VS Code extension.

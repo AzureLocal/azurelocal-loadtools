@@ -1,8 +1,9 @@
 # VMFleet Overview
 
-!!! note "This page has moved"
-    The main VMFleet landing page with run instructions is now at [VMFleet](index.md). This page contains additional technical details.
-
+> [!NOTE]
+> **This page has moved**
+> The main VMFleet landing page with run instructions is now at [VMFleet](index.md). This page contains additional technical details.
+>
 ![Tool: VMFleet](https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square)
 ![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
 ![VMFleet 2.1.0.0](https://img.shields.io/badge/VMFleet-2.1.0.0-blue?style=flat-square)

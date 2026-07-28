@@ -2,9 +2,10 @@
 
 ![Category: Operations](https://img.shields.io/badge/Category-Operations-9B59B6?style=flat-square)
 
-!!! info "Pipelines are optional"
-    Every test in this framework can be run standalone from a PowerShell terminal. CI/CD pipelines are an **optional addition** for teams that want to automate, schedule, or integrate load testing into their deployment workflows.
-
+> [!NOTE]
+> **Pipelines are optional**
+> Every test in this framework can be run standalone from a PowerShell terminal. CI/CD pipelines are an **optional addition** for teams that want to automate, schedule, or integrate load testing into their deployment workflows.
+>
 The framework includes pipeline definitions for GitHub Actions (primary), Azure DevOps, and GitLab CI. These pipelines call the **same scripts** you would run manually — they are not a separate system.
 
 ## When to Use CI/CD
