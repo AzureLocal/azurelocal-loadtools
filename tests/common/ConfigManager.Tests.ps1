@@ -27,7 +27,7 @@ Describe 'ConfigManager Module' {
         }
 
         It 'Should throw on a bad path even when another config is already cached' {
-            $configPath = Join-Path $PSScriptRoot '..\..\configariablesariables.yml'
+            $configPath = Join-Path $PSScriptRoot '..\..\config\variables\variables.yml'
             Import-MasterConfig -MasterConfigPath $configPath -Force | Out-Null
             { Import-MasterConfig -MasterConfigPath 'nonexistent.yml' } | Should -Throw
         }
