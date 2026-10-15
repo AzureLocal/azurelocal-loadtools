@@ -14,6 +14,7 @@
 
 #Requires -Version 7.2
 [CmdletBinding()]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'The parameters are read inside the check functions below (script scope); the analyzer does not follow that.')]
 param(
     [Parameter()]
     [ValidateSet('Analyzer', 'Pester', 'Links', 'All')]
@@ -79,17 +80,18 @@ function Invoke-PesterCheck {
     }
     $bad = @($rows | Where-Object { $_.exit -ne 0 -or $_.failed -ne 0 -or $_.total -eq 0 })
     Save-CheckResult 'pester' ($bad.Count -eq 0 -and $rows.Count -gt 0) @{
-        suites = $rows.Count
-        total  = [int](($rows | Measure-Object -Property total -Sum).Sum)
-        passed = [int](($rows | Measure-Object -Property passed -Sum).Sum)
-        failed = [int](($rows | Where-Object { $_.failed -gt 0 } | Measure-Object -Property failed -Sum).Sum)
-        detail = $rows.ToArray()
+        suites       = $rows.Count
+        tests_total  = [int](($rows | Measure-Object -Property total -Sum).Sum)
+        tests_passed = [int](($rows | Measure-Object -Property passed -Sum).Sum)
+        tests_failed = [int](($rows | Where-Object { $_.failed -gt 0 } | Measure-Object -Property failed -Sum).Sum)
+        detail       = $rows.ToArray()
     }
 }
 
 function Invoke-LinksCheck {
     & pwsh -NoProfile -File (Join-Path $ProjectRoot 'tests\Test-MarkdownLinks.ps1') -ProjectRoot $ProjectRoot
-    Save-CheckResult 'links' ($LASTEXITCODE -eq 0) @{ exit = $LASTEXITCODE }
+    $linkExit = $LASTEXITCODE
+    Save-CheckResult 'links' ($linkExit -eq 0) @{ exit = $linkExit }
 }
 
 if ($Check -in 'Analyzer', 'All') { Invoke-AnalyzerCheck }

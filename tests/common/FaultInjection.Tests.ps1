@@ -213,7 +213,7 @@ Describe 'FaultInjection' {
         }
         It 'rejects an invalid computer name' {
             $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
-            { Invoke-FaultInjection -Plan $plan -ComputerName  -AllowFault -Health (New-Health) } | Should -Throw '*Invalid computer name*'
+            { Invoke-FaultInjection -Plan $plan -ComputerName $script:BadHost -AllowFault -Health (New-Health) } | Should -Throw '*Invalid computer name*'
         }
         It 'refuses a second fault while one is active' {
             $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
