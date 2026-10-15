@@ -1,9 +1,12 @@
 # iPerf3 — Network Performance Testing
 
 ![Tool: iPerf3](https://img.shields.io/badge/Tool-iPerf3-1ABC9C?style=flat-square)
-![Status: Structure Ready](https://img.shields.io/badge/Status-Structure%20Ready-yellow?style=flat-square)
+![Status: Not proven on hardware](https://img.shields.io/badge/Hardware-Not%20proven-yellow?style=flat-square)
 
-iPerf3 measures network bandwidth, jitter, and packet loss between cluster nodes and VMs. Use it to validate RDMA/SMB Direct paths, east-west VM bandwidth, and Switch Embedded Teaming (SET) throughput.
+> [!NOTE]
+> **Status: implemented and unit-tested, not proven on hardware.** See the [implementation status](../../reference/status.md) table. Command examples on this page show the intended workflow; the `param` block of each script is the authority for parameter names. Not proven on a live cluster.
+
+iPerf3 measures network bandwidth, jitter, and packet loss between cluster nodes and VMs. Use it to validate IP-path bandwidth, east-west VM bandwidth, and Switch Embedded Teaming (SET) throughput. **iPerf3 does not exercise RDMA / SMB Direct**: read the [Azure Local network guidance](azure-local-network-guidance.md) before you rely on a result for the storage network.
 
 ---
 
@@ -12,15 +15,15 @@ iPerf3 measures network bandwidth, jitter, and packet loss between cluster nodes
 ### Prerequisites
 
 - iPerf3 binaries available on target nodes (Windows or Linux)
-- RDMA configuration validated (for RDMA-specific tests)
+- For the storage network, RDMA validated separately (iPerf3 cannot test it: see the [network guidance](azure-local-network-guidance.md))
 - [Framework prerequisites](../../getting-started/prerequisites.md) completed
 
 ### Step 1 — Install iPerf3 on target nodes
 
-```powershell
-.\tools\iperf\scripts\Install-Iperf.ps1 `
-    -ClusterName "hci01.corp.infiniteimprobability.com" `
-    -Nodes @("hci01-node1", "hci01-node2", "hci01-node3")
+There is no PowerShell install script. The Ansible playbook installs iPerf3 on Linux VMs (inventory group `linux_vms`):
+
+```bash
+ansible-playbook -i common/ansible/inventory/hosts.yml tools/iperf/playbooks/deploy-iperf.yml
 ```
 
 ### Step 2 — Run a network test

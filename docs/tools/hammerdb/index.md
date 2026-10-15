@@ -1,7 +1,10 @@
 # HammerDB — Database Benchmarking
 
 ![Tool: HammerDB](https://img.shields.io/badge/Tool-HammerDB-E74C3C?style=flat-square)
-![Status: Structure Ready](https://img.shields.io/badge/Status-Structure%20Ready-yellow?style=flat-square)
+![Status: Not proven on hardware](https://img.shields.io/badge/Hardware-Not%20proven-yellow?style=flat-square)
+
+> [!NOTE]
+> **Status: implemented and unit-tested, not proven on hardware.** See the [implementation status](../../reference/status.md) table. Command examples on this page show the intended workflow; the `param` block of each script is the authority for parameter names. Not proven on a live cluster.
 
 HammerDB benchmarks SQL Server performance on Azure Local VMs using industry-standard TPC-C (OLTP) and TPC-H (OLAP) workloads. It measures transactions per minute (TPM) and new orders per minute (NOPM).
 

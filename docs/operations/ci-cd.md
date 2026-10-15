@@ -41,47 +41,31 @@ Invoke-Pester tests/ -Output Detailed
 
 ---
 
-## GitHub Actions (Primary)
+## What exists today
 
-If you choose to automate, the following workflows are available:
+| Pipeline | File | What it does | Needs a cluster |
+|----------|------|--------------|-----------------|
+| GitHub Actions: `ci` | `.github/workflows/ci.yml` | On every pull request and push to `main`: PSScriptAnalyzer (errors fail, more than 50 warnings fail), Pester with one process per suite, relative Markdown link check. Actions are pinned to commit SHAs. | No |
+| GitHub Actions: `Release Please` | `.github/workflows/release-please.yml` | Opens the release pull request (version bump and CHANGELOG) from Conventional Commit messages. Merging it creates the tag and the GitHub release. | No |
+| GitHub Actions: docs | `.github/workflows/deploy-docs.yml` | Builds the VitePress site and publishes it to GitHub Pages on changes under `docs/`. | No |
+| Azure DevOps: validate | `.azuredevops/azure-pipelines.yml` | Runs the same `tests/Invoke-CiChecks.ps1` as GitHub Actions | No |
+| Azure DevOps: VMFleet run | `.azuredevops/azure-pipelines-vmfleet.yml` | Runs the VMFleet pipeline. Needs a self-hosted agent with cluster access. | Yes |
+| Root `azure-pipelines.yml` | `azure-pipelines.yml` | Trigger that extends the central Platform Engineering module template | No |
 
-### VMFleet Pipeline (`run-vmfleet.yml`)
+There are no GitHub Actions workflows that run a load test, and no GitLab CI pipeline. Both appeared in earlier versions of this page and were never built; they remain on the [roadmap](../roadmap.md).
 
-Manual trigger (`workflow_dispatch`) with configurable inputs:
+### Run the same checks locally
 
-- Cluster configuration file path
-- Workload profiles to execute
-- Credential source (Key Vault or GitHub Secrets)
-- Whether to generate reports
-- Whether to cleanup after completion
+```powershell
+pwsh -File tests/Invoke-CiChecks.ps1 -Check All          # analyzer, Pester per suite, links
+pwsh -File tests/Invoke-CiChecks.ps1 -Check Analyzer -MaxWarnings 50
+```
 
-Requires a self-hosted runner with network access to the Azure Local cluster.
+The analyzer settings are in `.psscriptanalyzer.psd1`; every excluded rule is listed there with its reason.
 
-### Unit Tests (`run-tests.yml`)
+### Gating a readiness check
 
-Runs Pester unit tests for all core PowerShell modules on every pull request.
-
-### Configuration Validation (`validate-config.yml`)
-
-Triggers on changes to `config/`. Validates `variables.yml` against the JSON Schema and verifies solution config generation.
-
-### Documentation Build (`deploy-docs.yml`)
-
-Triggers on push to `main` and pull requests. Builds MkDocs HTML documentation and publishes to GitHub Pages.
-
-### Linting (`lint.yml`)
-
-Runs PSScriptAnalyzer for PowerShell, yamllint for YAML files.
-
-## Azure DevOps
-
-Pipeline definitions in `.azuredevops/` mirror the GitHub Actions workflows, adapted for Azure DevOps syntax. Use Azure DevOps Service Connections for credential management.
-
-## GitLab CI
-
-Pipeline definition in `.gitlab/.gitlab-ci.yml` provides the same workflow stages, adapted for GitLab CI syntax.
-
----
+A pipeline or readiness script can call [`Invoke-Day2Smoke.ps1`](../reference/day2-smoke.md) or [`Compare-VMFleetResults.ps1`](../tools/vmfleet/regression-gate.md). Both exit non-zero when the check did not pass, and write a JSON result. This is not wired into any workflow here because it needs a cluster.
 
 ## Self-Hosted Runner Requirements
 

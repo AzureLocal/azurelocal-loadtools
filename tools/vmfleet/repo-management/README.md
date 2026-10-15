@@ -13,6 +13,8 @@ This folder contains repo planning, governance, delivery tracking, and working a
 | `scripts/` | Repo-management helper scripts |
 | `working/` | Drafts, scratch notes, and temporary working material |
 
+Only `plans/` holds content today. The other folders are created when they are needed (empty placeholder files were removed).
+
 ## Canonical References
 
 - Label definitions: `azurelocal.github.io/.github/labels.yml`

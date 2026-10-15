@@ -21,13 +21,15 @@ flowchart TD
 
 ## Tool Summary
 
+The Status column is the same for every tool today. The per-tool detail (implemented, unit-tested, proven on hardware) is in the [implementation status](../reference/status.md).
+
 | Tool | What It Tests | Target OS | Run From | Status |
 |------|--------------|-----------|----------|--------|
-| [VMFleet](vmfleet/index.md) | Storage IOPS, throughput, latency via DiskSpd VM fleet | Windows (HCI host) | PowerShell | :white_check_mark: Fully Implemented |
-| [fio](fio/index.md) | Storage I/O with fine-grained control (block size, queue depth, I/O engine) | Linux VMs | PowerShell + Ansible | :construction: Structure Ready |
-| [iPerf3](iperf/index.md) | Network bandwidth, jitter, packet loss between nodes | Linux / Windows | PowerShell | :construction: Structure Ready |
-| [HammerDB](hammerdb/index.md) | SQL Server OLTP (TPC-C) and OLAP (TPC-H) benchmarking | Windows VMs | PowerShell | :construction: Structure Ready |
-| [stress-ng](stress-ng/index.md) | CPU, memory, cache, and I/O stress for burn-in and capacity planning | Linux VMs | PowerShell + Ansible | :construction: Structure Ready |
+| [VMFleet](vmfleet/index.md) | Storage IOPS, throughput, latency via DiskSpd VM fleet | Windows (HCI host) | PowerShell | Implemented, unit-tested, not proven on hardware |
+| [fio](fio/index.md) | Storage I/O with fine-grained control (block size, queue depth, I/O engine) | Linux VMs | PowerShell + Ansible | Implemented, unit-tested, not proven on hardware |
+| [iPerf3](iperf/index.md) | Network bandwidth, jitter, packet loss between nodes | Linux / Windows | PowerShell | Implemented, unit-tested, not proven on hardware |
+| [HammerDB](hammerdb/index.md) | SQL Server OLTP (TPC-C) and OLAP (TPC-H) benchmarking | Windows VMs | PowerShell | Implemented, unit-tested, not proven on hardware |
+| [stress-ng](stress-ng/index.md) | CPU, memory, cache, and I/O stress for burn-in and capacity planning | Linux VMs | PowerShell + Ansible | Implemented, unit-tested, not proven on hardware |
 
 ## Running a Test (Standalone)
 

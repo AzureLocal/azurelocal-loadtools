@@ -1,7 +1,10 @@
 # stress-ng — System Stress Testing
 
 ![Tool: stress-ng](https://img.shields.io/badge/Tool-stress--ng-F39C12?style=flat-square)
-![Status: Structure Ready](https://img.shields.io/badge/Status-Structure%20Ready-yellow?style=flat-square)
+![Status: Not proven on hardware](https://img.shields.io/badge/Hardware-Not%20proven-yellow?style=flat-square)
+
+> [!NOTE]
+> **Status: implemented and unit-tested, not proven on hardware.** See the [implementation status](../../reference/status.md) table. Command examples on this page show the intended workflow; the `param` block of each script is the authority for parameter names. Not proven on a live cluster.
 
 stress-ng performs CPU, memory, cache, and I/O stress testing for capacity planning and burn-in validation. It includes 370+ stressors and runs on Linux VMs via Ansible deployment.
 
@@ -18,10 +21,10 @@ stress-ng performs CPU, memory, cache, and I/O stress testing for capacity plann
 
 ### Step 1 — Install stress-ng on target VMs
 
-```powershell
-.\tools\stress-ng\scripts\Install-StressNg.ps1 `
-    -ClusterName "hci01.corp.infiniteimprobability.com" `
-    -Nodes @("hci01-node1", "hci01-node2")
+There is no PowerShell install script. The Ansible playbook installs stress-ng on Linux VMs:
+
+```bash
+ansible-playbook -i common/ansible/inventory/hosts.yml tools/stress-ng/playbooks/deploy-stress-ng.yml
 ```
 
 ### Step 2 — Run a stress test

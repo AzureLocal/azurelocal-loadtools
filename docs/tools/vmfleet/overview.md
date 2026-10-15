@@ -5,7 +5,7 @@
 > The main VMFleet landing page with run instructions is now at [VMFleet](index.md). This page contains additional technical details.
 >
 ![Tool: VMFleet](https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square)
-![Status: Implemented](https://img.shields.io/badge/Status-Implemented-brightgreen?style=flat-square)
+![Status: Not proven on hardware](https://img.shields.io/badge/Hardware-Not%20proven-yellow?style=flat-square)
 ![VMFleet 2.1.0.0](https://img.shields.io/badge/VMFleet-2.1.0.0-blue?style=flat-square)
 
 VMFleet is the primary storage load testing tool in the Azure Local Load Testing Framework. It deploys a fleet of VMs across Azure Local cluster nodes, each running DiskSpd workloads to stress-test Storage Spaces Direct (S2D).
@@ -16,17 +16,16 @@ VMFleet is the primary storage load testing tool in the Azure Local Load Testing
 - **DiskSpd Version:** 2.2
 - **What it tests:** Storage IOPS, throughput, latency under simulated workload
 - **How it works:** Deploys lightweight Server Core VMs, each running DiskSpd to generate I/O
-- **Status:** ✅ Fully Implemented
+- **Status:** implemented and unit-tested, not proven on hardware (see [status](../../reference/status.md))
 
 ## Quick Start
 
 ```powershell
 # Run the full VMFleet pipeline end-to-end
-.\src\solutions\vmfleet\orchestrator\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfig "config/clusters/my-cluster.yml" `
-    -Profiles @("General", "Peak") `
-    -CredentialSource Interactive `
-    -GenerateReports
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
+    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
+    -FleetAdminCredential (Get-Credential -Message "Fleet VM admin")
 ```
 
 ## Pipeline Phases

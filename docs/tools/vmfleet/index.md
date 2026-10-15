@@ -1,8 +1,11 @@
 # VMFleet
 
 ![Tool: VMFleet](https://img.shields.io/badge/Tool-VMFleet-0078D4?style=flat-square)
-![Status: Fully Implemented](https://img.shields.io/badge/Status-Fully%20Implemented-brightgreen?style=flat-square)
+![Status: Not proven on hardware](https://img.shields.io/badge/Hardware-Not%20proven-yellow?style=flat-square)
 ![VMFleet 2.1.0.0](https://img.shields.io/badge/VMFleet-2.1.0.0-blue?style=flat-square)
+
+> [!NOTE]
+> **Status: implemented and unit-tested, not proven on hardware.** See the [implementation status](../../reference/status.md) table. Command examples on this page show the intended workflow; the `param` block of each script is the authority for parameter names. Not proven on a live cluster.
 
 VMFleet deploys a fleet of lightweight Server Core VMs across your Azure Local cluster nodes, each running DiskSpd workloads to stress-test Storage Spaces Direct (S2D). It measures IOPS, throughput, and latency under realistic storage load.
 
@@ -25,17 +28,16 @@ The VMFleet orchestrator runs all phases end-to-end with checkpoint-based resume
 ```powershell
 # From the repository root
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ConfigPath "config\variables.yml" `
-    -Profiles @("General", "Peak") `
-    -CredentialSource Interactive `
-    -GenerateReports
+    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
+    -FleetAdminCredential (Get-Credential -Message "Fleet VM admin")
 ```
 
 If the pipeline fails mid-run, resume from the last checkpoint:
 
 ```powershell
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ConfigPath "config\variables.yml" `
+    -ClusterConfigPath "config\clusters\my-cluster.yml" `
     -Resume
 ```
 
@@ -157,3 +159,12 @@ After a test completes, you will have:
 ## Automate This Test
 
 To run VMFleet on a schedule or as part of a CI/CD workflow, see [CI/CD Pipelines](../../operations/ci-cd.md). The `run-vmfleet.yml` GitHub Actions workflow calls the same `Invoke-VMFleetPipeline.ps1` script above with parameters from workflow dispatch inputs.
+
+---
+
+## More VMFleet guides
+
+- [Failure injection (opt-in)](failure-injection.md): measure storage performance while one node is paused or one drive is out
+- [Reports, comparison and regression gate](regression-gate.md): offline HTML and CSV report, baseline comparison with an exit code
+- [Day-2 smoke](../../reference/day2-smoke.md): a 15-minute General run for a readiness gate, with a JSON result
+- [Implementation status](../../reference/status.md)

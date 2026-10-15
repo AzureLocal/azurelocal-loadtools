@@ -1,7 +1,10 @@
 # fio — Flexible I/O Tester
 
 ![Tool: fio](https://img.shields.io/badge/Tool-fio-6C3483?style=flat-square)
-![Status: Structure Ready](https://img.shields.io/badge/Status-Structure%20Ready-yellow?style=flat-square)
+![Status: Not proven on hardware](https://img.shields.io/badge/Hardware-Not%20proven-yellow?style=flat-square)
+
+> [!NOTE]
+> **Status: implemented and unit-tested, not proven on hardware.** See the [implementation status](../../reference/status.md) table. Command examples on this page show the intended workflow; the `param` block of each script is the authority for parameter names. Not proven on a live cluster.
 
 fio provides fine-grained storage I/O benchmarking with precise control over block sizes, queue depths, I/O engines, and workload patterns. It runs inside Linux VMs on the Azure Local cluster via Ansible deployment.
 

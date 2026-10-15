@@ -1,6 +1,6 @@
 # Automation
 
-Documents every GitHub Actions workflow in this repository.
+Documents the GitHub Actions workflows that exist in this repository. Earlier versions of this page also described workflows that were never built; they are listed at the end as not built.
 
 ---
 
@@ -8,61 +8,31 @@ Documents every GitHub Actions workflow in this repository.
 
 | File | Name | Trigger | Purpose |
 |------|------|---------|---------|
-| `add-to-project.yml` | Add to Project | Issues/PRs opened or labeled | Adds items to org project board and sets custom fields |
-| `deploy-docs.yml` | Deploy MkDocs to GitHub Pages | Push to `main` touching `docs/**` or `mkdocs.yml` | Builds MkDocs site and deploys to GitHub Pages |
-| `lint.yml` | Lint PowerShell | Push/PR touching PowerShell files | PSScriptAnalyzer via `tests/PSScriptAnalyzer.ps1` wrapper |
-| `release-please.yml` | Release Please | Push to `main` | Automates CHANGELOG and releases |
-| `run-tests.yml` | Run Tests | Push/PR touching `common/**`, `tools/**`, `tests/**` | Pester 5 unit tests with code coverage |
-| `run-vmfleet.yml` | Run VMFleet Load Test | Manual (`workflow_dispatch`) | Executes full VMFleet pipeline on self-hosted runner |
-| `validate-config.yml` | Validate Configuration | Push/PR touching `config/**` | Validates config YAML against JSON Schema |
-| `validate-repo-structure.yml` | Validate Repo Structure | PR to `main` | Checks required files and directories are present |
+| `ci.yml` | ci | Pull request, push to `main`, manual | PSScriptAnalyzer (errors fail, more than 50 warnings fail), Pester with one process per suite, relative Markdown link check. Runs `tests/Invoke-CiChecks.ps1`. |
+| `release-please.yml` | Release Please | Push to `main` | Maintains the release pull request (version bump and CHANGELOG) |
+| `deploy-docs.yml` | Deploy VitePress to GitHub Pages | Push to `main` touching `docs/**` | Builds the VitePress site and deploys it to GitHub Pages |
+
+Also in the repository: `.github/dependabot.yml` (weekly GitHub Actions updates), issue templates and a pull request template.
 
 ---
 
-## add-to-project.yml
+## ci.yml
 
-**Trigger:** `issues` (opened, labeled) and `pull_request` (opened, labeled)  
-**Secrets:** `ADD_TO_PROJECT_PAT`
+**Trigger:** `pull_request`, `push` to `main`, `workflow_dispatch`
+**Permissions:** `contents: read`
+**Secrets:** none. Nothing here needs a cluster or a tenant.
 
-Two-job pipeline:
-
-1. **add-to-project** — Uses `actions/add-to-project@v1.0.2` to add the item to org project board (`AzureLocal/projects/3`). Outputs the item ID.
-2. **set-fields** (issues only) — Uses `gh project item-edit` to set:
-   - **ID field** — text value `LOAD-{issue_number}`
-   - **Solution field** — maps `solution/*` label to a single-select project option
-   - **Priority field** — maps `priority/*` label
-   - **Category field** — maps `type/*` label
+Runs on `windows-latest` (the tests use Windows path separators). Actions are pinned to full commit SHAs. Installs Pester 5.9.1, PSScriptAnalyzer 1.25.0 and powershell-yaml 0.4.12, then runs `tests/Invoke-CiChecks.ps1` once per check (Analyzer, Pester, Links) and uploads the JSON results. Run the same checks locally with `pwsh -File tests/Invoke-CiChecks.ps1 -Check All`.
 
 ---
 
 ## deploy-docs.yml
 
-**Trigger:** Push to `main` touching `docs/**` or `mkdocs.yml`; manual via `workflow_dispatch`  
-**Permissions:** `contents: read`, `pages: write`, `id-token: write`  
+**Trigger:** Push to `main` touching `docs/**`; manual via `workflow_dispatch`
+**Permissions:** `contents: read`, `pages: write`, `id-token: write`
 **Concurrency group:** `pages` (cancel-in-progress: false)
 
-Two-job pipeline:
-
-**build:**
-1. Sets up Python 3.12
-2. Installs `mkdocs-material`, `pymdown-extensions`, `mkdocs-drawio`
-3. `mkdocs build --strict`
-4. Uploads `site/` as a pages artifact
-
-**deploy:**
-1. Uses `actions/deploy-pages@v4` to publish to GitHub Pages
-
----
-
-## lint.yml
-
-**Trigger:** Push to `main` or PR touching `common/**/*.ps1`, `common/**/*.psm1`, `tools/**/*.ps1`, `tests/**/*.ps1`; manual via `workflow_dispatch`  
-**Runner:** `windows-latest`
-
-1. Installs PSScriptAnalyzer
-2. Runs `tests/PSScriptAnalyzer.ps1 -ProjectRoot <workspace>` — the wrapper script handles settings and exclusions
-
-**Notes:** Uses a wrapper script rather than calling `Invoke-ScriptAnalyzer` directly — see `tests/PSScriptAnalyzer.ps1` for the full rule configuration.
+One job: checks out, sets up Node.js 20, installs the VitePress dependencies in `docs/` (`npm ci`, falling back to `npm install`), runs `npm run docs:build`, uploads `docs/.vitepress/dist` as the pages artifact and deploys it with `actions/deploy-pages`. The actions in this workflow use major-version tags, not commit SHAs (unlike `ci.yml`); Dependabot proposes the bumps.
 
 ---
 
@@ -75,71 +45,6 @@ Uses `googleapis/release-please-action@v4`. Maintains an automated release PR th
 
 ---
 
-## run-tests.yml
+## Not built
 
-**Trigger:** Push to `main` or PR touching `common/**`, `tools/**`, `tests/**`; manual via `workflow_dispatch`  
-**Runner:** `windows-latest`
-
-1. Installs Pester 5, `powershell-yaml`, `ImportExcel`
-2. Runs Pester with:
-   - Paths: `tests/` and `tools/`
-   - Test results: `test-results.xml` (NUnit format) — uploaded as artifact
-   - Code coverage: `coverage.xml` (JaCoCo format) over `common/modules/` — uploaded as artifact
-   - `Run.Exit = $true` — fails the workflow on any test failure
-
----
-
-## run-vmfleet.yml
-
-**Trigger:** Manual only (`workflow_dispatch`)  
-**Runner:** `[self-hosted, azurelocal]`  
-**Secrets:** `CLUSTER_ADMIN_USERNAME`, `CLUSTER_ADMIN_PASSWORD`  
-**Timeout:** 120 minutes
-
-This workflow executes the full VMFleet load test pipeline against a live Azure Local cluster.
-
-**Inputs:**
-
-| Input | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `cluster_config` | Yes | `example-cluster.yml` | Config file path relative to `config/clusters/` |
-| `profile` | No | `general.yml` | Workload profile relative to `tools/vmfleet/config/profiles/` |
-| `report_formats` | No | `PDF,XLSX` | Comma-separated report formats (PDF, DOCX, XLSX) |
-| `skip_cleanup` | No | false | Skip VM cleanup after test |
-| `push_to_azure_monitor` | No | false | Push metrics to Azure Monitor |
-
-**What it does:**
-
-1. Validates PowerShell 7.2+ on the runner
-2. Installs `powershell-yaml` and `ImportExcel` modules if not already present
-3. Runs `common/helpers/Initialize-Environment.ps1` with the cluster config
-4. Constructs a `PSCredential` from `CLUSTER_ADMIN_USERNAME` and `CLUSTER_ADMIN_PASSWORD` secrets
-5. Calls `tools/vmfleet/Invoke-VMFleetPipeline.ps1` with all parameters
-6. Uploads reports to `reports/` as artifact (90-day retention)
-7. Uploads logs from `logs/` as artifact (30-day retention)
-
-**Runner requirements:** Windows, PowerShell 7.2+, WinRM access to the cluster. See [setup.md](setup.md) for full runner configuration.
-
----
-
-## validate-config.yml
-
-**Trigger:** Push to `main` or PR touching `config/**`; manual via `workflow_dispatch`
-
-1. Sets up Python 3.12
-2. Installs `pyyaml`, `jsonschema`
-3. Loads `config/variables.example.yml` and `config/schema/variables.schema.json`
-4. Validates example config against schema — fails on any schema violation
-
----
-
-## validate-repo-structure.yml
-
-**Trigger:** PR to `main`
-
-| Check | Required Items |
-|-------|---------------|
-| Root files | `README.md`, `CONTRIBUTING.md`, `LICENSE`, `CHANGELOG.md`, `.gitignore` |
-| Directories | `docs/`, `.github/` |
-| PR template | `.github/PULL_REQUEST_TEMPLATE.md` |
-| Config structure (if `config/` exists) | `config/variables.example.yml`, `config/schema/variables.schema.json` |
+These were described earlier and do not exist in `.github/workflows/`: `add-to-project.yml`, `lint.yml` (replaced by `ci.yml`), `run-tests.yml` (replaced by `ci.yml`), `run-vmfleet.yml`, `validate-config.yml`, `validate-repo-structure.yml`. The `.azuredevops/azure-pipelines-vmfleet.yml` pipeline is the closest thing to a load-test pipeline and needs a self-hosted agent with cluster access.

@@ -23,9 +23,7 @@ Copy-Item config\variables.example.yml config\variables.yml
 # 2. Run a VMFleet storage benchmark (fully implemented)
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
     -ConfigPath "config\variables.yml" `
-    -Profiles @("General") `
-    -CredentialSource Interactive `
-    -GenerateReports
+    -ProfilePath "tools\vmfleet\config\profiles\general.yml"
 
 # Or run individual steps for any tool:
 .\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterName "hci01.corp.infiniteimprobability.com" -Nodes @("hci01-node1")
@@ -39,11 +37,11 @@ Each tool targets a specific performance domain. Click a tool to see exactly how
 
 | Tool | What It Tests | Target OS | Status |
 |------|--------------|-----------|--------|
-| [VMFleet](tools/vmfleet/index.md) | Storage IOPS, throughput, latency via DiskSpd VM fleet | Windows (HCI host) | :white_check_mark: Fully Implemented |
-| [fio](tools/fio/index.md) | Fine-grained storage I/O benchmarking | Linux VMs | :construction: Structure Ready |
-| [iPerf3](tools/iperf/index.md) | Network bandwidth, jitter, packet loss | Linux / Windows | :construction: Structure Ready |
-| [HammerDB](tools/hammerdb/index.md) | SQL Server OLTP / OLAP benchmarking | Windows VMs | :construction: Structure Ready |
-| [stress-ng](tools/stress-ng/index.md) | CPU, memory, and system stress testing | Linux VMs | :construction: Structure Ready |
+| [VMFleet](tools/vmfleet/index.md) | Storage IOPS, throughput, latency via DiskSpd VM fleet | Windows (HCI host) | Implemented, unit-tested, not proven on hardware |
+| [fio](tools/fio/index.md) | Fine-grained storage I/O benchmarking | Linux VMs | Implemented, unit-tested, not proven on hardware |
+| [iPerf3](tools/iperf/index.md) | Network bandwidth, jitter, packet loss | Linux / Windows | Implemented, unit-tested, not proven on hardware |
+| [HammerDB](tools/hammerdb/index.md) | SQL Server OLTP / OLAP benchmarking | Windows VMs | Implemented, unit-tested, not proven on hardware |
+| [stress-ng](tools/stress-ng/index.md) | CPU, memory, and system stress testing | Linux VMs | Implemented, unit-tested, not proven on hardware |
 
 For a detailed comparison and selection guide, see [Tools Overview](tools/index.md).
 
