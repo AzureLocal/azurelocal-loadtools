@@ -1,0 +1,40 @@
+# =============================================================================
+# VMFleet Workload Profile: Failure Injection (OPT-IN, never a default)
+# =============================================================================
+# The General workload, run long enough to hold a failure condition steady while
+# you measure. Learn / Azure Well-Architected Framework for Azure Local: validate
+# storage with DiskSpd from representative VMs under normal AND intended failure
+# conditions.
+#
+# This profile does not inject anything by itself. The fault is a separate,
+# explicit step with its own safeguards (see docs/tools/vmfleet/failure-injection.md):
+#   scripts/Invoke-VMFleetFault.ps1  ... -AllowFault   (prints UNDO first, refuses when unhealthy)
+#   scripts/Undo-VMFleetFault.ps1    ... -AllowFault
+# Not proven on a live cluster.
+# =============================================================================
+
+profile:
+  name: "FailureInjection"
+  description: "General workload held for 20 minutes so one injected failure condition can be measured; opt-in only"
+  category: "resilience"
+  opt_in: true
+  parameters:
+    block_size: "8k"
+    write_ratio: 30
+    random_ratio: 70
+    outstanding_io: 8
+    threads_per_vm: 2
+    duration_seconds: 1200
+    warmup_seconds: 120
+  failure_injection:
+    default_fault: "none"
+    allowed_faults: ["NodePause", "DriveFault"]
+    requires_flags: ["-AllowFault"]
+    inject_after_seconds: 300
+    hold_seconds: 600
+    measure_windows: ["baseline", "degraded", "repair"]
+  expected_thresholds:
+    min_iops_per_node: 5000
+    max_latency_ms: 25
+    min_throughput_mbps: 100
+    degraded_max_iops_drop_percent: 60

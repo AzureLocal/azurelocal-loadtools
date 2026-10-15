@@ -26,6 +26,10 @@ param(
     [Parameter()]
     [PSCredential]$Credential,
 
+    # Account the fleet VMs are created with; required for the Deploy phase (no default password exists).
+    [Parameter()]
+    [PSCredential]$FleetAdminCredential,
+
     [Parameter()]
     [string]$RunId,
 
@@ -165,7 +169,7 @@ try {
         Update-RunPhase -RunId $RunId -Phase 'Deploy' -Status 'Running' -StateDirectory $stateDir
         Write-Log -Message '== Phase: Deploy ==' -Severity Information
 
-        & (Join-Path $vmfleetScripts 'Deploy-VMFleet.ps1') @commonParams -SolutionConfigPath $SolutionConfigPath
+        & (Join-Path $vmfleetScripts 'Deploy-VMFleet.ps1') @commonParams -SolutionConfigPath $SolutionConfigPath -FleetAdminCredential $FleetAdminCredential
 
         Update-RunPhase -RunId $RunId -Phase 'Deploy' -Status 'Completed' -StateDirectory $stateDir
     } elseif ($SkipDeploy) {

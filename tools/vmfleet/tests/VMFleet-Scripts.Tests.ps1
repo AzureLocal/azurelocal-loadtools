@@ -106,6 +106,8 @@ Describe 'VMFleet Workload Profiles' {
         @{ Name = 'sql-oltp.yml' }
         @{ Name = 'vdi.yml' }
         @{ Name = 'sequential-throughput.yml' }
+        @{ Name = 'failure-injection.yml' }
+        @{ Name = 'day2-smoke.yml' }
     )
 
     Context '<Name> — Profile Validation' -ForEach $profileCases {

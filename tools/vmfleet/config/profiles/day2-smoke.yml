@@ -1,0 +1,26 @@
+# =============================================================================
+# VMFleet Workload Profile: Day-2 Smoke (about 15 minutes)
+# =============================================================================
+# The General profile shortened to fit an optional readiness-gate step:
+# 2 minutes warm-up + 10 minutes measured + about 3 minutes for start, collect and stop.
+# It is a smoke test, not a benchmark: it answers "does the storage path still perform
+# in the range of the baseline", not "what is the maximum". See docs/reference/day2-smoke.md.
+# Not proven on a live cluster.
+# =============================================================================
+
+profile:
+  name: "Day2Smoke"
+  description: "15-minute General workload for a Day-2 readiness gate"
+  category: "mixed"
+  parameters:
+    block_size: "8k"
+    write_ratio: 30
+    random_ratio: 70
+    outstanding_io: 8
+    threads_per_vm: 2
+    duration_seconds: 600
+    warmup_seconds: 120
+  expected_thresholds:
+    min_iops_per_node: 5000
+    max_latency_ms: 25
+    min_throughput_mbps: 100
