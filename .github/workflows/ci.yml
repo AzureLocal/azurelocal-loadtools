@@ -1,0 +1,58 @@
+# Pull-request checks: PSScriptAnalyzer (repo settings, warning budget), Pester (one process per suite) and the
+# relative Markdown link check. Nothing here needs a cluster, a tenant or a secret. The same script runs locally:
+#   pwsh -File tests/Invoke-CiChecks.ps1 -Check All
+# Actions are pinned to full commit SHAs (the comment names the release). Dependabot or a manual bump moves them.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the PowerShell modules the checks need
+        shell: pwsh
+        run: |
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          # -SkipPublisherCheck: the runner image ships Pester 3.4 signed by Microsoft; the pinned 5.9.1 has a different publisher.
+          Install-Module Pester -RequiredVersion 5.9.1 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.25.0 -Scope CurrentUser -Force
+          Install-Module powershell-yaml -RequiredVersion 0.4.12 -Scope CurrentUser -Force
+
+      - name: Static analysis (errors fail, more than 50 warnings fail)
+        shell: pwsh
+        run: ./tests/Invoke-CiChecks.ps1 -Check Analyzer -MaxWarnings 50 -ResultPath ci-analyzer.json
+
+      - name: Pester suites (one process per suite)
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: ./tests/Invoke-CiChecks.ps1 -Check Pester -ResultPath ci-pester.json
+
+      - name: Markdown links
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: ./tests/Invoke-CiChecks.ps1 -Check Links -ResultPath ci-links.json
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ci-results
+          path: ci-*.json
+          if-no-files-found: error

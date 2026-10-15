@@ -1,0 +1,22 @@
+# Opens and maintains the release pull request (version bump + CHANGELOG) from Conventional Commit messages.
+# Same wiring as the other AzureLocal repositories. It never publishes anything by itself: merging the release
+# pull request is what creates the tag and the GitHub release. The action reference matches the sibling repos;
+# pin it to a full commit SHA when Dependabot proposes the bump.
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

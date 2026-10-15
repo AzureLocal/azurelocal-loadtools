@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Azure Local documentation on Microsoft Learn
+    url: https://learn.microsoft.com/azure/azure-local/
+    about: Canonical Microsoft documentation for Azure Local.
+  - name: AzureLocal organization
+    url: https://github.com/AzureLocal
+    about: Other repositories in the AzureLocal portfolio.
