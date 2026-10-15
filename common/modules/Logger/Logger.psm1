@@ -7,7 +7,7 @@
 
 # Module-level variables
 $script:ActiveSessions = @{}
-$script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
+$script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $script:DefaultLogLevel = 'INFO'
 $script:LogLevels = @{
     'DEBUG'    = 0

@@ -117,7 +117,7 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 
 **Resolution:**
 
-1. Check `master-environment.yml` for syntax errors (use `yamllint`)
+1. Check `variables.yml` for syntax errors (use `yamllint`)
 2. Verify all required fields are present for each variable
 3. Run schema validation:
 

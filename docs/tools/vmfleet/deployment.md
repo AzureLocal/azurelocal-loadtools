@@ -42,7 +42,7 @@ The number of VMs, vCPUs, and memory per VM are configurable via:
 
 - Explicit parameters (as shown above) — highest priority
 - Solution JSON (`config/variables/solutions/vmfleet.json`)
-- Master environment defaults (`config/variables/master-environment.yml`)
+- Master environment defaults (`config/variables/variables.yml`)
 
 See [Configuration](../../getting-started/configuration.md) for details on the override chain.
 

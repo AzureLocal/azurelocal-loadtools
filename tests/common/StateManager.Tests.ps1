@@ -10,9 +10,10 @@ BeforeAll {
 Describe 'StateManager Module' {
     BeforeEach {
         $testStateDir = Join-Path $TestDrive 'state'
-        InModuleScope StateManager {
-            $script:StateDir = $using:testStateDir
-            $script:HistoryDir = Join-Path $using:testStateDir 'history'
+        InModuleScope StateManager -Parameters @{ Dir = $testStateDir } {
+            param($Dir)
+            $script:StateDir = $Dir
+            $script:HistoryDir = Join-Path $Dir 'history'
         }
     }
 

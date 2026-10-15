@@ -36,7 +36,7 @@
 :   The time delay between issuing an I/O request and receiving the response. Measured in milliseconds. Lower is better.
 
 **Master Environment File**
-:   The `master-environment.yml` file containing all configuration variables tagged by solution.
+:   The `variables.yml` file containing all configuration variables tagged by solution.
 
 **PerfMon**
 :   Windows Performance Monitor. A built-in tool for collecting performance counter data from Windows systems.

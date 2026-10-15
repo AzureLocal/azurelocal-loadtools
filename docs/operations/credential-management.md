@@ -73,5 +73,5 @@ az deployment group create `
 - All credential access is logged — values are **masked** in logs for audit trail
 - Key Vault access should use managed identity where possible
 - Rotate secrets on a regular schedule
-- Use `:sensitive: true` in `master-environment.yml` to flag variables that must come from Key Vault
+- Use `:sensitive: true` in `variables.yml` to flag variables that must come from Key Vault
 - Never commit credentials to the repository — use `.gitignore` and pre-commit hooks

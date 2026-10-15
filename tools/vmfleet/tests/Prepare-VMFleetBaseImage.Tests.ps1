@@ -31,7 +31,7 @@ Describe 'Prepare-VMFleetBaseImage Script' {
 
         It 'Should set ErrorActionPreference to Stop' {
             $content = Get-Content -Path $script:ScriptPath -Raw
-            $content | Should -Match "\`\$ErrorActionPreference\s*=\s*'Stop'"
+            $content | Should -Match '\$ErrorActionPreference\s*=\s*''Stop'''
         }
 
         It 'Should dot-source Common-Functions.ps1' {

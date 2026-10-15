@@ -6,7 +6,7 @@
 # =============================================================================
 
 # Module-level variables
-$script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
+$script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $script:StateDir = Join-Path $script:ProjectRoot 'state'
 $script:HistoryDir = Join-Path $script:StateDir 'history'
 

@@ -11,7 +11,7 @@ The configuration system is the backbone of the Azure Local Load Testing Framewo
 ```text
 config/
 ├── variables/
-│   ├── master-environment.yml       ← Single source of truth for ALL variables
+│   ├── variables.yml       ← Single source of truth for ALL variables
 │   ├── schema.json                  ← JSON Schema for validation
 │   └── solutions/                   ← Generated per-solution config files
 │       ├── vmfleet.json
@@ -28,7 +28,7 @@ config/
 
 ## Master Environment File
 
-The `master-environment.yml` file contains **every** variable used across all solutions. Each variable is tagged with the solutions that consume it.
+The `variables.yml` file contains **every** variable used across all solutions. Each variable is tagged with the solutions that consume it.
 
 **Variable Structure**
 
@@ -65,7 +65,7 @@ The `ConfigManager` module reads the master environment, filters by solution tag
 Import-Module ./common/modules/ConfigManager/ConfigManager.psm1
 
 Export-SolutionConfig -Solution "vmfleet" `
-    -MasterConfigPath "./config/variables/master-environment.yml" `
+    -MasterConfigPath "./config/variables/variables.yml" `
     -OutputPath "./config/variables/solutions/vmfleet.json"
 ```
 
@@ -87,7 +87,7 @@ Every script supports a three-level override chain:
 
 1. **Explicit Parameter** — Highest priority. Pass `-VmCountPerNode 20` to any script.
 2. **Solution JSON** — Read from `config/variables/solutions/{solution}.json`
-3. **Master Default** — Fallback value from `master-environment.yml`
+3. **Master Default** — Fallback value from `variables.yml`
 
 ```powershell
 # Override chain example:
@@ -97,7 +97,7 @@ Start-VMFleetTest -VmCountPerNode 20
 # 2. Without parameter, reads from vmfleet.json
 Start-VMFleetTest
 
-# 3. If vmfleet.json missing, falls back to master-environment.yml default
+# 3. If vmfleet.json missing, falls back to variables.yml default
 ```
 
 ## Cluster Configuration

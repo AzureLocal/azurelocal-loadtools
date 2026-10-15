@@ -28,7 +28,7 @@ The framework consists of five major layers:
 **Configuration Pipeline**
 
 ```text
-master-environment.yml    →    ConfigManager Module    →    vmfleet.json
+variables.yml    →    ConfigManager Module    →    vmfleet.json
   (all variables,               (filters by              (only VMFleet
    tagged by solution)           solution tag)             variables)
 ```

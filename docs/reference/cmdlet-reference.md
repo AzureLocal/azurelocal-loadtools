@@ -19,7 +19,7 @@ Export-SolutionConfig [-Solution] <string> [-MasterConfigPath <string>] [-Output
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `-Solution` | string | Solution name: vmfleet, fio, iperf, hammerdb, stress-ng |
-| `-MasterConfigPath` | string | Path to master-environment.yml (default: `config/variables/master-environment.yml`) |
+| `-MasterConfigPath` | string | Path to variables.yml (default: `config/variables/variables.yml`) |
 | `-OutputPath` | string | Output path for generated JSON (default: `config/variables/solutions/{solution}.json`) |
 
 ### Get-ConfigValue
