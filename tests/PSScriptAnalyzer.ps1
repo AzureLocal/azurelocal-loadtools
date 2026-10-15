@@ -54,8 +54,7 @@ foreach ($path in $scriptPaths) {
 
     if ($useSettingsFile) {
         $params['Settings'] = $settingsFile
-    }
-    else {
+    } else {
         $params['ExcludeRule'] = $excludeRules
     }
 
@@ -67,17 +66,16 @@ foreach ($path in $scriptPaths) {
 
     if ($results.Count -eq 0) {
         Write-Host "  No issues found." -ForegroundColor Green
-    }
-    else {
+    } else {
         $totalIssues += $results.Count
         $errorCount += @($results | Where-Object { $_.Severity -eq 'Error' }).Count
         $results | Group-Object -Property Severity | ForEach-Object {
             Write-Host "  $($_.Name): $($_.Count) issues" -ForegroundColor $(
                 switch ($_.Name) {
-                    'Error'       { 'Red' }
-                    'Warning'     { 'Yellow' }
+                    'Error' { 'Red' }
+                    'Warning' { 'Yellow' }
                     'Information' { 'Cyan' }
-                    default       { 'Gray' }
+                    default { 'Gray' }
                 }
             )
         }

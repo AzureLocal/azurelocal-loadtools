@@ -7,6 +7,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Force is part of the common phase-script parameter set; Stop-Fleet has no confirmation to force.')]
 param(
     [Parameter()]
     [string]$ClusterConfigPath,
@@ -31,7 +32,7 @@ if (-not $ProjectRoot) {
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'VMFleet-Stop' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+$null = Start-LogSession -Component 'VMFleet-Stop' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 
 try {
     Write-Log -Message 'Stopping VMFleet workload' -Severity Information
@@ -59,11 +60,9 @@ try {
         Write-Log -Message 'VMFleet workload stopped' -Severity Information
         Write-Host 'VMFleet workload stopped.' -ForegroundColor Green
     }
-}
-catch {
+} catch {
     Write-Log -Message "Stop failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

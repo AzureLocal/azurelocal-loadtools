@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # Collect-FioResults.ps1 - Azure Local Load Tools
 # =============================================================================
 # Retrieves fio JSON output from target nodes via SCP, normalizes metrics to
@@ -9,6 +9,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Credential is accepted so every tool script shares one parameter contract with the pipeline; this tool runs over SSH and does not use it.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -49,7 +50,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'Fio-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\fio')
+$null = Start-LogSession -Component 'Fio-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\fio')
 
 try {
     Write-Log -Message 'Starting fio results collection' -Severity Information
@@ -61,7 +62,7 @@ try {
         $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
     }
 
-    $solutionConfig = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
+    $null = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
     Import-Module powershell-yaml -ErrorAction Stop
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
@@ -78,7 +79,7 @@ try {
     }
 
     $sshUserVal = if ($SshUser) { $SshUser } else { $clusterConfig.cluster.ssh_user }
-    $sshKeyVal  = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
+    $sshKeyVal = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
 
     $remoteResultsDir = "/tmp/fio-results/$RunId"
     $nodeData = [System.Collections.Generic.List[hashtable]]::new()
@@ -111,7 +112,7 @@ try {
         $fioRaw = Get-Content -Path $localResultFile -Raw | ConvertFrom-Json
 
         foreach ($job in $fioRaw.jobs) {
-            $readResult  = $job.read
+            $readResult = $job.read
             $writeResult = $job.write
 
             $normalized = @{
@@ -205,11 +206,9 @@ try {
         Aggregate  = $aggregate
         JobData    = $nodeData
     }
-}
-catch {
+} catch {
     Write-Log -Message "Collection failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

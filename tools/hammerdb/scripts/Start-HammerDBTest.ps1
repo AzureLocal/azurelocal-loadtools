@@ -59,7 +59,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'HammerDB-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\hammerdb')
+$null = Start-LogSession -Component 'HammerDB-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\hammerdb')
 
 try {
     Write-Log -Message 'Starting HammerDB test phase' -Severity Information
@@ -78,21 +78,21 @@ try {
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
     # Load workload profile
-    $profile = $null
+    $loadProfile = $null
     if ($ProfilePath -and (Test-Path $ProfilePath)) {
-        $profile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
-        Write-Log -Message "Loaded profile: $($profile.profile.name)" -Severity Information
+        $loadProfile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
+        Write-Log -Message "Loaded profile: $($loadProfile.profile.name)" -Severity Information
     }
 
     # Resolve parameters: explicit > profile > solution config
-    $dbTypeVal       = if ($DbType)         { $DbType }         elseif ($profile) { $profile.profile.parameters.db_type }        else { $solutionConfig.hammerdb_db_type }
-    $dbServerVal     = if ($DbServer)       { $DbServer }       elseif ($profile) { $profile.profile.parameters.db_server }      else { $solutionConfig.hammerdb_db_server }
-    $dbNameVal       = if ($DbName)         { $DbName }         elseif ($profile) { $profile.profile.parameters.db_name }        else { $solutionConfig.hammerdb_db_name }
-    $warehouseVal    = if ($WarehouseCount) { $WarehouseCount } elseif ($profile) { $profile.profile.parameters.warehouse_count } else { [int]$solutionConfig.hammerdb_warehouse_count }
-    $vuVal           = if ($VirtualUsers)   { $VirtualUsers }   elseif ($profile) { $profile.profile.parameters.virtual_users }  else { [int]$solutionConfig.hammerdb_virtual_users }
-    $benchmarkType   = if ($profile)        { $profile.profile.parameters.benchmark_type } else { 'tpcc' }
-    $rampUpSeconds   = if ($profile)        { $profile.profile.parameters.ramp_up_seconds }   else { 120 }
-    $testDuration    = if ($profile)        { $profile.profile.parameters.test_duration_seconds } else { [int]$solutionConfig.test_duration_seconds }
+    $dbTypeVal = if ($DbType) { $DbType }         elseif ($loadProfile) { $loadProfile.profile.parameters.db_type }        else { $solutionConfig.hammerdb_db_type }
+    $dbServerVal = if ($DbServer) { $DbServer }       elseif ($loadProfile) { $loadProfile.profile.parameters.db_server }      else { $solutionConfig.hammerdb_db_server }
+    $dbNameVal = if ($DbName) { $DbName }         elseif ($loadProfile) { $loadProfile.profile.parameters.db_name }        else { $solutionConfig.hammerdb_db_name }
+    $warehouseVal = if ($WarehouseCount) { $WarehouseCount } elseif ($loadProfile) { $loadProfile.profile.parameters.warehouse_count } else { [int]$solutionConfig.hammerdb_warehouse_count }
+    $vuVal = if ($VirtualUsers) { $VirtualUsers }   elseif ($loadProfile) { $loadProfile.profile.parameters.virtual_users }  else { [int]$solutionConfig.hammerdb_virtual_users }
+    $benchmarkType = if ($loadProfile) { $loadProfile.profile.parameters.benchmark_type } else { 'tpcc' }
+    $rampUpSeconds = if ($loadProfile) { $loadProfile.profile.parameters.ramp_up_seconds }   else { 120 }
+    $testDuration = if ($loadProfile) { $loadProfile.profile.parameters.test_duration_seconds } else { [int]$solutionConfig.test_duration_seconds }
 
     if (-not $dbServerVal) {
         throw "DB server not specified. Set hammerdb_db_server in config, use -DbServer, or specify a profile."
@@ -116,9 +116,9 @@ try {
     }
 
     $tclDbType = switch ($dbTypeVal) {
-        'mssql'      { 'mssqls' }
+        'mssql' { 'mssqls' }
         'postgresql' { 'pg' }
-        default      { 'mssqls' }
+        default { 'mssqls' }
     }
 
     $resultsDir = "C:\\hammerdb-results\\$RunId"
@@ -161,8 +161,8 @@ vudestroy
 
             $logFile = Join-Path $ResultsDir 'hammerdb-run.log'
             $proc = Start-Process -FilePath $hammerCli -ArgumentList "auto $tclFile" `
-                                  -RedirectStandardOutput $logFile `
-                                  -Wait -PassThru -NoNewWindow
+                -RedirectStandardOutput $logFile `
+                -Wait -PassThru -NoNewWindow
 
             Remove-Item $tclFile -Force -ErrorAction SilentlyContinue
 
@@ -191,14 +191,12 @@ vudestroy
             VirtualUsers    = $vuVal
             RampUpSeconds   = $rampUpSeconds
             TestDuration    = $testDuration
-            ProfileName     = if ($profile) { $profile.profile.name } else { 'custom' }
+            ProfileName     = if ($loadProfile) { $loadProfile.profile.name } else { 'custom' }
         }
     }
-}
-catch {
+} catch {
     Write-Log -Message "Test phase failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

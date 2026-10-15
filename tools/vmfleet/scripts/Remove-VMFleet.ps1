@@ -8,6 +8,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Force is part of the common phase-script parameter set; removal is gated by ShouldProcess (-WhatIf/-Confirm).')]
 param(
     [Parameter()]
     [string]$ClusterConfigPath,
@@ -35,7 +36,7 @@ if (-not $ProjectRoot) {
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'VMFleet-Remove' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+$null = Start-LogSession -Component 'VMFleet-Remove' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 
 try {
     Write-Log -Message 'Starting VMFleet cleanup phase' -Severity Information
@@ -58,7 +59,7 @@ try {
         Write-Log -Message 'Stopping any running workloads...' -Severity Information
         Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
             Import-Module VMFleet -ErrorAction Stop
-            try { Stop-Fleet -ErrorAction SilentlyContinue } catch { }
+            try { Stop-Fleet -ErrorAction SilentlyContinue } catch { Write-Verbose "Ignored: $($_.Exception.Message)" }
         }
     }
 
@@ -86,8 +87,7 @@ try {
                 }
 
                 Write-Output 'Fleet VMs removed'
-            }
-            else {
+            } else {
                 Write-Output 'No fleet VMs found'
             }
         } -ArgumentList @($RemoveVHDs.IsPresent)
@@ -109,11 +109,9 @@ try {
 
     Write-Log -Message 'VMFleet cleanup completed' -Severity Information
     Write-Host 'VMFleet cleanup complete.' -ForegroundColor Green
-}
-catch {
+} catch {
     Write-Log -Message "Cleanup failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

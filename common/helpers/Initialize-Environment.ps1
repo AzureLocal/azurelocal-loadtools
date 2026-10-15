@@ -8,6 +8,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Legacy -Verbose switch kept for existing callers.')]
 param(
     [Parameter()]
     [string]$ProjectRoot,
@@ -126,7 +127,7 @@ function Show-PrerequisiteReport {
     Write-Host "`n===== Prerequisite Check =====" -ForegroundColor Cyan
     foreach ($c in $Checks) {
         $symbol = if ($c.Found) { '[OK]' } elseif ($c.Required) { '[FAIL]' } else { '[SKIP]' }
-        $color  = if ($c.Found) { 'Green' } elseif ($c.Required) { 'Red' } else { 'Yellow' }
+        $color = if ($c.Found) { 'Green' } elseif ($c.Required) { 'Red' } else { 'Yellow' }
         Write-Host "  $symbol $($c.Name) - $($c.Detail)" -ForegroundColor $color
     }
     Write-Host ''
@@ -150,8 +151,7 @@ function Import-CoreModules {
         if (Test-Path $modFile) {
             Import-Module $modFile -Force -Verbose:$false
             Write-Verbose "Loaded module: $mod"
-        }
-        else {
+        } else {
             Write-Warning "Module not found: $modFile"
         }
     }
@@ -252,7 +252,7 @@ Import-CoreModules -ProjectRoot $ProjectRoot
 $defaultMaster = Join-Path $ProjectRoot 'config\variables\variables.yml'
 $defaultCluster = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
 
-$masterConfig  = if ($MasterConfigPath) { $MasterConfigPath } else { $defaultMaster }
+$masterConfig = if ($MasterConfigPath) { $MasterConfigPath } else { $defaultMaster }
 $clusterConfig = if ($ClusterConfigPath) { $ClusterConfigPath } else { $defaultCluster }
 
 Initialize-MasterConfig -ProjectRoot $ProjectRoot -MasterConfigPath $masterConfig

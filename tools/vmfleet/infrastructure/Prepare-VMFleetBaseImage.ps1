@@ -63,8 +63,7 @@ function Invoke-ArmRequest {
     if ($Body) {
         $payload = $Body | ConvertTo-Json -Depth 10
         $response = Invoke-AzRestMethod -Method $Method -Path $Path -Payload $payload
-    }
-    else {
+    } else {
         $response = Invoke-AzRestMethod -Method $Method -Path $Path
     }
 
@@ -84,8 +83,7 @@ function Get-ArmResourceIfExists {
 
     try {
         return Invoke-ArmRequest -Method GET -Path $Path
-    }
-    catch {
+    } catch {
         if ($_.Exception.Message -match '404|NotFound|not found') {
             return $null
         }
@@ -149,8 +147,7 @@ try {
 
     if ($imageResource -and $imageResource.properties.provisioningState -eq 'Succeeded' -and -not $Force.IsPresent) {
         Write-Log -Message 'Marketplace image already exists in Succeeded state; skipping download' -Severity INFO -SessionId $logSession -Data @{ image_name = $ImageName }
-    }
-    else {
+    } else {
         $putBody = @{
             location = $location
             extendedLocation = @{
@@ -237,11 +234,9 @@ try {
     Write-Host 'VMFleet base image is ready.' -ForegroundColor Green
     Write-Host "Resolved VHDX path: $resolvedVhdPath" -ForegroundColor Green
     Write-Host 'Set this value in config\variables\variables.yml as storage.base_vhd_path before running Deploy-VMFleet.ps1.' -ForegroundColor Yellow
-}
-catch {
+} catch {
     Write-Log -Message "Base image preparation failed: $($_.Exception.Message)" -Severity ERROR -SessionId $logSession -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession -SessionId $logSession
 }

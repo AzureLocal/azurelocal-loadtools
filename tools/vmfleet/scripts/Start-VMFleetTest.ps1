@@ -57,7 +57,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'VMFleet-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+$null = Start-LogSession -Component 'VMFleet-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 
 try {
     Write-Log -Message 'Starting VMFleet test phase' -Severity Information
@@ -75,25 +75,24 @@ try {
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
     # Load workload profile if specified
-    $profile = $null
+    $loadProfile = $null
     if ($ProfilePath) {
         if (Test-Path $ProfilePath) {
-            $profile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
-            Write-Log -Message "Loaded profile: $($profile.name)" -Severity Information
-        }
-        else {
+            $loadProfile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
+            Write-Log -Message "Loaded profile: $($loadProfile.name)" -Severity Information
+        } else {
             Write-Log -Message "Profile not found: $ProfilePath" -Severity Warning
         }
     }
 
     # Resolve parameters: explicit param > profile > solution config
-    $blockSz   = if ($BlockSize)        { $BlockSize }        elseif ($profile) { $profile.parameters.block_size }      else { $solutionConfig.vmfleet_block_size }
-    $writeR    = if ($WriteRatio)       { $WriteRatio }       elseif ($profile) { $profile.parameters.write_ratio }     else { [int]$solutionConfig.vmfleet_write_ratio }
-    $randomR   = if ($RandomRatio)      { $RandomRatio }      elseif ($profile) { $profile.parameters.random_ratio }    else { [int]$solutionConfig.vmfleet_random_ratio }
-    $outIO     = if ($OutstandingIO)    { $OutstandingIO }    elseif ($profile) { $profile.parameters.outstanding_io }  else { [int]$solutionConfig.vmfleet_outstanding_io }
-    $threads   = if ($ThreadsPerVM)     { $ThreadsPerVM }     elseif ($profile) { $profile.parameters.threads_per_vm }  else { [int]$solutionConfig.vmfleet_threads_per_vm }
-    $duration  = if ($DurationSeconds)  { $DurationSeconds }  elseif ($profile) { $profile.parameters.duration }        else { [int]$solutionConfig.vmfleet_test_duration }
-    $warmup    = if ($WarmupSeconds)    { $WarmupSeconds }    elseif ($profile) { $profile.parameters.warmup }          else { [int]$solutionConfig.vmfleet_warmup_seconds }
+    $blockSz = if ($BlockSize) { $BlockSize }        elseif ($loadProfile) { $loadProfile.parameters.block_size }      else { $solutionConfig.vmfleet_block_size }
+    $writeR = if ($WriteRatio) { $WriteRatio }       elseif ($loadProfile) { $loadProfile.parameters.write_ratio }     else { [int]$solutionConfig.vmfleet_write_ratio }
+    $randomR = if ($RandomRatio) { $RandomRatio }      elseif ($loadProfile) { $loadProfile.parameters.random_ratio }    else { [int]$solutionConfig.vmfleet_random_ratio }
+    $outIO = if ($OutstandingIO) { $OutstandingIO }    elseif ($loadProfile) { $loadProfile.parameters.outstanding_io }  else { [int]$solutionConfig.vmfleet_outstanding_io }
+    $threads = if ($ThreadsPerVM) { $ThreadsPerVM }     elseif ($loadProfile) { $loadProfile.parameters.threads_per_vm }  else { [int]$solutionConfig.vmfleet_threads_per_vm }
+    $duration = if ($DurationSeconds) { $DurationSeconds }  elseif ($loadProfile) { $loadProfile.parameters.duration }        else { [int]$solutionConfig.vmfleet_test_duration }
+    $warmup = if ($WarmupSeconds) { $WarmupSeconds }    elseif ($loadProfile) { $loadProfile.parameters.warmup }          else { [int]$solutionConfig.vmfleet_warmup_seconds }
 
     $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
 
@@ -137,13 +136,11 @@ try {
         RandomRatio = $randomR
         OutstandingIO = $outIO
         Threads    = $threads
-        ProfileName = if ($profile) { $profile.name } else { 'custom' }
+        ProfileName = if ($loadProfile) { $loadProfile.name } else { 'custom' }
     }
-}
-catch {
+} catch {
     Write-Log -Message "Test start failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

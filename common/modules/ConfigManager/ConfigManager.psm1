@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # ConfigManager Module - Azure Local Load Tools
 # =============================================================================
 # Manages configuration pipeline: reads variables.yml, filters by
@@ -131,8 +131,7 @@ function Export-SolutionConfig {
         # Skip sensitive variables — they should come from Key Vault at runtime
         if ($var.sensitive -eq $true) {
             $configObject[$var.name] = ''
-        }
-        else {
+        } else {
             $configObject[$var.name] = $var.value
         }
     }
@@ -283,8 +282,7 @@ function Test-MasterConfig {
 
     try {
         $config = Import-MasterConfig -MasterConfigPath $MasterConfigPath -Force
-    }
-    catch {
+    } catch {
         return [PSCustomObject]@{
             IsValid = $false
             Errors  = @("Failed to load master config: $($_.Exception.Message)")

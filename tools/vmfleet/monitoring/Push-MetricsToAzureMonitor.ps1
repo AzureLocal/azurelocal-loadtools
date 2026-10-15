@@ -37,7 +37,7 @@ if (-not $ProjectRoot) {
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'Monitoring-AzurePush' -LogRootPath (Join-Path $ProjectRoot 'logs\monitoring')
+$null = Start-LogSession -Component 'Monitoring-AzurePush' -LogRootPath (Join-Path $ProjectRoot 'logs\monitoring')
 
 try {
     Write-Log -Message 'Starting Azure Monitor metrics push' -Severity Information
@@ -49,7 +49,7 @@ try {
         }
         $config = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
 
-        if (-not $WorkspaceId)  { $WorkspaceId  = $config.monitoring_workspace_id }
+        if (-not $WorkspaceId) { $WorkspaceId = $config.monitoring_workspace_id }
         if (-not $WorkspaceKey) {
             Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
             $WorkspaceKey = Get-ManagedSecret -SecretName 'log_analytics_key' -ProjectRoot $ProjectRoot
@@ -67,6 +67,7 @@ try {
 
     # Build the authorization signature for Log Analytics Data Collector API
     function New-LogAnalyticsSignature {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Computes an HMAC string only; changes no state.')]
         param(
             [string]$WorkspaceId,
             [string]$SharedKey,
@@ -132,8 +133,7 @@ try {
                 try {
                     Send-LogAnalyticsData -WorkspaceId $WorkspaceId -SharedKey $WorkspaceKey -Body $body -LogType $LogType
                     Write-Log -Message "Pushed $($batch.Count) records from $($file.Name)" -Severity Information
-                }
-                catch {
+                } catch {
                     Write-Log -Message "Failed to push batch from $($file.Name): $($_.Exception.Message)" -Severity Warning
                 }
             }
@@ -142,11 +142,9 @@ try {
 
     Write-Log -Message 'Azure Monitor push complete' -Severity Information
     Write-Host 'Metrics pushed to Azure Monitor.' -ForegroundColor Green
-}
-catch {
+} catch {
     Write-Log -Message "Azure Monitor push failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

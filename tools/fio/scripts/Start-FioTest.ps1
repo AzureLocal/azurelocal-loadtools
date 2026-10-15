@@ -9,6 +9,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Credential is accepted so every tool script shares one parameter contract with the pipeline; this tool runs over SSH and does not use it.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -64,7 +65,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'Fio-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\fio')
+$null = Start-LogSession -Component 'Fio-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\fio')
 
 try {
     Write-Log -Message 'Starting fio test phase' -Severity Information
@@ -83,21 +84,21 @@ try {
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
     # Load workload profile
-    $profile = $null
+    $loadProfile = $null
     if ($ProfilePath -and (Test-Path $ProfilePath)) {
-        $profile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
-        Write-Log -Message "Loaded profile: $($profile.profile.name)" -Severity Information
+        $loadProfile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
+        Write-Log -Message "Loaded profile: $($loadProfile.profile.name)" -Severity Information
     }
 
     # Resolve parameters: explicit param > profile > solution config
-    $blkSize    = if ($BlockSize)      { $BlockSize }      elseif ($profile) { $profile.profile.parameters.block_size }   else { $solutionConfig.fio_block_size }
-    $engine     = if ($IoEngine)       { $IoEngine }       elseif ($profile) { $profile.profile.parameters.io_engine }    else { $solutionConfig.fio_io_engine }
-    $ioDepthVal = if ($IoDepth)        { $IoDepth }        elseif ($profile) { $profile.profile.parameters.io_depth }     else { [int]$solutionConfig.fio_io_depth }
-    $jobs       = if ($NumJobs)        { $NumJobs }        elseif ($profile) { $profile.profile.parameters.num_jobs }     else { [int]$solutionConfig.fio_num_jobs }
-    $runtime    = if ($RuntimeSeconds) { $RuntimeSeconds } elseif ($profile) { $profile.profile.parameters.runtime_seconds } else { [int]$solutionConfig.fio_runtime_seconds }
-    $testDir    = if ($TestDirectory)  { $TestDirectory }  elseif ($profile) { $profile.profile.parameters.test_directory }  else { '/tmp/fio-test' }
-    $rw         = if ($profile)        { $profile.profile.parameters.rw }        else { 'randrw' }
-    $rwMixRead  = if ($profile)        { $profile.profile.parameters.rwmixread } else { 70 }
+    $blkSize = if ($BlockSize) { $BlockSize }      elseif ($loadProfile) { $loadProfile.profile.parameters.block_size }   else { $solutionConfig.fio_block_size }
+    $engine = if ($IoEngine) { $IoEngine }       elseif ($loadProfile) { $loadProfile.profile.parameters.io_engine }    else { $solutionConfig.fio_io_engine }
+    $ioDepthVal = if ($IoDepth) { $IoDepth }        elseif ($loadProfile) { $loadProfile.profile.parameters.io_depth }     else { [int]$solutionConfig.fio_io_depth }
+    $jobs = if ($NumJobs) { $NumJobs }        elseif ($loadProfile) { $loadProfile.profile.parameters.num_jobs }     else { [int]$solutionConfig.fio_num_jobs }
+    $runtime = if ($RuntimeSeconds) { $RuntimeSeconds } elseif ($loadProfile) { $loadProfile.profile.parameters.runtime_seconds } else { [int]$solutionConfig.fio_runtime_seconds }
+    $testDir = if ($TestDirectory) { $TestDirectory }  elseif ($loadProfile) { $loadProfile.profile.parameters.test_directory }  else { '/tmp/fio-test' }
+    $rw = if ($loadProfile) { $loadProfile.profile.parameters.rw }        else { 'randrw' }
+    $rwMixRead = if ($loadProfile) { $loadProfile.profile.parameters.rwmixread } else { 70 }
 
     $nodes = $clusterConfig.nodes | Where-Object { $_.role -eq 'worker' -or -not $_.role } | ForEach-Object { $_.name }
     if ($nodes.Count -eq 0) {
@@ -109,7 +110,7 @@ try {
 
     # Resolve SSH credentials
     $sshUserVal = if ($SshUser) { $SshUser } else { $clusterConfig.cluster.ssh_user }
-    $sshKeyVal  = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
+    $sshKeyVal = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
 
     if (-not $sshUserVal) {
         Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
@@ -122,22 +123,22 @@ try {
 
     # Build fio command
     $fioCmd = "mkdir -p $remoteResultsDir && " +
-              "fio --name=fio-$RunId " +
-              "--rw=$rw " +
-              "--rwmixread=$rwMixRead " +
-              "--bs=$blkSize " +
-              "--ioengine=$engine " +
-              "--iodepth=$ioDepthVal " +
-              "--numjobs=$jobs " +
-              "--size=1G " +
-              "--runtime=$runtime " +
-              "--time_based " +
-              "--directory=$testDir " +
-              "--create_on_open=1 " +
-              "--output-format=json " +
-              "--output=$remoteResultsDir/fio-results.json " +
-              "--filename_format=fio-\$jobnum.dat && " +
-              "echo 'FIO_DONE'"
+    "fio --name=fio-$RunId " +
+    "--rw=$rw " +
+    "--rwmixread=$rwMixRead " +
+    "--bs=$blkSize " +
+    "--ioengine=$engine " +
+    "--iodepth=$ioDepthVal " +
+    "--numjobs=$jobs " +
+    "--size=1G " +
+    "--runtime=$runtime " +
+    "--time_based " +
+    "--directory=$testDir " +
+    "--create_on_open=1 " +
+    "--output-format=json " +
+    "--output=$remoteResultsDir/fio-results.json " +
+    "--filename_format=fio-\$jobnum.dat && " +
+    "echo 'FIO_DONE'"
 
     $nodeResults = [System.Collections.Generic.List[hashtable]]::new()
 
@@ -155,14 +156,13 @@ try {
             if ($exitCode -ne 0) {
                 Write-Log -Message "fio failed on $node (exit $exitCode): $output" -Severity Error
                 $nodeResults.Add(@{ Node = $node; Status = 'Failed'; ExitCode = $exitCode })
-            }
-            else {
+            } else {
                 Write-Log -Message "fio completed on $node" -Severity Information
                 $nodeResults.Add(@{
-                    Node              = $node
-                    Status            = 'Completed'
-                    RemoteResultsPath = $remoteResultsDir
-                })
+                        Node              = $node
+                        Status            = 'Completed'
+                        RemoteResultsPath = $remoteResultsDir
+                    })
             }
         }
     }
@@ -182,14 +182,12 @@ try {
             RuntimeSeconds = $runtime
             Rw             = $rw
             RwMixRead      = $rwMixRead
-            ProfileName    = if ($profile) { $profile.profile.name } else { 'custom' }
+            ProfileName    = if ($loadProfile) { $loadProfile.profile.name } else { 'custom' }
         }
     }
-}
-catch {
+} catch {
     Write-Log -Message "Test phase failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

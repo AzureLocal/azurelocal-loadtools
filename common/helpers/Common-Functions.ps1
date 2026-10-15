@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # Common-Functions.ps1 - Azure Local Load Tools
 # =============================================================================
 # Shared utility functions used across all solution scripts.
@@ -10,6 +10,7 @@ function Test-ClusterConnectivity {
     .SYNOPSIS
         Tests WinRM connectivity to all cluster nodes.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Test-WSMan has no timeout parameter; TimeoutSeconds is reserved for the caller contract.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -75,13 +76,12 @@ function Invoke-RemoteCommand {
         ErrorAction  = 'Stop'
     }
     if ($ArgumentList) { $params['ArgumentList'] = $ArgumentList }
-    if ($Credential)   { $params['Credential']   = $Credential }
+    if ($Credential) { $params['Credential'] = $Credential }
 
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         try {
             return Invoke-Command @params
-        }
-        catch {
+        } catch {
             if ($attempt -eq $MaxRetries) {
                 throw "Failed after $MaxRetries attempts on $ComputerName : $($_.Exception.Message)"
             }
@@ -173,8 +173,7 @@ function Copy-ToClusterNodes {
             try {
                 Copy-Item -Path $SourcePath -Destination $DestinationPath -ToSession $session -Recurse -Force
                 Write-Verbose "Copied to $node`:$DestinationPath"
-            }
-            finally {
+            } finally {
                 Remove-PSSession -Session $session
             }
         }
@@ -231,8 +230,7 @@ function Format-Duration {
 
     if ($Duration.TotalHours -ge 1) {
         return '{0}h {1}m {2}s' -f [int]$Duration.TotalHours, $Duration.Minutes, $Duration.Seconds
-    }
-    elseif ($Duration.TotalMinutes -ge 1) {
+    } elseif ($Duration.TotalMinutes -ge 1) {
         return '{0}m {1}s' -f [int]$Duration.TotalMinutes, $Duration.Seconds
     }
     return '{0}s' -f [int]$Duration.TotalSeconds

@@ -32,6 +32,7 @@ function Start-LogSession {
     .OUTPUTS
         String - The session ID for use with Write-Log and Stop-LogSession.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Creates only the in-memory session and its own log file.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -100,6 +101,7 @@ function Write-Log {
     .PARAMETER ErrorRecord
         PowerShell ErrorRecord object for error logging.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Write-Log is the module public logging contract used by every script; it is not a cmdlet in current PowerShell 7 releases.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -169,8 +171,7 @@ function Write-Log {
     if ($session) {
         Add-Content -Path $session.LogFilePath -Value $jsonLine -Encoding UTF8
         $session.EntryCount++
-    }
-    else {
+    } else {
         # Fallback: write to default orchestrator log
         $defaultLogDir = Join-Path $script:ProjectRoot 'logs\orchestrator'
         if (-not (Test-Path $defaultLogDir)) {
@@ -182,10 +183,10 @@ function Write-Log {
 
     # Also write to verbose/warning/error streams
     switch ($Severity) {
-        'DEBUG'    { Write-Debug $Message }
-        'INFO'     { Write-Verbose $Message }
-        'WARNING'  { Write-Warning $Message }
-        'ERROR'    { Write-Error $Message -ErrorAction Continue }
+        'DEBUG' { Write-Debug $Message }
+        'INFO' { Write-Verbose $Message }
+        'WARNING' { Write-Warning $Message }
+        'ERROR' { Write-Error $Message -ErrorAction Continue }
         'CRITICAL' { Write-Error "[CRITICAL] $Message" -ErrorAction Continue }
     }
 }
@@ -197,6 +198,7 @@ function Stop-LogSession {
     .PARAMETER SessionId
         The session ID returned by Start-LogSession.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Closes only the in-memory session.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]

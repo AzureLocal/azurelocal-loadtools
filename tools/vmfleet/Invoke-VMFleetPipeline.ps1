@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # Invoke-VMFleetPipeline.ps1 - Azure Local Load Tools
 # =============================================================================
 # End-to-end orchestrator for VMFleet load testing. Executes all pipeline
@@ -68,11 +68,11 @@ Import-Module (Join-Path $modulesPath 'ReportGenerator\ReportGenerator.psm1') -F
 # ---- Initialize ----
 if (-not $RunId) { $RunId = "vmfleet-$(Get-Timestamp -FilenameSafe)" }
 
-$logSession = Start-LogSession -Component 'VMFleet-Pipeline' -LogRootPath (Join-Path $ProjectRoot 'logs\pipeline')
+$null = Start-LogSession -Component 'VMFleet-Pipeline' -LogRootPath (Join-Path $ProjectRoot 'logs\pipeline')
 
 # Default config paths
 if (-not $SolutionConfigPath) { $SolutionConfigPath = Join-Path $ProjectRoot 'tools\vmfleet\config\vmfleet.json' }
-if (-not $ClusterConfigPath)  { $ClusterConfigPath  = Join-Path $ProjectRoot 'config\clusters\cluster.yml' }
+if (-not $ClusterConfigPath) { $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml' }
 
 $outputPath = Join-Path $ProjectRoot "reports\$RunId"
 $metricsPath = Join-Path $outputPath 'metrics'
@@ -97,13 +97,11 @@ if ($Resume) {
     if (-not $state) {
         Write-Warning 'No previous state found. Starting fresh.'
         $state = New-RunState -RunId $RunId -Solution 'VMFleet' -Phases $phases -StateDirectory $stateDir
-    }
-    else {
+    } else {
         Write-Log -Message "Resuming run: $($state.run_id)" -Severity Information
         $RunId = $state.run_id
     }
-}
-else {
+} else {
     $state = New-RunState -RunId $RunId -Solution 'VMFleet' -Phases $phases -StateDirectory $stateDir
 }
 
@@ -129,7 +127,7 @@ try {
 
         # Validate config files exist
         if (-not (Test-Path $SolutionConfigPath)) { throw "Solution config not found: $SolutionConfigPath" }
-        if (-not (Test-Path $ClusterConfigPath))  { throw "Cluster config not found: $ClusterConfigPath" }
+        if (-not (Test-Path $ClusterConfigPath)) { throw "Cluster config not found: $ClusterConfigPath" }
 
         # Test cluster connectivity
         Import-Module powershell-yaml -ErrorAction Stop
@@ -156,8 +154,7 @@ try {
         & (Join-Path $vmfleetScripts 'Install-VMFleet.ps1') @commonParams -SolutionConfigPath $SolutionConfigPath
 
         Update-RunPhase -RunId $RunId -Phase 'Install' -Status 'Completed' -StateDirectory $stateDir
-    }
-    elseif ($SkipInstall) {
+    } elseif ($SkipInstall) {
         Update-RunPhase -RunId $RunId -Phase 'Install' -Status 'Skipped' -StateDirectory $stateDir
     }
 
@@ -171,8 +168,7 @@ try {
         & (Join-Path $vmfleetScripts 'Deploy-VMFleet.ps1') @commonParams -SolutionConfigPath $SolutionConfigPath
 
         Update-RunPhase -RunId $RunId -Phase 'Deploy' -Status 'Completed' -StateDirectory $stateDir
-    }
-    elseif ($SkipDeploy) {
+    } elseif ($SkipDeploy) {
         Update-RunPhase -RunId $RunId -Phase 'Deploy' -Status 'Skipped' -StateDirectory $stateDir
     }
 
@@ -186,7 +182,7 @@ try {
         $testParams = @{}
         if ($ProfilePath) { $testParams['ProfilePath'] = $ProfilePath }
 
-        $testMeta = & (Join-Path $vmfleetScripts 'Start-VMFleetTest.ps1') @commonParams -SolutionConfigPath $SolutionConfigPath @testParams
+        $null = & (Join-Path $vmfleetScripts 'Start-VMFleetTest.ps1') @commonParams -SolutionConfigPath $SolutionConfigPath @testParams
 
         Update-RunPhase -RunId $RunId -Phase 'StartTest' -Status 'Completed' -StateDirectory $stateDir
     }
@@ -208,8 +204,8 @@ try {
 
         # Start metric collection in parallel
         $storageJob = Start-Job -ScriptBlock {
-            param($Script, $Config, $Root, $Cred, $Output, $Duration)
-            & $Script -ClusterConfigPath $Config -ProjectRoot $Root -Credential $Cred -OutputPath $Output -DurationSeconds $Duration
+            param($Script, $Config, $Root, $RunAs, $Output, $Duration)
+            & $Script -ClusterConfigPath $Config -ProjectRoot $Root -Credential $RunAs -OutputPath $Output -DurationSeconds $Duration
         } -ArgumentList @(
             (Join-Path $monitoringScripts 'Collect-StorageMetrics.ps1'),
             $ClusterConfigPath, $ProjectRoot, $Credential,
@@ -217,8 +213,8 @@ try {
         )
 
         $networkJob = Start-Job -ScriptBlock {
-            param($Script, $Config, $Root, $Cred, $Output, $Duration)
-            & $Script -ClusterConfigPath $Config -ProjectRoot $Root -Credential $Cred -OutputPath $Output -DurationSeconds $Duration
+            param($Script, $Config, $Root, $RunAs, $Output, $Duration)
+            & $Script -ClusterConfigPath $Config -ProjectRoot $Root -Credential $RunAs -OutputPath $Output -DurationSeconds $Duration
         } -ArgumentList @(
             (Join-Path $monitoringScripts 'Collect-NetworkMetrics.ps1'),
             $ClusterConfigPath, $ProjectRoot, $Credential,
@@ -226,8 +222,8 @@ try {
         )
 
         $computeJob = Start-Job -ScriptBlock {
-            param($Script, $Config, $Root, $Cred, $Output, $Duration)
-            & $Script -ClusterConfigPath $Config -ProjectRoot $Root -Credential $Cred -OutputPath $Output -DurationSeconds $Duration
+            param($Script, $Config, $Root, $RunAs, $Output, $Duration)
+            & $Script -ClusterConfigPath $Config -ProjectRoot $Root -Credential $RunAs -OutputPath $Output -DurationSeconds $Duration
         } -ArgumentList @(
             (Join-Path $monitoringScripts 'Collect-ComputeMetrics.ps1'),
             $ClusterConfigPath, $ProjectRoot, $Credential,
@@ -268,7 +264,7 @@ try {
         Update-RunPhase -RunId $RunId -Phase 'Collect' -Status 'Running' -StateDirectory $stateDir
         Write-Log -Message '== Phase: Collect ==' -Severity Information
 
-        $collectResult = & (Join-Path $vmfleetScripts 'Collect-VMFleetResults.ps1') @commonParams `
+        $null = & (Join-Path $vmfleetScripts 'Collect-VMFleetResults.ps1') @commonParams `
             -SolutionConfigPath $SolutionConfigPath -OutputPath $outputPath -RunId $RunId
 
         # Optional: push to Azure Monitor
@@ -307,8 +303,7 @@ try {
         & (Join-Path $vmfleetScripts 'Remove-VMFleet.ps1') @commonParams -Force -Confirm:$false
 
         Update-RunPhase -RunId $RunId -Phase 'Cleanup' -Status 'Completed' -StateDirectory $stateDir
-    }
-    elseif ($SkipCleanup) {
+    } elseif ($SkipCleanup) {
         Update-RunPhase -RunId $RunId -Phase 'Cleanup' -Status 'Skipped' -StateDirectory $stateDir
     }
 
@@ -321,12 +316,10 @@ try {
     Write-Host "  Run ID:  $RunId" -ForegroundColor Green
     Write-Host "  Reports: $outputPath" -ForegroundColor Green
     Write-Host '=====================================================' -ForegroundColor Green
-}
-catch {
+} catch {
     Write-Log -Message "Pipeline failed at phase: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     Write-Host "Pipeline failed. Use -Resume to continue from last checkpoint." -ForegroundColor Red
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

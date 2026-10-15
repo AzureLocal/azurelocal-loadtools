@@ -42,7 +42,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'HammerDB-Install' -LogRootPath (Join-Path $ProjectRoot 'logs\hammerdb')
+$null = Start-LogSession -Component 'HammerDB-Install' -LogRootPath (Join-Path $ProjectRoot 'logs\hammerdb')
 
 try {
     Write-Log -Message 'Starting HammerDB installation phase' -Severity Information
@@ -54,7 +54,7 @@ try {
         $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
     }
 
-    $solutionConfig = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
+    $null = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
     Import-Module powershell-yaml -ErrorAction Stop
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
@@ -85,7 +85,7 @@ try {
                 param($Url, $InstPath, $Ver, $ForceInstall)
 
                 $installerPath = "$env:TEMP\HammerDB-$Ver-Win.exe"
-                $existingDir   = Join-Path $InstPath "HammerDB-$Ver"
+                $existingDir = Join-Path $InstPath "HammerDB-$Ver"
 
                 if ((Test-Path $existingDir) -and -not $ForceInstall) {
                     Write-Output "HammerDB $Ver already installed at $existingDir"
@@ -120,11 +120,9 @@ try {
         InstallPath     = $InstallPath
         Status          = 'Installed'
     }
-}
-catch {
+} catch {
     Write-Log -Message "Installation failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

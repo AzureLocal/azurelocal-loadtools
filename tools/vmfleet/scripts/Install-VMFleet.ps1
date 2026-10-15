@@ -45,7 +45,7 @@ Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
 # Initialize logging
-$logSession = Start-LogSession -Component 'VMFleet-Install' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+$null = Start-LogSession -Component 'VMFleet-Install' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 
 try {
     Write-Log -Message 'Starting VMFleet installation phase' -Severity Information
@@ -122,19 +122,16 @@ try {
 
         if ($diskspdCheck.Found) {
             Write-Log -Message "DiskSpd found at: $($diskspdCheck.Path)" -Severity Information
-        }
-        else {
+        } else {
             Write-Log -Message 'DiskSpd not found. VMFleet will use its bundled version.' -Severity Warning
         }
     }
 
     Write-Log -Message 'VMFleet installation phase completed successfully' -Severity Information
     Write-Host 'VMFleet installation complete.' -ForegroundColor Green
-}
-catch {
+} catch {
     Write-Log -Message "Installation failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

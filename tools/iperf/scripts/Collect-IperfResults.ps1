@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # Collect-IperfResults.ps1 - Azure Local Load Tools
 # =============================================================================
 # Retrieves iPerf3 JSON output from target nodes via SCP, normalizes metrics
@@ -9,6 +9,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Credential is accepted so every tool script shares one parameter contract with the pipeline; this tool runs over SSH and does not use it.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -49,7 +50,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'Iperf-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\iperf')
+$null = Start-LogSession -Component 'Iperf-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\iperf')
 
 try {
     Write-Log -Message 'Starting iPerf3 results collection' -Severity Information
@@ -61,7 +62,7 @@ try {
         $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
     }
 
-    $solutionConfig = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
+    $null = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
     Import-Module powershell-yaml -ErrorAction Stop
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
@@ -74,7 +75,7 @@ try {
 
     $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
     $sshUserVal = if ($SshUser) { $SshUser } else { $clusterConfig.cluster.ssh_user }
-    $sshKeyVal  = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
+    $sshKeyVal = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
 
     $remoteResultsDir = "/tmp/iperf-results/$RunId"
     $pairData = [System.Collections.Generic.List[hashtable]]::new()
@@ -93,7 +94,7 @@ try {
         if ($sshKeyVal) { $scpArgs += '-i', $sshKeyVal }
         $scpArgs += "${sshUserVal}@${node}:${remoteResultsDir}/", $localNodeDir
 
-        $scpOut = & scp @scpArgs 2>&1
+        $null = & scp @scpArgs 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Log -Message "No results on $node or SCP failed (may be server-only node)" -Severity Information
             continue
@@ -107,7 +108,7 @@ try {
             try {
                 $iperfRaw = Get-Content -Path $jsonFile.FullName -Raw | ConvertFrom-Json
 
-                $end   = $iperfRaw.end
+                $end = $iperfRaw.end
                 $proto = if ($iperfRaw.start.test_start.protocol) { $iperfRaw.start.test_start.protocol } else { 'TCP' }
 
                 if ($proto -eq 'UDP') {
@@ -122,10 +123,9 @@ try {
                         packets_lost         = $end.sum.lost_packets
                         duration_seconds     = $end.sum.seconds
                     }
-                }
-                else {
-                    $sendSum  = $end.sum_sent
-                    $recvSum  = $end.sum_received
+                } else {
+                    $sendSum = $end.sum_sent
+                    $recvSum = $end.sum_received
                     $normalized = @{
                         run_id              = $RunId
                         pair                = $pairLabel
@@ -140,8 +140,7 @@ try {
 
                 $pairData.Add($normalized)
                 Write-Log -Message "Normalized result for pair: $pairLabel" -Severity Information
-            }
-            catch {
+            } catch {
                 Write-Log -Message "Failed to parse $($jsonFile.Name): $($_.Exception.Message)" -Severity Warning
             }
         }
@@ -172,12 +171,12 @@ try {
         $aggregate['tcp_max_send_throughput_mbps'] = [math]::Round(($tcpPairs | Measure-Object -Property send_throughput_mbps -Maximum).Maximum, 2)
         $aggregate['tcp_min_send_throughput_mbps'] = [math]::Round(($tcpPairs | Measure-Object -Property send_throughput_mbps -Minimum).Minimum, 2)
         $aggregate['tcp_avg_send_throughput_mbps'] = [math]::Round(($tcpPairs | Measure-Object -Property send_throughput_mbps -Average).Average, 2)
-        $aggregate['tcp_total_retransmits']        = ($tcpPairs | Measure-Object -Property retransmits -Sum).Sum
+        $aggregate['tcp_total_retransmits'] = ($tcpPairs | Measure-Object -Property retransmits -Sum).Sum
     }
 
     if ($udpPairs.Count -gt 0) {
-        $aggregate['udp_avg_throughput_mbps']     = [math]::Round(($udpPairs | Measure-Object -Property throughput_mbps -Average).Average, 2)
-        $aggregate['udp_avg_jitter_ms']           = [math]::Round(($udpPairs | Measure-Object -Property jitter_ms -Average).Average, 3)
+        $aggregate['udp_avg_throughput_mbps'] = [math]::Round(($udpPairs | Measure-Object -Property throughput_mbps -Average).Average, 2)
+        $aggregate['udp_avg_jitter_ms'] = [math]::Round(($udpPairs | Measure-Object -Property jitter_ms -Average).Average, 3)
         $aggregate['udp_max_packet_loss_percent'] = [math]::Round(($udpPairs | Measure-Object -Property packet_loss_percent -Maximum).Maximum, 2)
     }
 
@@ -218,11 +217,9 @@ try {
         Aggregate  = $aggregate
         PairData   = $pairData
     }
-}
-catch {
+} catch {
     Write-Log -Message "Collection failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

@@ -37,7 +37,12 @@ param(
     [int]$DataDiskCount,
 
     [Parameter()]
-    [string]$BaseVHDPath
+    [string]$BaseVHDPath,
+
+    # Account the fleet VMs are created with (admin) and that the load generators use to connect.
+    # There is deliberately no default: a fleet must never be created with a well-known password.
+    [Parameter()]
+    [PSCredential]$FleetAdminCredential
 )
 
 $ErrorActionPreference = 'Stop'
@@ -51,7 +56,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'VMFleet-Deploy' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+$null = Start-LogSession -Component 'VMFleet-Deploy' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 
 try {
     Write-Log -Message 'Starting VMFleet deployment phase' -Severity Information
@@ -69,15 +74,15 @@ try {
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
     # Resolve parameters via override chain
-    $vmCount        = if ($VMCount)          { $VMCount }          else { [int]$solutionConfig.vmfleet_vm_count }
-    $vmMemory       = if ($VMMemoryGB)       { $VMMemoryGB }       else { [int]$solutionConfig.vmfleet_vm_memory_gb }
-    $vmProcessors   = if ($VMProcessorCount) { $VMProcessorCount } else { [int]$solutionConfig.vmfleet_vm_processors }
-    $diskSize       = if ($DataDiskSizeGB)   { $DataDiskSizeGB }   else { [int]$solutionConfig.vmfleet_data_disk_size_gb }
-    $diskCount      = if ($DataDiskCount)    { $DataDiskCount }    else { [int]$solutionConfig.vmfleet_data_disk_count }
-    $baseVhd        = if ($BaseVHDPath)      { $BaseVHDPath }      else { $solutionConfig.vmfleet_base_vhd_path }
-    $csvPath        = $clusterConfig.storage.csv_path
-    $clusterName    = $clusterConfig.cluster.name
-    $primaryNode    = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
+    $vmCount = if ($VMCount) { $VMCount }          else { [int]$solutionConfig.vmfleet_vm_count }
+    $vmMemory = if ($VMMemoryGB) { $VMMemoryGB }       else { [int]$solutionConfig.vmfleet_vm_memory_gb }
+    $vmProcessors = if ($VMProcessorCount) { $VMProcessorCount } else { [int]$solutionConfig.vmfleet_vm_processors }
+    $diskSize = if ($DataDiskSizeGB) { $DataDiskSizeGB }   else { [int]$solutionConfig.vmfleet_data_disk_size_gb }
+    $diskCount = if ($DataDiskCount) { $DataDiskCount }    else { [int]$solutionConfig.vmfleet_data_disk_count }
+    $baseVhd = if ($BaseVHDPath) { $BaseVHDPath }      else { $solutionConfig.vmfleet_base_vhd_path }
+    $csvPath = $clusterConfig.storage.csv_path
+    $clusterName = $clusterConfig.cluster.name
+    $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
 
     Write-Log -Message "Deploying $vmCount VMs (${vmMemory}GB RAM, $vmProcessors vCPU, ${diskCount}x${diskSize}GB disks)" -Severity Information
     Write-Log -Message "Cluster: $clusterName | CSV: $csvPath | Base VHD: $baseVhd" -Severity Information
@@ -87,6 +92,11 @@ try {
         Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
         $Credential = Get-ManagedCredential -CredentialName 'cluster_admin' -ProjectRoot $ProjectRoot
     }
+
+    if (-not $FleetAdminCredential -and -not $WhatIfPreference) {
+        throw 'FleetAdminCredential is required: supply the credential the fleet VMs are created with (no default password is used).'
+    }
+    Write-Log -Message 'VM memory, vCPU and data-disk values are resolved and logged only: this phase passes the VM count, base VHD and CSV to the fleet cmdlet. Verify the per-VM sizing options of your VMFleet version on the cluster.' -Severity Warning
 
     # Validate base VHD exists
     if ($PSCmdlet.ShouldProcess($primaryNode, "Validate base VHD")) {
@@ -106,25 +116,25 @@ try {
         Write-Log -Message 'Deploying fleet VMs via Set-Fleet...' -Severity Information
 
         Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            param($Count, $MemoryGB, $Processors, $DiskSizeGB, $DiskCount, $BaseVHD, $CSVPath)
+            param($Count, $BaseVHD, $CSVPath, $FleetAuth)
 
             Import-Module VMFleet -ErrorAction Stop
 
             # Set-Fleet creates the fleet VM infrastructure
             $setFleetParams = @{
                 VMs            = $Count
-                AdminPassword  = (ConvertTo-SecureString 'Placeholder!' -AsPlainText -Force)
-                ConnectUser    = 'Administrator'
-                ConnectPassword = (ConvertTo-SecureString 'Placeholder!' -AsPlainText -Force)
+                AdminPassword  = $FleetAuth.Password
+                ConnectUser    = $FleetAuth.UserName
+                ConnectPassword = $FleetAuth.Password
             }
 
-            if ($BaseVHD)    { $setFleetParams['BaseDiskPath'] = $BaseVHD }
-            if ($CSVPath)    { $setFleetParams['CSV']          = $CSVPath }
+            if ($BaseVHD) { $setFleetParams['BaseDiskPath'] = $BaseVHD }
+            if ($CSVPath) { $setFleetParams['CSV'] = $CSVPath }
 
             Set-Fleet @setFleetParams
 
             Write-Output "Fleet VMs deployment initiated for $Count VMs"
-        } -ArgumentList @($vmCount, $vmMemory, $vmProcessors, $diskSize, $diskCount, $baseVhd, $csvPath)
+        } -ArgumentList @($vmCount, $baseVhd, $csvPath, $FleetAdminCredential)
 
         Write-Log -Message 'Fleet VM deployment command issued' -Severity Information
     }
@@ -149,18 +159,15 @@ try {
 
     if ($vmStatus.Running -lt $vmStatus.Total) {
         Write-Log -Message "Timeout: Only $($vmStatus.Running)/$($vmStatus.Total) VMs running after 30 minutes" -Severity Warning
-    }
-    else {
+    } else {
         Write-Log -Message 'All fleet VMs are running' -Severity Information
     }
 
     Write-Log -Message 'VMFleet deployment phase completed' -Severity Information
     Write-Host 'VMFleet deployment complete.' -ForegroundColor Green
-}
-catch {
+} catch {
     Write-Log -Message "Deployment failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

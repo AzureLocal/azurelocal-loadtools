@@ -101,8 +101,7 @@ function Get-ManagedCredential {
             $promptMessage = $Prompt ?? "Enter credentials for: $Name"
             if ($Username) {
                 $cred = Get-Credential -UserName $Username -Message $promptMessage
-            }
-            else {
+            } else {
                 $cred = Get-Credential -Message $promptMessage
             }
 
@@ -129,6 +128,7 @@ function Get-KeyVaultCredential {
     .PARAMETER VaultConfigPath
         Path to keyvault-config.yml.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'The secret is read from Key Vault at run time and converted once to a SecureString for the PSCredential; it is never stored in a file.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -165,8 +165,7 @@ function Get-KeyVaultCredential {
 
     try {
         $secret = Get-AzKeyVaultSecret -VaultName $vaultConfig.name -Name $secretName -AsPlainText
-    }
-    catch {
+    } catch {
         throw "Failed to retrieve secret '$secretName' from Key Vault '$($vaultConfig.name)': $($_.Exception.Message)"
     }
 
@@ -177,13 +176,11 @@ function Get-KeyVaultCredential {
         if ($usernameSecretName) {
             try {
                 $Username = Get-AzKeyVaultSecret -VaultName $vaultConfig.name -Name $usernameSecretName -AsPlainText
-            }
-            catch {
+            } catch {
                 Write-Warning "Could not retrieve username secret '$usernameSecretName'. Defaulting to 'Administrator'."
                 $Username = 'Administrator'
             }
-        }
-        else {
+        } else {
             $Username = 'Administrator'
         }
     }
@@ -249,8 +246,7 @@ function Get-ManagedSecret {
             $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureValue)
             try {
                 return [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
-            }
-            finally {
+            } finally {
                 [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
             }
         }

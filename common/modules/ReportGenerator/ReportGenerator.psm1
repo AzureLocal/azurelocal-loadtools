@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # ReportGenerator Module - Azure Local Load Tools
 # =============================================================================
 # Generates test reports in PDF (asciidoctor-pdf), DOCX (Pandoc), and
@@ -36,6 +36,7 @@ function New-TestReport {
     .EXAMPLE
         New-TestReport -RunId "run-001" -ResultsPath "results/run-001/" -Formats @("PDF", "DOCX", "XLSX")
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'ClusterConfig is reserved for the cover page; not rendered yet.')]
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
@@ -91,7 +92,7 @@ function New-TestReport {
     foreach ($format in $Formats) {
         if ($PSCmdlet.ShouldProcess("$format report for $RunId", "Generate")) {
             switch ($format) {
-                'PDF'  { New-PdfReport -RunId $RunId -TestResults $testResults -Metrics $metrics -OutputPath $OutputPath -Title $ReportTitle -Author $ReportAuthor }
+                'PDF' { New-PdfReport -RunId $RunId -TestResults $testResults -Metrics $metrics -OutputPath $OutputPath -Title $ReportTitle -Author $ReportAuthor }
                 'DOCX' { New-DocxReport -RunId $RunId -TestResults $testResults -Metrics $metrics -OutputPath $OutputPath -Title $ReportTitle -Author $ReportAuthor }
                 'XLSX' { New-XlsxReport -RunId $RunId -TestResults $testResults -Metrics $metrics -OutputPath $OutputPath -Title $ReportTitle -IncludeRawData:$IncludeRawData -ResultsPath $ResultsPath }
             }
@@ -126,8 +127,7 @@ function Import-TestResults {
         try {
             $data = Get-Content -Path $file.FullName -Raw | ConvertFrom-Json
             $results.profiles += $data
-        }
-        catch {
+        } catch {
             Write-Warning "Failed to parse result file: $($file.Name) - $($_.Exception.Message)"
         }
     }
@@ -140,6 +140,7 @@ function New-PdfReport {
     .SYNOPSIS
         Generates a PDF report using asciidoctor-pdf.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Internal helper; New-TestReport (the public entry point) supports ShouldProcess.')]
     [CmdletBinding()]
     param(
         [string]$RunId,
@@ -159,7 +160,7 @@ function New-PdfReport {
     }
 
     # Generate AsciiDoc content from template
-    $templatePath = Join-Path $script:ProjectRoot 'reports\templates\report-template.adoc'
+    $null = Join-Path $script:ProjectRoot 'reports\templates\report-template.adoc'
     $generatedAdoc = Join-Path $OutputPath "$RunId-report.adoc"
     $outputPdf = Join-Path $OutputPath "$RunId-report.pdf"
     $themePath = Join-Path $script:ProjectRoot 'docs\themes\azurelocal-theme.yml'
@@ -186,32 +187,31 @@ $Author
 "@
 
     if ($TestResults.profiles.Count -gt 0) {
-        foreach ($profile in $TestResults.profiles) {
+        foreach ($loadProfile in $TestResults.profiles) {
             $content += @"
 
-=== Profile: $($profile.profile_name ?? 'Unknown')
+=== Profile: $($loadProfile.profile_name ?? 'Unknown')
 
 [cols='2,1']
 |===
 | Metric | Value
 
 | Total IOPS
-| $($profile.total_iops ?? 'N/A')
+| $($loadProfile.total_iops ?? 'N/A')
 
 | Read Throughput (MB/s)
-| $($profile.read_throughput_mbps ?? 'N/A')
+| $($loadProfile.read_throughput_mbps ?? 'N/A')
 
 | Write Throughput (MB/s)
-| $($profile.write_throughput_mbps ?? 'N/A')
+| $($loadProfile.write_throughput_mbps ?? 'N/A')
 
 | Average Latency (ms)
-| $($profile.avg_latency_ms ?? 'N/A')
+| $($loadProfile.avg_latency_ms ?? 'N/A')
 |===
 
 "@
         }
-    }
-    else {
+    } else {
         $content += "`nNo test results found. Run a VMFleet test first.`n"
     }
 
@@ -244,8 +244,7 @@ $Author
 
     if (Test-Path $outputPdf) {
         Write-Verbose "PDF report generated: $outputPdf"
-    }
-    else {
+    } else {
         Write-Warning "PDF generation may have failed. Check asciidoctor-pdf output."
     }
 }
@@ -255,6 +254,7 @@ function New-DocxReport {
     .SYNOPSIS
         Generates a DOCX report via AsciiDoc → DocBook → Pandoc.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Internal helper; New-TestReport (the public entry point) supports ShouldProcess.')]
     [CmdletBinding()]
     param(
         [string]$RunId,
@@ -309,6 +309,7 @@ function New-XlsxReport {
     .SYNOPSIS
         Generates an XLSX report using the ImportExcel module.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Internal helper; New-TestReport (the public entry point) supports ShouldProcess.')]
     [CmdletBinding()]
     param(
         [string]$RunId,
@@ -331,11 +332,11 @@ function New-XlsxReport {
 
     # Summary sheet
     $summaryData = @([PSCustomObject]@{
-        RunId           = $RunId
-        Date            = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-        ProfilesTested  = $TestResults.profiles.Count
-        Status          = 'Completed'
-    })
+            RunId           = $RunId
+            Date            = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+            ProfilesTested  = $TestResults.profiles.Count
+            Status          = 'Completed'
+        })
 
     $summaryData | Export-Excel -Path $xlsxFile -WorksheetName 'Summary' `
         -AutoSize -BoldTopRow -FreezeTopRow -Title $Title

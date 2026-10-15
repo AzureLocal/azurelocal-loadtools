@@ -39,7 +39,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 
 if ($LogToFile) {
     Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
-    $logSession = Start-LogSession -Component 'VMFleet-Watch' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+    $null = Start-LogSession -Component 'VMFleet-Watch' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 }
 
 try {
@@ -101,25 +101,21 @@ try {
                 if ($LogToFile) {
                     Write-Log -Message "IOPS=$totalIOPS ReadLat=$($liveData.AvgReadLatencyMs)ms WriteLat=$($liveData.AvgWriteLatencyMs)ms ReadMBps=$($liveData.TotalReadMBps) WriteMBps=$($liveData.TotalWriteMBps)" -Severity Information
                 }
-            }
-            else {
+            } else {
                 Write-Host "`r[$(Format-Duration $stopwatch.Elapsed)] No active workload detected" -NoNewline
             }
-        }
-        catch {
+        } catch {
             Write-Host "`r[$(Format-Duration $stopwatch.Elapsed)] Connection error: $($_.Exception.Message)" -NoNewline -ForegroundColor Red
         }
 
         Start-Sleep -Seconds $RefreshIntervalSeconds
     }
-}
-catch {
+} catch {
     if ($LogToFile) {
         Write-Log -Message "Monitor failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     }
     throw
-}
-finally {
+} finally {
     Write-Host ''
     if ($LogToFile) { Stop-LogSession }
 }

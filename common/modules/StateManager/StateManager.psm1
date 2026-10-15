@@ -25,6 +25,7 @@ function New-RunState {
     .OUTPUTS
         PSCustomObject representing the new run state.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Writes only the tool own run-state file under state/.')]
     [CmdletBinding()]
     param(
         [Parameter()]
@@ -135,6 +136,7 @@ function Update-RunPhase {
     .PARAMETER ErrorMessage
         Error message if the phase failed.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Updates only the tool own run-state file under state/.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -215,8 +217,7 @@ function Update-RunPhase {
         $tempPath = "$stateFilePath.tmp"
         $state | ConvertTo-Json -Depth 10 | Set-Content -Path $tempPath -Encoding UTF8
         Move-Item -Path $tempPath -Destination $stateFilePath -Force
-    }
-    finally {
+    } finally {
         $mutex.ReleaseMutex()
         $mutex.Dispose()
     }

@@ -1,4 +1,4 @@
-# Stop hook — logs session end event to .claude/logs/sessions.jsonl
+﻿# Stop hook — logs session end event to .claude/logs/sessions.jsonl
 # Event: Stop
 # Configure: set $logDir to your repo's .claude/logs/ path
 

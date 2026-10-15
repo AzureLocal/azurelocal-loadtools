@@ -43,7 +43,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'HammerDB-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\hammerdb')
+$null = Start-LogSession -Component 'HammerDB-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\hammerdb')
 
 # Parses NOPM and TPM values from hammerdbcli output log
 function Get-HammerDBMetrics {
@@ -51,7 +51,7 @@ function Get-HammerDBMetrics {
     param([string]$LogContent)
 
     $nopmValues = [System.Collections.Generic.List[int]]::new()
-    $tpmValues  = [System.Collections.Generic.List[int]]::new()
+    $tpmValues = [System.Collections.Generic.List[int]]::new()
 
     foreach ($line in ($LogContent -split "`n")) {
         # Typical output: "TEST RESULT : System achieved 12345 NOPM from 23456 PostgreSQL TPM"
@@ -69,9 +69,9 @@ function Get-HammerDBMetrics {
         NopmValues = $nopmValues
         TpmValues  = $tpmValues
         PeakNopm   = if ($nopmValues.Count -gt 0) { ($nopmValues | Measure-Object -Maximum).Maximum } else { 0 }
-        PeakTpm    = if ($tpmValues.Count -gt 0)  { ($tpmValues  | Measure-Object -Maximum).Maximum } else { 0 }
+        PeakTpm    = if ($tpmValues.Count -gt 0) { ($tpmValues  | Measure-Object -Maximum).Maximum } else { 0 }
         AvgNopm    = if ($nopmValues.Count -gt 0) { [math]::Round(($nopmValues | Measure-Object -Average).Average, 0) } else { 0 }
-        AvgTpm     = if ($tpmValues.Count -gt 0)  { [math]::Round(($tpmValues  | Measure-Object -Average).Average, 0) } else { 0 }
+        AvgTpm     = if ($tpmValues.Count -gt 0) { [math]::Round(($tpmValues  | Measure-Object -Average).Average, 0) } else { 0 }
         Samples    = $nopmValues.Count
     }
 }
@@ -188,11 +188,9 @@ try {
         OutputPath = $OutputPath
         Aggregate  = $aggregate
     }
-}
-catch {
+} catch {
     Write-Log -Message "Collection failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

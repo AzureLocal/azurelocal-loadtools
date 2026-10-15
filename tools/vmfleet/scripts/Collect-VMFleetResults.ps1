@@ -8,6 +8,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'SolutionConfigPath keeps the common phase-script parameter set; results collection does not read the solution config.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -42,7 +43,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'VMFleet-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
+$null = Start-LogSession -Component 'VMFleet-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 
 try {
     Write-Log -Message 'Starting VMFleet results collection' -Severity Information
@@ -149,11 +150,9 @@ try {
         Aggregate   = $aggregate
         VMResults   = $rawResults
     }
-}
-catch {
+} catch {
     Write-Log -Message "Collection failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

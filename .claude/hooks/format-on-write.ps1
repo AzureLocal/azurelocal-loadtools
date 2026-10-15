@@ -1,4 +1,4 @@
-# PostToolUse hook — format-on-write
+﻿# PostToolUse hook — format-on-write
 # Fires on Write|Edit. Extracts the file path and applies a formatter if one is configured.
 #
 # Current behavior:
@@ -13,8 +13,8 @@ $input_json = $input | Out-String
 try { $payload = $input_json | ConvertFrom-Json } catch { exit 0 }
 
 $filePath = if ($payload.file_path) { $payload.file_path }
-            elseif ($payload.tool_input.file_path) { $payload.tool_input.file_path }
-            else { exit 0 }
+elseif ($payload.tool_input.file_path) { $payload.tool_input.file_path }
+else { exit 0 }
 
 if (-not $filePath) { exit 0 }
 

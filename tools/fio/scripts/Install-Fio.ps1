@@ -8,6 +8,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Credential is accepted so every tool script shares one parameter contract with the pipeline; this tool runs over SSH and does not use it.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -39,7 +40,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'Fio-Install' -LogRootPath (Join-Path $ProjectRoot 'logs\fio')
+$null = Start-LogSession -Component 'Fio-Install' -LogRootPath (Join-Path $ProjectRoot 'logs\fio')
 
 try {
     Write-Log -Message 'Starting fio installation phase' -Severity Information
@@ -51,7 +52,7 @@ try {
         $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
     }
 
-    $solutionConfig = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
+    $null = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
     Import-Module powershell-yaml -ErrorAction Stop
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
@@ -114,11 +115,9 @@ try {
         Playbook    = $playbookPath
         Status      = 'Installed'
     }
-}
-catch {
+} catch {
     Write-Log -Message "Installation failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

@@ -1,17 +1,17 @@
-# =============================================================================
+﻿# =============================================================================
 # Fio-Scripts.Tests.ps1 - Pester unit tests for fio pipeline scripts
 # =============================================================================
 
 BeforeAll {
     $script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
     $script:FioScriptsPath = Join-Path $script:ProjectRoot 'tools\fio\scripts'
-    $script:FioRootPath    = Join-Path $script:ProjectRoot 'tools\fio'
+    $script:FioRootPath = Join-Path $script:ProjectRoot 'tools\fio'
 }
 
 Describe 'Fio Script Standards Compliance' {
     $testCases = @(
-        @{ Name = 'Install-Fio.ps1';        Path = 'tools\fio\scripts\Install-Fio.ps1' }
-        @{ Name = 'Start-FioTest.ps1';      Path = 'tools\fio\scripts\Start-FioTest.ps1' }
+        @{ Name = 'Install-Fio.ps1'; Path = 'tools\fio\scripts\Install-Fio.ps1' }
+        @{ Name = 'Start-FioTest.ps1'; Path = 'tools\fio\scripts\Start-FioTest.ps1' }
         @{ Name = 'Collect-FioResults.ps1'; Path = 'tools\fio\scripts\Collect-FioResults.ps1' }
     )
 
@@ -34,7 +34,7 @@ Describe 'Fio Script Standards Compliance' {
     Context '<Name> — Automation Standards' -ForEach $testCases {
         BeforeAll {
             $script:FullPath = Join-Path $script:ProjectRoot $Path
-            $script:Content  = Get-Content -Path $script:FullPath -Raw
+            $script:Content = Get-Content -Path $script:FullPath -Raw
         }
 
         It 'Should require PowerShell 7.2' {
@@ -71,11 +71,11 @@ Describe 'Fio Script Standards Compliance' {
 
 Describe 'Fio Config Profiles' {
     $profileCases = @(
-        @{ Name = 'sequential-read.yml';  Path = 'tools\fio\config\profiles\sequential-read.yml' }
+        @{ Name = 'sequential-read.yml'; Path = 'tools\fio\config\profiles\sequential-read.yml' }
         @{ Name = 'sequential-write.yml'; Path = 'tools\fio\config\profiles\sequential-write.yml' }
-        @{ Name = 'random-read.yml';      Path = 'tools\fio\config\profiles\random-read.yml' }
-        @{ Name = 'random-write.yml';     Path = 'tools\fio\config\profiles\random-write.yml' }
-        @{ Name = 'mixed-70-30.yml';      Path = 'tools\fio\config\profiles\mixed-70-30.yml' }
+        @{ Name = 'random-read.yml'; Path = 'tools\fio\config\profiles\random-read.yml' }
+        @{ Name = 'random-write.yml'; Path = 'tools\fio\config\profiles\random-write.yml' }
+        @{ Name = 'mixed-70-30.yml'; Path = 'tools\fio\config\profiles\mixed-70-30.yml' }
     )
 
     Context '<Name> — Existence and Schema' -ForEach $profileCases {
@@ -142,7 +142,7 @@ Describe 'Fio Monitoring Alert Rules' {
 
 Describe 'Fio Report Templates' {
     $templateCases = @(
-        @{ Name = 'cover-page.adoc';     Path = 'tools\fio\reports\templates\cover-page.adoc' }
+        @{ Name = 'cover-page.adoc'; Path = 'tools\fio\reports\templates\cover-page.adoc' }
         @{ Name = 'report-template.adoc'; Path = 'tools\fio\reports\templates\report-template.adoc' }
     )
 

@@ -1,17 +1,17 @@
-# =============================================================================
+﻿# =============================================================================
 # HammerDB-Scripts.Tests.ps1 - Pester unit tests for HammerDB pipeline scripts
 # =============================================================================
 
 BeforeAll {
     $script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
     $script:HammerDBScriptsPath = Join-Path $script:ProjectRoot 'tools\hammerdb\scripts'
-    $script:HammerDBRootPath    = Join-Path $script:ProjectRoot 'tools\hammerdb'
+    $script:HammerDBRootPath = Join-Path $script:ProjectRoot 'tools\hammerdb'
 }
 
 Describe 'HammerDB Script Standards Compliance' {
     $testCases = @(
-        @{ Name = 'Install-HammerDB.ps1';        Path = 'tools\hammerdb\scripts\Install-HammerDB.ps1' }
-        @{ Name = 'Start-HammerDBTest.ps1';      Path = 'tools\hammerdb\scripts\Start-HammerDBTest.ps1' }
+        @{ Name = 'Install-HammerDB.ps1'; Path = 'tools\hammerdb\scripts\Install-HammerDB.ps1' }
+        @{ Name = 'Start-HammerDBTest.ps1'; Path = 'tools\hammerdb\scripts\Start-HammerDBTest.ps1' }
         @{ Name = 'Collect-HammerDBResults.ps1'; Path = 'tools\hammerdb\scripts\Collect-HammerDBResults.ps1' }
     )
 
@@ -34,7 +34,7 @@ Describe 'HammerDB Script Standards Compliance' {
     Context '<Name> — Automation Standards' -ForEach $testCases {
         BeforeAll {
             $script:FullPath = Join-Path $script:ProjectRoot $Path
-            $script:Content  = Get-Content -Path $script:FullPath -Raw
+            $script:Content = Get-Content -Path $script:FullPath -Raw
         }
 
         It 'Should require PowerShell 7.2' {
@@ -115,7 +115,7 @@ Describe 'Collect-HammerDBResults — NOPM/TPM parser' {
         $script:FullPath = Join-Path $script:ProjectRoot 'tools\hammerdb\scripts\Collect-HammerDBResults.ps1'
         try {
             . $script:FullPath -ProjectRoot $script:ProjectRoot -RunId 'test-parse' -WhatIf -ErrorAction SilentlyContinue 2>$null
-        } catch { }
+        } catch { Write-Verbose "Ignored: $($_.Exception.Message)" }
     }
 
     It 'Get-HammerDBMetrics should parse standard output format' {

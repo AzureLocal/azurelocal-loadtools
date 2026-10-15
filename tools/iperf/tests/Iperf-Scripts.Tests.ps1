@@ -1,16 +1,16 @@
-# =============================================================================
+﻿# =============================================================================
 # Iperf-Scripts.Tests.ps1 - Pester unit tests for iPerf3 pipeline scripts
 # =============================================================================
 
 BeforeAll {
     $script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
     $script:IperfScriptsPath = Join-Path $script:ProjectRoot 'tools\iperf\scripts'
-    $script:IperfRootPath    = Join-Path $script:ProjectRoot 'tools\iperf'
+    $script:IperfRootPath = Join-Path $script:ProjectRoot 'tools\iperf'
 }
 
 Describe 'Iperf Script Standards Compliance' {
     $testCases = @(
-        @{ Name = 'Start-IperfTest.ps1';      Path = 'tools\iperf\scripts\Start-IperfTest.ps1' }
+        @{ Name = 'Start-IperfTest.ps1'; Path = 'tools\iperf\scripts\Start-IperfTest.ps1' }
         @{ Name = 'Collect-IperfResults.ps1'; Path = 'tools\iperf\scripts\Collect-IperfResults.ps1' }
     )
 
@@ -33,7 +33,7 @@ Describe 'Iperf Script Standards Compliance' {
     Context '<Name> — Automation Standards' -ForEach $testCases {
         BeforeAll {
             $script:FullPath = Join-Path $script:ProjectRoot $Path
-            $script:Content  = Get-Content -Path $script:FullPath -Raw
+            $script:Content = Get-Content -Path $script:FullPath -Raw
         }
 
         It 'Should require PowerShell 7.2' {
@@ -71,8 +71,8 @@ Describe 'Iperf Script Standards Compliance' {
 Describe 'iPerf3 Config Profiles' {
     $profileCases = @(
         @{ Name = 'tcp-throughput.yml'; Path = 'tools\iperf\config\profiles\tcp-throughput.yml' }
-        @{ Name = 'udp-latency.yml';    Path = 'tools\iperf\config\profiles\udp-latency.yml' }
-        @{ Name = 'mesh.yml';           Path = 'tools\iperf\config\profiles\mesh.yml' }
+        @{ Name = 'udp-latency.yml'; Path = 'tools\iperf\config\profiles\udp-latency.yml' }
+        @{ Name = 'mesh.yml'; Path = 'tools\iperf\config\profiles\mesh.yml' }
     )
 
     Context '<Name> — Existence and Schema' -ForEach $profileCases {
@@ -109,7 +109,7 @@ Describe 'iPerf3 Config Profiles' {
 Describe 'Start-IperfTest — Protocol Handling' {
     BeforeAll {
         $script:FullPath = Join-Path $script:ProjectRoot 'tools\iperf\scripts\Start-IperfTest.ps1'
-        $script:Content  = Get-Content -Path $script:FullPath -Raw
+        $script:Content = Get-Content -Path $script:FullPath -Raw
     }
 
     It 'Should handle UDP protocol with bandwidth flag' {

@@ -1,4 +1,4 @@
-# Context watcher for Claude Code (UserPromptSubmit hook).
+﻿# Context watcher for Claude Code (UserPromptSubmit hook).
 #
 # When the active session's input context exceeds THRESHOLD tokens, injects a
 # system reminder telling Claude to write a memory dump and prompt the user
@@ -21,7 +21,7 @@ try {
     $hookInput = $stdin | ConvertFrom-Json -ErrorAction Stop
     $transcriptPath = $hookInput.transcript_path
     if ([string]::IsNullOrWhiteSpace($transcriptPath) -or `
-        -not (Test-Path -LiteralPath $transcriptPath)) {
+            -not (Test-Path -LiteralPath $transcriptPath)) {
         exit 0
     }
 
@@ -91,8 +91,7 @@ If this reminder fires again on a subsequent turn (because /clear hasn't happene
 
     [Console]::Out.Write($output)
     exit 0
-}
-catch {
+} catch {
     # Fail open — never block the user.
     exit 0
 }

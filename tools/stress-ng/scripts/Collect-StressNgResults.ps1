@@ -9,6 +9,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Credential is accepted so every tool script shares one parameter contract with the pipeline; this tool runs over SSH and does not use it.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -49,7 +50,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'StressNg-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\stress-ng')
+$null = Start-LogSession -Component 'StressNg-Collect' -LogRootPath (Join-Path $ProjectRoot 'logs\stress-ng')
 
 try {
     Write-Log -Message 'Starting stress-ng results collection' -Severity Information
@@ -74,7 +75,7 @@ try {
 
     $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
     $sshUserVal = if ($SshUser) { $SshUser } else { $clusterConfig.cluster.ssh_user }
-    $sshKeyVal  = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
+    $sshKeyVal = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
 
     $remoteResultsDir = "/tmp/stress-ng-results/$RunId"
     $allNodeData = [System.Collections.Generic.List[hashtable]]::new()
@@ -186,11 +187,9 @@ try {
         Aggregate  = $aggregate
         NodeData   = $allNodeData
     }
-}
-catch {
+} catch {
     Write-Log -Message "Collection failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

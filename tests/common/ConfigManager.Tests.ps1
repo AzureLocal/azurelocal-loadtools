@@ -16,8 +16,7 @@ Describe 'ConfigManager Module' {
                 $config | Should -Not -BeNullOrEmpty
                 $config.metadata | Should -Not -BeNullOrEmpty
                 $config.variables | Should -Not -BeNullOrEmpty
-            }
-            else {
+            } else {
                 Set-ItResult -Skipped -Because 'variables.yml not found'
             }
         }
@@ -40,11 +39,10 @@ Describe 'ConfigManager Module' {
         It 'Should cache repeated loads' {
             $configPath = Join-Path $PSScriptRoot '..\..\config\variables\variables.yml'
             if (Test-Path $configPath) {
-                $first = Import-MasterConfig -MasterConfigPath $configPath
+                $null = Import-MasterConfig -MasterConfigPath $configPath
                 $second = Import-MasterConfig -MasterConfigPath $configPath
                 $second | Should -Not -BeNullOrEmpty
-            }
-            else {
+            } else {
                 Set-ItResult -Skipped -Because 'variables.yml not found'
             }
         }
@@ -60,8 +58,7 @@ Describe 'ConfigManager Module' {
                 Test-Path $outputPath | Should -BeTrue
                 $content = Get-Content $outputPath -Raw | ConvertFrom-Json
                 $content._metadata.solution | Should -Be 'VMFleet'
-            }
-            else {
+            } else {
                 Set-ItResult -Skipped -Because 'variables.yml not found'
             }
         }

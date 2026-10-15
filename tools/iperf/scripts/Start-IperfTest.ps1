@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # Start-IperfTest.ps1 - Azure Local Load Tools
 # =============================================================================
 # Orchestrates iPerf3 network throughput and latency tests across cluster nodes.
@@ -10,6 +10,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Credential is accepted so every tool script shares one parameter contract with the pipeline; this tool runs over SSH and does not use it.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -63,7 +64,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'Iperf-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\iperf')
+$null = Start-LogSession -Component 'Iperf-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\iperf')
 
 try {
     Write-Log -Message 'Starting iPerf3 test phase' -Severity Information
@@ -82,19 +83,19 @@ try {
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
     # Load workload profile
-    $profile = $null
+    $loadProfile = $null
     if ($ProfilePath -and (Test-Path $ProfilePath)) {
-        $profile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
-        Write-Log -Message "Loaded profile: $($profile.profile.name)" -Severity Information
+        $loadProfile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
+        Write-Log -Message "Loaded profile: $($loadProfile.profile.name)" -Severity Information
     }
 
     # Resolve parameters: explicit > profile > solution config
-    $protocolVal  = if ($Protocol)         { $Protocol }         elseif ($profile) { $profile.profile.parameters.protocol }          else { $solutionConfig.iperf_protocol }
-    $streamsVal   = if ($ParallelStreams)   { $ParallelStreams }   elseif ($profile) { $profile.profile.parameters.parallel_streams }  else { [int]$solutionConfig.iperf_parallel_streams }
-    $durationVal  = if ($DurationSeconds)  { $DurationSeconds }  elseif ($profile) { $profile.profile.parameters.duration_seconds }  else { [int]$solutionConfig.iperf_duration_seconds }
-    $portVal      = if ($Port)             { $Port }             elseif ($profile) { $profile.profile.parameters.server_port }       else { [int]$solutionConfig.iperf_server_port }
-    $meshVal      = if ($MeshTest)         { $true }             elseif ($profile) { $profile.profile.parameters.mesh_test -eq $true } else { $false }
-    $bandwidthUdp = if ($profile)          { $profile.profile.parameters.udp_bandwidth_mbps }  else { $null }
+    $protocolVal = if ($Protocol) { $Protocol }         elseif ($loadProfile) { $loadProfile.profile.parameters.protocol }          else { $solutionConfig.iperf_protocol }
+    $streamsVal = if ($ParallelStreams) { $ParallelStreams }   elseif ($loadProfile) { $loadProfile.profile.parameters.parallel_streams }  else { [int]$solutionConfig.iperf_parallel_streams }
+    $durationVal = if ($DurationSeconds) { $DurationSeconds }  elseif ($loadProfile) { $loadProfile.profile.parameters.duration_seconds }  else { [int]$solutionConfig.iperf_duration_seconds }
+    $portVal = if ($Port) { $Port }             elseif ($loadProfile) { $loadProfile.profile.parameters.server_port }       else { [int]$solutionConfig.iperf_server_port }
+    $meshVal = if ($MeshTest) { $true }             elseif ($loadProfile) { $loadProfile.profile.parameters.mesh_test -eq $true } else { $false }
+    $bandwidthUdp = if ($loadProfile) { $loadProfile.profile.parameters.udp_bandwidth_mbps }  else { $null }
 
     $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
     if ($nodes.Count -lt 2) {
@@ -102,7 +103,7 @@ try {
     }
 
     $sshUserVal = if ($SshUser) { $SshUser } else { $clusterConfig.cluster.ssh_user }
-    $sshKeyVal  = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
+    $sshKeyVal = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
 
     Write-Log -Message "Protocol: $protocolVal | Streams: $streamsVal | Duration: ${durationVal}s | Port: $portVal | Mesh: $meshVal" -Severity Information
     Write-Log -Message "Nodes: $($nodes -join ', ')" -Severity Information
@@ -122,8 +123,7 @@ try {
             }
         }
         Write-Log -Message "Mesh mode: $($nodePairs.Count) directional pairs" -Severity Information
-    }
-    else {
+    } else {
         # First node is server, all others are clients
         $serverNode = $nodes[0]
         foreach ($clientNode in $nodes[1..($nodes.Count - 1)]) {
@@ -156,8 +156,7 @@ try {
             if ($protocolVal -eq 'UDP') {
                 $bwFlag = if ($bandwidthUdp) { "-b ${bandwidthUdp}M" } else { '-b 1G' }
                 $clientCmd += " && iperf3 -c $server -p $portVal -u $bwFlag -P $streamsVal -t $durationVal --json > $resultFile"
-            }
-            else {
+            } else {
                 $clientCmd += " && iperf3 -c $server -p $portVal -P $streamsVal -t $durationVal --json > $resultFile"
             }
             $clientCmd += " && echo 'IPERF_DONE'"
@@ -166,7 +165,7 @@ try {
             if ($sshKeyVal) { $clientSshArgs += '-i', $sshKeyVal }
             $clientSshArgs += "$sshUserVal@$client", $clientCmd
 
-            $clientOutput = & ssh @clientSshArgs 2>&1
+            $null = & ssh @clientSshArgs 2>&1
             $exitCode = $LASTEXITCODE
 
             # Stop iPerf3 server
@@ -178,16 +177,15 @@ try {
             if ($exitCode -ne 0) {
                 Write-Log -Message "iPerf3 failed on $pairLabel (exit $exitCode)" -Severity Error
                 $pairResults.Add(@{ Pair = $pairLabel; Server = $server; Client = $client; Status = 'Failed' })
-            }
-            else {
+            } else {
                 Write-Log -Message "iPerf3 completed: $pairLabel" -Severity Information
                 $pairResults.Add(@{
-                    Pair            = $pairLabel
-                    Server          = $server
-                    Client          = $client
-                    Status          = 'Completed'
-                    RemoteResultFile = $resultFile
-                })
+                        Pair            = $pairLabel
+                        Server          = $server
+                        Client          = $client
+                        Status          = 'Completed'
+                        RemoteResultFile = $resultFile
+                    })
             }
         }
     }
@@ -206,14 +204,12 @@ try {
             DurationSeconds = $durationVal
             Port           = $portVal
             MeshTest       = $meshVal
-            ProfileName    = if ($profile) { $profile.profile.name } else { 'custom' }
+            ProfileName    = if ($loadProfile) { $loadProfile.profile.name } else { 'custom' }
         }
     }
-}
-catch {
+} catch {
     Write-Log -Message "Test phase failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

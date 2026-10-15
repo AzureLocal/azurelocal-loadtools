@@ -9,6 +9,7 @@
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Credential is accepted so every tool script shares one parameter contract with the pipeline; this tool runs over SSH and does not use it.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -55,7 +56,7 @@ $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'StressNg-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\stress-ng')
+$null = Start-LogSession -Component 'StressNg-Test' -LogRootPath (Join-Path $ProjectRoot 'logs\stress-ng')
 
 try {
     Write-Log -Message 'Starting stress-ng test phase' -Severity Information
@@ -74,46 +75,40 @@ try {
     $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
 
     # Load workload profile
-    $profile = $null
+    $loadProfile = $null
     if ($ProfilePath -and (Test-Path $ProfilePath)) {
-        $profile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
-        Write-Log -Message "Loaded profile: $($profile.profile.name)" -Severity Information
+        $loadProfile = Get-Content -Path $ProfilePath -Raw | ConvertFrom-Yaml
+        Write-Log -Message "Loaded profile: $($loadProfile.profile.name)" -Severity Information
     }
 
     # Resolve parameters: explicit > profile > solution config
     $stressorList = if ($Stressors -and $Stressors.Count -gt 0) {
         $Stressors
-    }
-    elseif ($profile) {
-        $profile.profile.parameters.stressors
-    }
-    else {
+    } elseif ($loadProfile) {
+        $loadProfile.profile.parameters.stressors
+    } else {
         $solutionConfig.stress_ng_stressors
     }
 
     $workersVal = if ($Workers -gt 0) {
         $Workers
-    }
-    elseif ($profile) {
-        $profile.profile.parameters.workers
-    }
-    else {
+    } elseif ($loadProfile) {
+        $loadProfile.profile.parameters.workers
+    } else {
         [int]$solutionConfig.stress_ng_workers
     }
 
     $timeoutVal = if ($Timeout) {
         $Timeout
-    }
-    elseif ($profile) {
-        $profile.profile.parameters.timeout
-    }
-    else {
+    } elseif ($loadProfile) {
+        $loadProfile.profile.parameters.timeout
+    } else {
         $solutionConfig.stress_ng_timeout
     }
 
     $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
     $sshUserVal = if ($SshUser) { $SshUser } else { $clusterConfig.cluster.ssh_user }
-    $sshKeyVal  = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
+    $sshKeyVal = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
 
     Write-Log -Message "Stressors: $($stressorList -join ', ') | Workers: $workersVal | Timeout: $timeoutVal" -Severity Information
     Write-Log -Message "Target nodes: $($nodes -join ', ')" -Severity Information
@@ -128,12 +123,12 @@ try {
     }
 
     $stressCmd = "mkdir -p $remoteResultsDir && " +
-                 "stress-ng $stressorFlags" +
-                 "--timeout $timeoutVal " +
-                 "--metrics-brief " +
-                 "--yaml $remoteResultsDir/stress-ng-results.yml " +
-                 "--log-file $remoteResultsDir/stress-ng.log " +
-                 "&& echo 'STRESSNG_DONE'"
+    "stress-ng $stressorFlags" +
+    "--timeout $timeoutVal " +
+    "--metrics-brief " +
+    "--yaml $remoteResultsDir/stress-ng-results.yml " +
+    "--log-file $remoteResultsDir/stress-ng.log " +
+    "&& echo 'STRESSNG_DONE'"
 
     $nodeResults = [System.Collections.Generic.List[hashtable]]::new()
 
@@ -151,14 +146,13 @@ try {
             if ($exitCode -ne 0) {
                 Write-Log -Message "stress-ng failed on $node (exit $exitCode): $output" -Severity Error
                 $nodeResults.Add(@{ Node = $node; Status = 'Failed'; ExitCode = $exitCode })
-            }
-            else {
+            } else {
                 Write-Log -Message "stress-ng completed on $node" -Severity Information
                 $nodeResults.Add(@{
-                    Node              = $node
-                    Status            = 'Completed'
-                    RemoteResultsPath = $remoteResultsDir
-                })
+                        Node              = $node
+                        Status            = 'Completed'
+                        RemoteResultsPath = $remoteResultsDir
+                    })
             }
         }
     }
@@ -175,14 +169,12 @@ try {
             Stressors   = $stressorList
             Workers     = $workersVal
             Timeout     = $timeoutVal
-            ProfileName = if ($profile) { $profile.profile.name } else { 'custom' }
+            ProfileName = if ($loadProfile) { $loadProfile.profile.name } else { 'custom' }
         }
     }
-}
-catch {
+} catch {
     Write-Log -Message "Test phase failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

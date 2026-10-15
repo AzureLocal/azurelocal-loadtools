@@ -1,16 +1,16 @@
-# =============================================================================
+﻿# =============================================================================
 # StressNg-Scripts.Tests.ps1 - Pester unit tests for stress-ng pipeline scripts
 # =============================================================================
 
 BeforeAll {
     $script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
     $script:StressNgScriptsPath = Join-Path $script:ProjectRoot 'tools\stress-ng\scripts'
-    $script:StressNgRootPath    = Join-Path $script:ProjectRoot 'tools\stress-ng'
+    $script:StressNgRootPath = Join-Path $script:ProjectRoot 'tools\stress-ng'
 }
 
 Describe 'stress-ng Script Standards Compliance' {
     $testCases = @(
-        @{ Name = 'Start-StressNgTest.ps1';      Path = 'tools\stress-ng\scripts\Start-StressNgTest.ps1' }
+        @{ Name = 'Start-StressNgTest.ps1'; Path = 'tools\stress-ng\scripts\Start-StressNgTest.ps1' }
         @{ Name = 'Collect-StressNgResults.ps1'; Path = 'tools\stress-ng\scripts\Collect-StressNgResults.ps1' }
     )
 
@@ -33,7 +33,7 @@ Describe 'stress-ng Script Standards Compliance' {
     Context '<Name> — Automation Standards' -ForEach $testCases {
         BeforeAll {
             $script:FullPath = Join-Path $script:ProjectRoot $Path
-            $script:Content  = Get-Content -Path $script:FullPath -Raw
+            $script:Content = Get-Content -Path $script:FullPath -Raw
         }
 
         It 'Should require PowerShell 7.2' {
@@ -70,9 +70,9 @@ Describe 'stress-ng Script Standards Compliance' {
 
 Describe 'stress-ng Config Profiles' {
     $profileCases = @(
-        @{ Name = 'cpu-stress.yml';    Path = 'tools\stress-ng\config\profiles\cpu-stress.yml' }
+        @{ Name = 'cpu-stress.yml'; Path = 'tools\stress-ng\config\profiles\cpu-stress.yml' }
         @{ Name = 'memory-stress.yml'; Path = 'tools\stress-ng\config\profiles\memory-stress.yml' }
-        @{ Name = 'io-stress.yml';     Path = 'tools\stress-ng\config\profiles\io-stress.yml' }
+        @{ Name = 'io-stress.yml'; Path = 'tools\stress-ng\config\profiles\io-stress.yml' }
     )
 
     Context '<Name> — Existence and Schema' -ForEach $profileCases {
@@ -105,7 +105,7 @@ Describe 'stress-ng Config Profiles' {
 Describe 'Start-StressNgTest — Command Building' {
     BeforeAll {
         $script:FullPath = Join-Path $script:ProjectRoot 'tools\stress-ng\scripts\Start-StressNgTest.ps1'
-        $script:Content  = Get-Content -Path $script:FullPath -Raw
+        $script:Content = Get-Content -Path $script:FullPath -Raw
     }
 
     It 'Should build stress-ng CLI command with stressor flags' {

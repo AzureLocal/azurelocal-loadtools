@@ -81,8 +81,8 @@ if ($Format -eq 'JSON') {
 $htmlFile = Join-Path $OutputPath "$RunId-dashboard.html"
 
 $tableRows = ($summaryData | ForEach-Object {
-    "<tr><td>$($_.Counter)</td><td>$($_.Samples)</td><td>$($_.Average)</td><td>$($_.Min)</td><td>$($_.Max)</td><td>$($_.StdDev)</td></tr>"
-}) -join "`n"
+        "<tr><td>$($_.Counter)</td><td>$($_.Samples)</td><td>$($_.Average)</td><td>$($_.Min)</td><td>$($_.Max)</td><td>$($_.StdDev)</td></tr>"
+    }) -join "`n"
 
 $html = @"
 <!DOCTYPE html>

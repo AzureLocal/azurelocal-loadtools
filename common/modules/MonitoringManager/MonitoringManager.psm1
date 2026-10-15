@@ -31,6 +31,7 @@ function Start-MetricCollection {
     .OUTPUTS
         String - Collection ID for use with Stop-MetricCollection.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Starts local collection jobs that write only to the caller-supplied output path.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -99,7 +100,7 @@ function Start-MetricCollection {
         $jobParams = @{
             Name            = "$collectionId-$category"
             ScriptBlock     = {
-                param($Nodes, $Counters, $Interval, $OutputFile, $Cred, $MaxSamples)
+                param($Nodes, $Counters, $Interval, $OutputFile, $RunAs, $MaxSamples)
 
                 $sampleCount = 0
                 while ($true) {
@@ -114,8 +115,8 @@ function Start-MetricCollection {
                                 ArgumentList = @(, $Counters), $Interval
                             }
 
-                            if ($Cred) {
-                                $invokeParams['Credential'] = $Cred
+                            if ($RunAs) {
+                                $invokeParams['Credential'] = $RunAs
                             }
 
                             $samples = Invoke-Command @invokeParams
@@ -131,8 +132,7 @@ function Start-MetricCollection {
 
                                 Add-Content -Path $OutputFile -Value $entry -Encoding UTF8
                             }
-                        }
-                        catch {
+                        } catch {
                             $errorEntry = @{
                                 timestamp = (Get-Date -Format 'o')
                                 node      = $node
@@ -180,6 +180,7 @@ function Stop-MetricCollection {
     .OUTPUTS
         PSCustomObject with collection summary.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Stops only the collection jobs this module started.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -245,8 +246,7 @@ function Get-MetricSummary {
 
     $files = if ($Category) {
         Get-ChildItem -Path $MetricsPath -Filter "$($Category.ToLower())-metrics.jsonl"
-    }
-    else {
+    } else {
         Get-ChildItem -Path $MetricsPath -Filter "*-metrics.jsonl"
     }
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Canonical Variable Reader for Azure Local Toolkit.
 
@@ -325,7 +325,7 @@ function Resolve-DottedPath {
     )
 
     $current = $Object
-    $segments = Parse-PathSegments -Path $Path
+    $segments = ConvertTo-PathSegment -Path $Path
 
     foreach ($seg in $segments) {
         if ($null -eq $current) { return $null }
@@ -357,7 +357,7 @@ function Resolve-DottedPath {
     return $current
 }
 
-function Parse-PathSegments {
+function ConvertTo-PathSegment {
     param([string]$Path)
 
     $segments = @()

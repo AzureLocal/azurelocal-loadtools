@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # VMFleet-Scripts.Tests.ps1 - Pester unit tests for VMFleet pipeline scripts
 # =============================================================================
 
@@ -122,8 +122,7 @@ Describe 'VMFleet Workload Profiles' {
                 Import-Module powershell-yaml
                 $profileData = Get-Content -Path $script:ProfilePath -Raw | ConvertFrom-Yaml
                 $profileData.profile.name | Should -Not -BeNullOrEmpty
-            }
-            else {
+            } else {
                 Set-ItResult -Skipped -Because 'powershell-yaml module not installed'
             }
         }
@@ -139,8 +138,7 @@ Describe 'VMFleet Workload Profiles' {
                 $null -ne $params.outstanding_io | Should -BeTrue
                 $null -ne $params.threads_per_vm | Should -BeTrue
                 $null -ne $params.duration_seconds | Should -BeTrue
-            }
-            else {
+            } else {
                 Set-ItResult -Skipped -Because 'powershell-yaml module not installed'
             }
         }

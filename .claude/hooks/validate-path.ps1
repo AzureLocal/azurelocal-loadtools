@@ -1,4 +1,4 @@
-# PreToolUse hook — blocks writes to protected paths
+﻿# PreToolUse hook — blocks writes to protected paths
 # Event: PreToolUse Write|Edit
 # Input: JSON from stdin { tool_name, tool_input: { file_path } }
 

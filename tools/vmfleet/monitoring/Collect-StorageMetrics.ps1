@@ -37,7 +37,7 @@ if (-not $ProjectRoot) {
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
-$logSession = Start-LogSession -Component 'Monitoring-Storage' -LogRootPath (Join-Path $ProjectRoot 'logs\monitoring')
+$null = Start-LogSession -Component 'Monitoring-Storage' -LogRootPath (Join-Path $ProjectRoot 'logs\monitoring')
 
 try {
     Write-Log -Message 'Starting storage metrics collection' -Severity Information
@@ -122,11 +122,9 @@ try {
 
     Write-Log -Message "Storage metrics collection complete: $OutputPath" -Severity Information
     return $OutputPath
-}
-catch {
+} catch {
     Write-Log -Message "Storage collection failed: $($_.Exception.Message)" -Severity Error -ErrorRecord $_
     throw
-}
-finally {
+} finally {
     Stop-LogSession
 }

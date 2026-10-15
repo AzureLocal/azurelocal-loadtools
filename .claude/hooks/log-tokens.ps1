@@ -1,4 +1,4 @@
-# PostToolUse hook — logs tool usage to .claude/logs/tokens.jsonl
+﻿# PostToolUse hook — logs tool usage to .claude/logs/tokens.jsonl
 # Event: PostToolUse Write|Edit
 # Input: JSON from stdin { tool_name, tool_input, tool_response }
 # Configure: set $logDir to your repo's .claude/logs/ path
