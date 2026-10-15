@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "tool": "vmfleet",
+  "profile": "Day2Smoke",
+  "status": "Skipped",
+  "exit_code": 3,
+  "proven_on_hardware": false,
+  "started_at": "2026-10-15T10:00:00.0000000Z",
+  "finished_at": "2026-10-15T10:00:00.0000000Z",
+  "duration_seconds": 0,
+  "run_id": "",
+  "cluster_name": "",
+  "node_count": 4,
+  "baseline_run_id": null,
+  "metrics": null,
+  "checks": [],
+  "notes": [
+    "Plan only: the pipeline was not run."
+  ]
+}

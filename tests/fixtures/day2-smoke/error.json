@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "tool": "vmfleet",
+  "profile": "Day2Smoke",
+  "status": "Error",
+  "exit_code": 2,
+  "proven_on_hardware": false,
+  "started_at": "2026-10-15T10:00:00.0000000Z",
+  "finished_at": "2026-10-15T10:15:00.0000000Z",
+  "duration_seconds": 900,
+  "run_id": "",
+  "cluster_name": "",
+  "node_count": 4,
+  "baseline_run_id": null,
+  "metrics": null,
+  "checks": [],
+  "notes": [
+    "The pipeline finished but no aggregate result was found."
+  ]
+}

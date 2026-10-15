@@ -1,0 +1,23 @@
+{
+  "run_id": "fixture-candidate-regressed-003",
+  "timestamp": "2026-10-15T10:00:00Z",
+  "cluster_name": "example-cluster-01",
+  "vm_count": 20,
+  "profile_name": "Day2Smoke",
+  "total_read_iops": 61600.0,
+  "total_write_iops": 26400.0,
+  "total_iops": 88000,
+  "avg_read_latency_ms": 4.32,
+  "avg_write_latency_ms": 7.56,
+  "avg_latency_ms": 5.4,
+  "total_read_throughput_mbps": 490.14,
+  "total_write_throughput_mbps": 210.06,
+  "test_parameters": {
+    "block_size": "8k",
+    "write_ratio": 30,
+    "random_ratio": 70,
+    "outstanding_io": 8,
+    "threads_per_vm": 2,
+    "duration_seconds": 600
+  }
+}

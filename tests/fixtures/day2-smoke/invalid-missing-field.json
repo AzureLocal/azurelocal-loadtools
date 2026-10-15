@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "tool": "vmfleet",
+  "profile": "Day2Smoke",
+  "status": "Pass",
+  "exit_code": 0,
+  "proven_on_hardware": false,
+  "started_at": "2026-10-15T10:00:00Z",
+  "finished_at": "2026-10-15T10:15:00Z",
+  "duration_seconds": 900,
+  "run_id": "fixture-candidate-ok-002",
+  "cluster_name": "example-cluster-01",
+  "node_count": 4,
+  "baseline_run_id": "fixture-baseline-001",
+  "metrics": {
+    "total_iops": 115500.0,
+    "total_read_iops": 80850.0,
+    "total_write_iops": 34650.0,
+    "total_read_throughput_mbps": 647.57,
+    "total_write_throughput_mbps": 277.53,
+    "avg_latency_ms": 3.35,
+    "avg_read_latency_ms": 2.68,
+    "avg_write_latency_ms": 4.69,
+    "total_throughput_mbps": 925.1
+  },
+  "notes": []
+}

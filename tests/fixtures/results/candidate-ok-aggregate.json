@@ -1,0 +1,23 @@
+{
+  "run_id": "fixture-candidate-ok-002",
+  "timestamp": "2026-10-08T10:00:00Z",
+  "cluster_name": "example-cluster-01",
+  "vm_count": 20,
+  "profile_name": "Day2Smoke",
+  "total_read_iops": 80850.0,
+  "total_write_iops": 34650.0,
+  "total_iops": 115500,
+  "avg_read_latency_ms": 2.68,
+  "avg_write_latency_ms": 4.69,
+  "avg_latency_ms": 3.35,
+  "total_read_throughput_mbps": 647.57,
+  "total_write_throughput_mbps": 277.53,
+  "test_parameters": {
+    "block_size": "8k",
+    "write_ratio": 30,
+    "random_ratio": 70,
+    "outstanding_io": 8,
+    "threads_per_vm": 2,
+    "duration_seconds": 600
+  }
+}

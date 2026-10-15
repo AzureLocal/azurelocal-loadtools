@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://azurelocal.cloud/schemas/loadtools/day2-smoke-result-1.0.json",
+  "title": "Day-2 smoke result",
+  "description": "Result of tools/vmfleet/scripts/Invoke-Day2Smoke.ps1. A readiness gate reads this file and the process exit code; anything other than status Pass / exit 0 means the smoke test did not pass.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool",
+    "profile",
+    "status",
+    "exit_code",
+    "proven_on_hardware",
+    "started_at",
+    "finished_at",
+    "duration_seconds",
+    "run_id",
+    "cluster_name",
+    "node_count",
+    "baseline_run_id",
+    "metrics",
+    "checks",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": { "const": "vmfleet" },
+    "profile": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["Pass", "Fail", "Error", "Skipped"],
+      "description": "Pass = exit 0, Fail = exit 1 (a threshold or the regression check failed), Error = exit 2 (invalid or incomparable input, run failed), Skipped = exit 3 (nothing was run, for example a plan-only call)."
+    },
+    "exit_code": { "enum": [0, 1, 2, 3] },
+    "proven_on_hardware": {
+      "type": "boolean",
+      "description": "Always false until the owner has proven the run path on a live cluster."
+    },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "duration_seconds": { "type": "integer", "minimum": 0 },
+    "run_id": { "type": "string" },
+    "cluster_name": { "type": "string" },
+    "node_count": { "type": "integer", "minimum": 0 },
+    "baseline_run_id": { "type": ["string", "null"] },
+    "metrics": {
+      "type": ["object", "null"],
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["metric", "kind", "limit", "actual", "status"],
+        "properties": {
+          "metric": { "type": "string" },
+          "kind": { "enum": ["min", "max", "regression"] },
+          "limit": { "type": ["number", "null"] },
+          "actual": { "type": ["number", "null"] },
+          "status": { "enum": ["Pass", "Fail", "Error"] }
+        }
+      }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "Pass" } } },
+      "then": { "properties": { "exit_code": { "const": 0 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "Fail" } } },
+      "then": { "properties": { "exit_code": { "const": 1 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "Error" } } },
+      "then": { "properties": { "exit_code": { "const": 2 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "Skipped" } } },
+      "then": { "properties": { "exit_code": { "const": 3 } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "Pass" } } },
+      "then": { "properties": { "metrics": { "type": "object" }, "checks": { "minItems": 1 } } }
+    }
+  ]
+}
