@@ -1,6 +1,6 @@
 @{
     RootModule        = 'CredentialManager.psm1'
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '0.1.0' # x-release-please-version
     GUID              = 'd4e5f6a7-b8c9-0123-defa-234567890123'
     Author            = 'AzureLocal'
     CompanyName       = 'AzureLocal'

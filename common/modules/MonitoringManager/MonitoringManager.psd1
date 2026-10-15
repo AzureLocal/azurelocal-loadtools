@@ -1,6 +1,6 @@
 @{
     RootModule        = 'MonitoringManager.psm1'
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '0.1.0' # x-release-please-version
     GUID              = 'e5f6a7b8-c9d0-1234-efab-345678901234'
     Author            = 'AzureLocal'
     CompanyName       = 'AzureLocal'

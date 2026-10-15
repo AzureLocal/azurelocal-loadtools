@@ -1,6 +1,6 @@
 @{
     RootModule        = 'Logger.psm1'
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '0.1.0' # x-release-please-version
     GUID              = 'b2c3d4e5-f6a7-8901-bcde-f12345678901'
     Author            = 'AzureLocal'
     CompanyName       = 'AzureLocal'

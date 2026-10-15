@@ -1,6 +1,6 @@
 @{
     RootModule        = 'ResultAnalysis.psm1'
-    ModuleVersion     = '0.1.0'
+    ModuleVersion     = '0.1.0' # x-release-please-version
     GUID              = 'b7c2e4a9-3d51-4f06-8a1e-9c0d2f6e7a13'
     Author            = 'AzureLocal'
     CompanyName       = 'AzureLocal'

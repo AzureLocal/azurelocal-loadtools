@@ -1,6 +1,6 @@
 @{
     RootModule        = 'FaultInjection.psm1'
-    ModuleVersion     = '0.1.0'
+    ModuleVersion     = '0.1.0' # x-release-please-version
     GUID              = 'a1f0c5d2-7b3e-4c88-9e41-5d2a6b7c8e90'
     Author            = 'AzureLocal'
     CompanyName       = 'AzureLocal'

@@ -2,16 +2,14 @@
 # Azure Local Load Tools - .gitignore
 # =============================================================================
 
-# Runtime logs (generated during test execution)
-logs/**
-!logs/.gitkeep
-!logs/**/
-!logs/**/.gitkeep
+# Runtime logs (generated during test execution; created on demand)
+logs/
+tools/*/logs/
 
 # Runtime state files (generated during automation runs)
 state/run-state.json
-state/history/**
-!state/history/.gitkeep
+state/fault-lock.json
+state/history/
 
 # Generated reports (PDF, DOCX, XLSX output)
 reports/**/*.pdf
@@ -19,13 +17,11 @@ reports/**/*.docx
 reports/**/*.xlsx
 reports/**/*.html
 reports/**/run-*/
-!reports/.gitkeep
 !reports/templates/
 
 # CI-generated diagram exports
 docs/images/*.png
 docs/images/*.svg
-!docs/images/.gitkeep
 
 # Credential files (never commit secrets)
 config/credentials/*.secret

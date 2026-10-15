@@ -6,11 +6,76 @@
       "changelog-path": "CHANGELOG.md",
       "include-component-in-tag": false,
       "categories": [
-        { "title": "Features", "labels": ["feat"] },
-        { "title": "Bug Fixes", "labels": ["fix"] },
-        { "title": "Documentation", "labels": ["docs"] },
-        { "title": "Infrastructure", "labels": ["infra"] },
-        { "title": "Miscellaneous", "labels": ["chore", "ci", "refactor", "style", "test"] }
+        {
+          "title": "Features",
+          "labels": [
+            "feat"
+          ]
+        },
+        {
+          "title": "Bug Fixes",
+          "labels": [
+            "fix"
+          ]
+        },
+        {
+          "title": "Documentation",
+          "labels": [
+            "docs"
+          ]
+        },
+        {
+          "title": "Infrastructure",
+          "labels": [
+            "infra"
+          ]
+        },
+        {
+          "title": "Miscellaneous",
+          "labels": [
+            "chore",
+            "ci",
+            "refactor",
+            "style",
+            "test"
+          ]
+        }
+      ],
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": false,
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "common/modules//ConfigManager//ConfigManager.psd1"
+        },
+        {
+          "type": "generic",
+          "path": "common/modules//CredentialManager//CredentialManager.psd1"
+        },
+        {
+          "type": "generic",
+          "path": "common/modules//FaultInjection//FaultInjection.psd1"
+        },
+        {
+          "type": "generic",
+          "path": "common/modules//Logger//Logger.psd1"
+        },
+        {
+          "type": "generic",
+          "path": "common/modules//MonitoringManager//MonitoringManager.psd1"
+        },
+        {
+          "type": "generic",
+          "path": "common/modules//ReportGenerator//ReportGenerator.psd1"
+        },
+        {
+          "type": "generic",
+          "path": "common/modules//ResultAnalysis//ResultAnalysis.psd1"
+        },
+        {
+          "type": "generic",
+          "path": "common/modules//StateManager//StateManager.psd1"
+        }
       ]
     }
   }
