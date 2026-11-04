@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From the first release on, release-please maintains this file from Conventional Commit messages.
 
-## 1.0.0 (2026-10-16)
+## 1.0.0 (2026-11-04)
 
 
 ### Features
@@ -28,6 +28,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * add fetch-depth: 0 to checkout step for drawio-export-action ([442dc58](https://github.com/AzureLocal/azurelocal-loadtools/commit/442dc58337ff883af1df0e1449a12b5d9d162ce1))
 * add README.md and remove legacy AsciiDoc files ([#21](https://github.com/AzureLocal/azurelocal-loadtools/issues/21)) ([11df59d](https://github.com/AzureLocal/azurelocal-loadtools/commit/11df59dc9a9602a17011798fe33f36a62c9c9f6d))
 * add reopened trigger to add-to-project workflow ([0bf99ba](https://github.com/AzureLocal/azurelocal-loadtools/commit/0bf99ba7f1295509b7e6c978fc1dda63cfb9618d))
+* **ci:** handle zero failed Pester tests ([67cecd9](https://github.com/AzureLocal/azurelocal-loadtools/commit/67cecd99c35d6883269ac5ea95e5820a946d640d))
+* **ci:** handle zero failed Pester tests ([b820042](https://github.com/AzureLocal/azurelocal-loadtools/commit/b820042b6262ef05b3b4984b7347f87afe058100))
+* **ci:** handle zero failed Pester tests ([1587f5b](https://github.com/AzureLocal/azurelocal-loadtools/commit/1587f5b2fc7a746afb6d488465ba48041df1a246))
+* **ci:** handle zero failed Pester tests ([46568d4](https://github.com/AzureLocal/azurelocal-loadtools/commit/46568d49be417815556fd06bba4240c93355a495))
+* **ci:** handle zero failed Pester tests ([d15f58b](https://github.com/AzureLocal/azurelocal-loadtools/commit/d15f58b9d49cfce32295ff5894b3f0a84160aafa))
 * **ci:** result keys no longer collide, suppress analyzer false positive; fix invalid-computer-name test ([98c1275](https://github.com/AzureLocal/azurelocal-loadtools/commit/98c12755103efde63f799e8da8ad2f25d2a1f72f))
 * **docs:** inject base path and convert mkdocs admonitions AB[#4945](https://github.com/AzureLocal/azurelocal-loadtools/issues/4945) ([764eab9](https://github.com/AzureLocal/azurelocal-loadtools/commit/764eab92ed8dfbd06cbeff0c3058ab2c57056c66))
 * **docs:** restore branding and ignore dead links AB[#4945](https://github.com/AzureLocal/azurelocal-loadtools/issues/4945) ([2ddc18d](https://github.com/AzureLocal/azurelocal-loadtools/commit/2ddc18dccd335b54a8863a201055b15eea58b254))
