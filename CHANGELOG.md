@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From the first release on, release-please maintains this file from Conventional Commit messages.
 
+## [1.0.1](https://github.com/AzureLocal/azurelocal-loadtools/compare/v1.0.0...v1.0.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **docs:** treat drawio sources as downloadable assets ([6c28fe7](https://github.com/AzureLocal/azurelocal-loadtools/commit/6c28fe77a4426fa52a9b6fce5ed7f8f4d9e59c4e))
+
 ## 1.0.0 (2026-10-16)
 
 
