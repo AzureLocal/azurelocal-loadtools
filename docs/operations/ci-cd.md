@@ -62,6 +62,7 @@ pwsh -File tests/Invoke-CiChecks.ps1 -Check Analyzer -MaxWarnings 50
 ```
 
 The analyzer settings are in `.psscriptanalyzer.psd1`; every excluded rule is listed there with its reason.
+The VitePress configuration treats `.drawio` sources as downloadable assets rather than JavaScript modules. Validate documentation changes with `cd docs; npm install; npm run docs:build`.
 
 ### Gating a readiness check
 

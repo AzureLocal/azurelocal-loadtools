@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  vite: {
+    assetsInclude: ['**/*.drawio']
+  },
   ignoreDeadLinks: true,
   base: '/azurelocal-loadtools/',
   title: "Azure Local Load Testing Framework",
@@ -18,7 +21,6 @@ export default defineConfig({
     }
   }
 })
-
 
 
 

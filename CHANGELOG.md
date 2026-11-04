@@ -46,6 +46,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Treat linked draw.io source files as Vite assets so the documentation build and GitHub Pages deployment succeed.
+
 Target: 0.1.0, the first tagged pre-release. Nothing in this repository has been proven on a live Azure Local cluster; see `docs/reference/status.md`.
 
 ### Features
