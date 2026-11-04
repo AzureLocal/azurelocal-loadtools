@@ -79,11 +79,15 @@ function Invoke-PesterCheck {
             })
     }
     $bad = @($rows | Where-Object { $_.exit -ne 0 -or $_.failed -ne 0 -or $_.total -eq 0 })
+    $failedCount = 0
+    foreach ($row in $rows) {
+        if ($row.failed -gt 0) { $failedCount += $row.failed }
+    }
     Save-CheckResult 'pester' ($bad.Count -eq 0 -and $rows.Count -gt 0) @{
         suites       = $rows.Count
         tests_total  = [int](($rows | Measure-Object -Property total -Sum).Sum)
         tests_passed = [int](($rows | Measure-Object -Property passed -Sum).Sum)
-        tests_failed = [int](($rows | Where-Object { $_.failed -gt 0 } | Measure-Object -Property failed -Sum).Sum)
+        tests_failed = $failedCount
         detail       = $rows.ToArray()
     }
 }
