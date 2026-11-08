@@ -8,7 +8,7 @@ Before deploying the Azure Local Load Testing Framework, ensure the following co
 
 | Requirement | Details |
 |-------------|---------|
-| Azure Local Version | Azure Stack HCI 23H2 or later (22H2 supported with limitations) |
+| Azure Local Version | Azure Local 23H2 or later (the docs target 12.2609); Azure Stack HCI 22H2 only with limitations |
 | Cluster Nodes | Minimum 2 nodes; recommended 4+ for meaningful fleet testing |
 | Storage Spaces Direct (S2D) | Enabled and healthy (`Get-StorageSubSystem` shows `HealthStatus: Healthy`) |
 | Cluster Shared Volumes | At least one CSV for VM fleet storage; additional CSV for results collection |
@@ -28,11 +28,11 @@ The management station is where automation scripts execute. This can be a physic
 
 | Requirement | Details |
 |-------------|---------|
-| Operating System | Windows 10/11 or Windows Server 2019+ (PowerShell 7.2+) |
-| PowerShell | Version 7.2 or later (`$PSVersionTable.PSVersion`) |
-| PowerShell Modules | `Az.KeyVault`, `Az.Monitor`, `powershell-yaml`, `ImportExcel` |
-| Asciidoctor | Ruby 3.0+, `asciidoctor`, `asciidoctor-pdf` gems (for report generation) |
-| Pandoc | Version 3.0+ (for DOCX report generation) |
+| Operating System | Windows 10/11 or Windows Server 2019+ (PowerShell 7.2+). Linux tools run on Linux target VMs, not on the management station |
+| PowerShell | Version 7.2 or later (`#Requires -Version 7.2`; `$PSVersionTable.PSVersion`). Windows PowerShell 5.1 is not supported |
+| PowerShell Modules | Required: `powershell-yaml` (CI pins 0.4.12) and, for VMFleet, the `VMFleet` module. Optional: `Az.KeyVault` (Key Vault credentials), `Az.Monitor` (Azure Monitor push), `ImportExcel` (XLSX reports). Install with `Install-Module <name> -Scope CurrentUser` |
+| Asciidoctor | Optional. Ruby 3.0+, `asciidoctor`, `asciidoctor-pdf` gems (PDF reports) |
+| Pandoc | Optional. Version 3.0+ (DOCX reports) |
 | Git | Version 2.30+ (for repository management) |
 
 ## Ansible Requirements (for Linux-Based Tools)
@@ -65,16 +65,20 @@ Run the pre-check script to validate all common prerequisites:
 
 ```powershell
 # From the repository root
-.\src\core\powershell\helpers\Initialize-Environment.ps1 -ValidateOnly
+.\common\helpers\Initialize-Environment.ps1 -Solution VMFleet
 ```
 
-This will check:
+The script prints an `[OK]` / `[FAIL]` / `[SKIP]` report and stops on a missing required item. It checks the local machine only:
 
-- PowerShell version and required modules
-- Cluster connectivity and S2D health
-- Required volumes availability
-- Azure connectivity (if Azure features enabled)
-- Ansible availability (if Linux tools enabled)
+- PowerShell 7.2+ and the `powershell-yaml` module (required)
+- `ImportExcel`, `Az.KeyVault`, `Az.Monitor`, `asciidoctor-pdf`, `pandoc` (optional)
+- the `VMFleet` module (required when `-Solution VMFleet`)
+
+It does not test cluster connectivity, S2D health, volumes, Azure or Ansible. Check those with the tool pages below.
+
+## Azure Roles and Credentials
+
+Credentials are never stored in the repository. Cluster and VM credentials come from Azure Key Vault (`Az.KeyVault`; role Key Vault Secrets User or an equivalent access policy on the vault) or an interactive prompt. Azure Monitor push needs a role that can publish metrics to the workspace (for example Monitoring Metrics Publisher). Network: HTTPS 443 to Azure Resource Manager, Key Vault and Azure Monitor endpoints; WinRM 5985/5986 to the cluster nodes; SSH 22 to Linux target VMs when Ansible is used.
 
 ## Tool-Specific Prerequisites
 

@@ -97,19 +97,19 @@ cluster:
 
 ```powershell
 # Run the environment initialization script
-.\src\core\powershell\helpers\Initialize-Environment.ps1 `
-    -ClusterConfig "config/clusters/my-cluster.yml" `
-    -CredentialSource Interactive
+.\common\helpers\Initialize-Environment.ps1 -Solution VMFleet `
+    -MasterConfigPath "config/variables/variables.yml" `
+    -ClusterConfigPath "config/clusters/cluster.yml"
 ```
 
 This will:
 
-1. Load and validate the cluster configuration
-2. Test connectivity to all cluster nodes
-3. Verify Storage Spaces Direct health
-4. Check for required volumes and base VHD
-5. Generate solution-specific configuration files from the master environment
-6. Create initial run state
+1. Check the local prerequisites (PowerShell 7.2+, `powershell-yaml`, optional modules and report tools, and the `VMFleet` module when `-Solution VMFleet`); skip with `-SkipPrerequisiteCheck`
+2. Create `config/variables/variables.yml` from the example when it is missing, and load the core modules from `common/modules`
+3. Validate the master and cluster configuration files when they are given
+4. Create the working directory structure
+
+Cluster connectivity, Storage Spaces Direct health and base VHD checks are not part of this script; run them per tool (see the [VMFleet prerequisites](../tools/vmfleet/prerequisites.md)).
 
 ## Verify Installation
 

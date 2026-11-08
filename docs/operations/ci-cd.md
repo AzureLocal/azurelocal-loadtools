@@ -33,7 +33,7 @@ Or use the common utility scripts directly:
 
 ```powershell
 # Validate your configuration
-.\common\helpers\Initialize-Environment.ps1 -ValidateOnly
+.\common\helpers\Initialize-Environment.ps1 -Solution VMFleet
 
 # Run Pester unit tests
 Invoke-Pester tests/ -Output Detailed

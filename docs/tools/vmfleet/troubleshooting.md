@@ -122,7 +122,7 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 3. Run schema validation:
 
 ```powershell
-.\common\helpers\Initialize-Environment.ps1 -ValidateOnly
+.\common\helpers\Initialize-Environment.ps1 -Solution VMFleet
 ```
 
 ### Solution JSON Not Generated

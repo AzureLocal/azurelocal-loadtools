@@ -98,8 +98,11 @@ Every tool follows the same pattern: **Install → Run Test → Collect Results*
 
 - **Azure Local** cluster registered with Azure Arc (the docs target 12.2609 (latest))
 - Azure subscription with appropriate RBAC
-- PowerShell 7.2+
-- See tool-specific requirements in the documentation
+- PowerShell 7.2+ on a Windows management station (Windows 10/11 or Windows Server 2019+); Windows PowerShell 5.1 is not supported
+- Required module: `powershell-yaml`; for VMFleet also the `VMFleet` module. Optional: `Az.KeyVault`, `Az.Monitor`, `ImportExcel`, plus `asciidoctor-pdf` and `pandoc` for PDF and DOCX reports
+- WinRM (TCP 5985/5986) from the station to every cluster node; HTTPS 443 to Azure Resource Manager, Key Vault and Azure Monitor when those features are used; SSH 22 to Linux VMs and Ansible 2.14+ for fio, iPerf3, HammerDB and stress-ng
+- Credentials come from Azure Key Vault (Key Vault Secrets User role) or an interactive prompt, never from files in the repo
+- Full list and per-tool requirements: [Prerequisites](docs/getting-started/prerequisites.md)
 
 ---
 
