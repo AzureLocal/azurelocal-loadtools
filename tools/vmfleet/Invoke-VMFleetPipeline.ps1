@@ -112,7 +112,13 @@ if ($Resume) {
 try {
     # Get credentials once
     if (-not $Credential) {
-        $Credential = Get-ManagedCredential -CredentialName 'cluster_admin' -ProjectRoot $ProjectRoot
+        # No prompt: -Credential, CLUSTER_ADMIN_USERNAME/CLUSTER_ADMIN_PASSWORD or the Key Vault mapping; otherwise stop (exit 2).
+        try {
+            $Credential = Get-ManagedCredential -Name 'cluster_admin' -ProjectRoot $ProjectRoot
+        } catch {
+            Write-Log -Message $_.Exception.Message -Severity Error
+            exit 2
+        }
     }
 
     # Common params for sub-scripts

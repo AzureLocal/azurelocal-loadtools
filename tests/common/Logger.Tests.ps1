@@ -56,6 +56,24 @@ Describe 'Logger Module' {
         }
     }
 
+    Context 'Tool script call shape (no prompt)' {
+        It 'Accepts -LogRootPath and -Severity Information, and Stop-LogSession without -SessionId closes the last session' {
+            $logRoot = Join-Path $TestDrive 'logs6'
+            $sessionId = Start-LogSession -Component 'ScriptShape' -LogRootPath $logRoot
+            Write-Log -Message 'Info message' -Severity Information -SessionId $sessionId
+            $entry = Get-Content -Path (Get-ChildItem -Path $logRoot -Filter '*.jsonl' -Recurse)[0].FullName -Tail 1 | ConvertFrom-Json
+            $entry.severity | Should -Be 'INFO'
+            Stop-LogSession
+            Get-LogSession -SessionId $sessionId | Should -BeNullOrEmpty
+        }
+
+        It 'Stop-LogSession has no mandatory parameter' {
+            (Get-Command Stop-LogSession).Parameters['SessionId'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.Mandatory } |
+                Should -BeNullOrEmpty
+        }
+    }
+
     Context 'Get-LogSession' {
         It 'Should return current session info' {
             $logRoot = Join-Path $TestDrive 'logs5'

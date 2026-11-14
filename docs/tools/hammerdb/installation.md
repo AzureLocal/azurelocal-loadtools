@@ -10,7 +10,7 @@ This guide covers deploying HammerDB onto Windows VMs on the Azure Local cluster
 In addition to the [common prerequisites](../../getting-started/prerequisites.md):
 
 - Windows VMs deployed on the Azure Local cluster with WinRM enabled
-- The `cluster_admin` credential available via Key Vault or interactively — see [Credential Management](../../operations/credential-management.md)
+- The `cluster_admin` credential passed as `-Credential`, set as `CLUSTER_ADMIN_USERNAME` / `CLUSTER_ADMIN_PASSWORD`, or mapped in Key Vault — see [Credential Management](../../operations/credential-management.md)
 - Outbound internet access from the target node (to download the HammerDB installer from GitHub), **or** a local copy of the installer placed at a UNC path
 - A SQL Server or PostgreSQL instance deployed and accessible from the target VM
 
@@ -42,7 +42,6 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 | `-HammerDBVersion` | string | `4.6` | GitHub release version to download |
 | `-InstallPath` | string | `C:\HammerDB` | Destination install directory |
 | `-Force` | switch | false | Re-install even if already present |
-| `-CredentialSource` | string | `Interactive` | `KeyVault`, `Interactive`, or `Parameter` |
 
 ## Verify Installation
 

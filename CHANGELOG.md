@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). From the first release on, release-please maintains this file from Conventional Commit messages.
 
+## Unreleased
+
+### Bug Fixes
+
+* **credentials:** no interactive prompts. `CredentialManager` drops the `Interactive` source (`Get-Credential`, `Read-Host`); a credential or secret comes from a parameter, an environment variable (`CLUSTER_ADMIN_USERNAME` / `CLUSTER_ADMIN_PASSWORD`, `LINUX_SSH_USERNAME`, `LOG_ANALYTICS_KEY`) or the Key Vault mapping (new default source `Auto`). A missing credential stops the script with a message saying what to pass or set, and exit code 2; the fio, iPerf3 and stress-ng scripts stop the same way when no SSH user is passed or configured. `credential_source` defaults change from `Interactive` to `Auto`. Logger accepts the `-LogRootPath` and `-Severity Information` the tool scripts pass, and `Stop-LogSession` no longer has a mandatory parameter that prompted.
+
 ## [1.0.1](https://github.com/AzureLocal/azurelocal-loadtools/compare/v1.0.0...v1.0.1) (2026-11-04)
 
 

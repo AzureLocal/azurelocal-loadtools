@@ -10,7 +10,7 @@ This guide covers deploying iPerf3 on Azure Local cluster nodes (Windows or Linu
 In addition to the [common prerequisites](../../getting-started/prerequisites.md):
 
 - Cluster nodes (Windows or Linux VMs) reachable via SSH (port 22)
-- SSH key-based authentication configured — the `linux_ssh` credential must be available via Key Vault or interactively
+- SSH key-based authentication configured — the SSH user comes from `-SshUser`, `cluster.ssh_user`, `LINUX_SSH_USERNAME` or the `linux_ssh_username` Key Vault mapping
 - `iperf3` binary installed on each node (see below)
 - Firewall rules permitting TCP/UDP on port 5201 between all cluster nodes (the default iPerf3 port)
 
@@ -56,18 +56,18 @@ Expected: `iperf 3.x.x` on all nodes.
 
 ## SSH Key Configuration
 
-`Start-IperfTest.ps1` uses SSH/SCP with `BatchMode=yes` (no password prompts). The `linux_ssh` credential must contain a path to a private key that is authorized on all target nodes.
+`Start-IperfTest.ps1` uses SSH/SCP with `BatchMode=yes` (no password prompts). The private key (`-SshKeyPath` or `cluster.ssh_key_path`) must be authorized on all target nodes. The script never prompts: when no SSH user is passed or configured it stops with a message and exit code 2.
 
 ```powershell
-# Interactive credential prompt (for local runs)
+# Local run: pass the SSH user and key (or set cluster.ssh_user / cluster.ssh_key_path)
 .\tools\iperf\scripts\Start-IperfTest.ps1 `
-    -ClusterName "hci01.corp.infiniteimprobability.com" `
-    -Nodes @("hci01-node1", "hci01-node2") `
-    -Profile "tcp-throughput" `
-    -CredentialSource Interactive   # Prompts for SSH username and key path
+    -ClusterConfigPath "config\clusters\iic-cluster01.yml" `
+    -ProfilePath "tools\iperf\config\profiles\tcp-throughput.yml" `
+    -SshUser "iic-linuxadmin" `
+    -SshKeyPath "$env:USERPROFILE\.ssh\azurelocal_rsa"
 ```
 
-For CI/CD, store the private key path in Key Vault as the `linux_ssh` secret.
+For CI/CD, set `LINUX_SSH_USERNAME` or map `linux_ssh_username` in `config/credentials/keyvault-config.yml`.
 
 ## Firewall Configuration
 

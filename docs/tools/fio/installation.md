@@ -10,7 +10,7 @@ This guide covers deploying fio onto Linux VMs on the Azure Local cluster.
 In addition to the [common prerequisites](../../getting-started/prerequisites.md):
 
 - Linux VMs deployed on the Azure Local cluster and reachable via SSH (port 22)
-- SSH key-based authentication configured — the `linux_ssh` credential must be available via Key Vault or interactive prompt
+- SSH key-based authentication configured — the SSH user comes from `-SshUser`, `cluster.ssh_user`, `LINUX_SSH_USERNAME` or the `linux_ssh_username` Key Vault mapping (the scripts stop with exit code 2 when none is set)
 - Ansible 2.14+ accessible from the management station (WSL2 or Linux jump box)
 - fio 3.28+ will be installed by `Install-Fio.ps1`
 
@@ -43,7 +43,6 @@ See [Credential Management](../../operations/credential-management.md) for `linu
 | `-Nodes` | string[] | required | DNS names or IPs of target Linux VMs |
 | `-AnsibleInventory` | string | `config/ansible/inventory.yml` | Path to Ansible inventory file |
 | `-PlaybookPath` | string | `tools/fio/playbooks/deploy-fio.yml` | Path to the deploy playbook |
-| `-CredentialSource` | string | `Interactive` | `KeyVault`, `Interactive`, or `Parameter` |
 
 ## Verify Installation
 

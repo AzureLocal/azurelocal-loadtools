@@ -81,6 +81,18 @@ try {
     $sshUserVal = if ($SshUser) { $SshUser } else { $clusterConfig.cluster.ssh_user }
     $sshKeyVal = if ($SshKeyPath) { $SshKeyPath } else { $clusterConfig.cluster.ssh_key_path }
 
+    # No prompt: -SshUser, cluster.ssh_user, LINUX_SSH_USERNAME or the Key Vault mapping; otherwise stop (exit 2).
+    if (-not $sshUserVal) {
+        Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
+        try {
+            $sshUserVal = Get-ManagedSecret -Name 'linux_ssh_username' -ProjectRoot $ProjectRoot
+        } catch {
+            $message = "No SSH user for the Linux nodes. Pass -SshUser or set cluster.ssh_user in $ClusterConfigPath. $($_.Exception.Message)"
+            Write-Log -Message $message -Severity Error
+            exit 2
+        }
+    }
+
     $remoteResultsDir = "/tmp/fio-results/$RunId"
     $nodeData = [System.Collections.Generic.List[hashtable]]::new()
 

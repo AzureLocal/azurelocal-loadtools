@@ -95,7 +95,8 @@ credentials:
 
 ```powershell
 $clusterNodes = @("hci01-node1", "hci01-node2", "hci01-node3", "hci01-node4")
-$cred = Get-Credential  # or pull from Key Vault
+Import-Module .\common\modules\CredentialManager\CredentialManager.psm1
+$cred = Get-ManagedCredential -Name 'cluster_admin'  # CLUSTER_ADMIN_USERNAME / CLUSTER_ADMIN_PASSWORD or Key Vault
 
 foreach ($node in $clusterNodes) {
     try {

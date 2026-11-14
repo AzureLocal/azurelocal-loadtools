@@ -29,7 +29,7 @@ Each tool is standalone — pick one and follow the "Run This Test" instructions
 
 - **100% Automated** — End-to-end pipeline from cluster validation to report generation
 - **Configuration-Driven** — Master environment file with tagged variables; nothing hardcoded
-- **Credential Security** — Azure Key Vault integration or interactive credential prompting
+- **Credential Security** — Azure Key Vault, environment variable or parameter credentials; no prompts
 - **Comprehensive Monitoring** — Real-time storage, network, and compute metric collection
 - **Multi-Format Reports** — PDF, Word (DOCX), and Excel (XLSX) output
 - **CI/CD Ready** — GitHub Actions, Azure DevOps, and GitLab CI pipeline definitions

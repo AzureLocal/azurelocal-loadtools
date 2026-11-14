@@ -49,7 +49,7 @@ Copy-Item config\variables\variables.example.yml config\variables\variables.yml
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
     -ClusterConfigPath "config\clusters\my-cluster.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
-    -FleetAdminCredential (Get-Credential -Message "Fleet VM admin")
+    -FleetAdminCredential $fleetAdmin   # for example Get-ManagedCredential -Name 'vmfleet_admin'
 ```
 
 The parameter names above come from the script `param` blocks. See the [documentation site](https://azurelocal.github.io/azurelocal-loadtools/) for the rest.
@@ -101,7 +101,7 @@ Every tool follows the same pattern: **Install → Run Test → Collect Results*
 - PowerShell 7.2+ on a Windows management station (Windows 10/11 or Windows Server 2019+); Windows PowerShell 5.1 is not supported
 - Required module: `powershell-yaml`; for VMFleet also the `VMFleet` module. Optional: `Az.KeyVault`, `Az.Monitor`, `ImportExcel`, plus `asciidoctor-pdf` and `pandoc` for PDF and DOCX reports
 - WinRM (TCP 5985/5986) from the station to every cluster node; HTTPS 443 to Azure Resource Manager, Key Vault and Azure Monitor when those features are used; SSH 22 to Linux VMs and Ansible 2.14+ for fio, iPerf3, HammerDB and stress-ng
-- Credentials come from Azure Key Vault (Key Vault Secrets User role) or an interactive prompt, never from files in the repo
+- Credentials come from a parameter, an environment variable or Azure Key Vault (Key Vault Secrets User role), never from files in the repo; no script prompts, and a missing credential stops the script with a message
 - Full list and per-tool requirements: [Prerequisites](docs/getting-started/prerequisites.md)
 
 ---

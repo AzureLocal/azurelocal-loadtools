@@ -78,7 +78,7 @@ It does not test cluster connectivity, S2D health, volumes, Azure or Ansible. Ch
 
 ## Azure Roles and Credentials
 
-Credentials are never stored in the repository. Cluster and VM credentials come from Azure Key Vault (`Az.KeyVault`; role Key Vault Secrets User or an equivalent access policy on the vault) or an interactive prompt. Azure Monitor push needs a role that can publish metrics to the workspace (for example Monitoring Metrics Publisher). Network: HTTPS 443 to Azure Resource Manager, Key Vault and Azure Monitor endpoints; WinRM 5985/5986 to the cluster nodes; SSH 22 to Linux target VMs when Ansible is used.
+Credentials are never stored in the repository. Cluster and VM credentials come from a parameter, an environment variable or Azure Key Vault (`Az.KeyVault`; role Key Vault Secrets User or an equivalent access policy on the vault); no script prompts. Azure Monitor push needs a role that can publish metrics to the workspace (for example Monitoring Metrics Publisher). Network: HTTPS 443 to Azure Resource Manager, Key Vault and Azure Monitor endpoints; WinRM 5985/5986 to the cluster nodes; SSH 22 to Linux target VMs when Ansible is used.
 
 ## Tool-Specific Prerequisites
 

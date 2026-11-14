@@ -5,7 +5,7 @@
     Author            = 'AzureLocal'
     CompanyName       = 'AzureLocal'
     Copyright         = '(c) 2026 AzureLocal. MIT License.'
-    Description       = 'Credential management for Azure Local Load Tools. Supports Azure Key Vault, interactive prompt, and parameter injection.'
+    Description       = 'Credential management for Azure Local Load Tools. A credential comes from a parameter, an environment variable or Azure Key Vault; nothing prompts, and a missing credential stops with a message.'
     PowerShellVersion = '7.2'
     FunctionsToExport = @(
         'Get-ManagedCredential'

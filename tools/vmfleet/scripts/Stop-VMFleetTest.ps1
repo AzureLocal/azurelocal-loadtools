@@ -47,7 +47,13 @@ try {
 
     if (-not $Credential) {
         Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
-        $Credential = Get-ManagedCredential -CredentialName 'cluster_admin' -ProjectRoot $ProjectRoot
+        # No prompt: -Credential, CLUSTER_ADMIN_USERNAME/CLUSTER_ADMIN_PASSWORD or the Key Vault mapping; otherwise stop (exit 2).
+        try {
+            $Credential = Get-ManagedCredential -Name 'cluster_admin' -ProjectRoot $ProjectRoot
+        } catch {
+            Write-Log -Message $_.Exception.Message -Severity Error
+            exit 2
+        }
     }
 
     if ($PSCmdlet.ShouldProcess($primaryNode, 'Stop VMFleet workload')) {

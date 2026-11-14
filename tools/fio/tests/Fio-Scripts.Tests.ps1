@@ -140,6 +140,61 @@ Describe 'Fio Monitoring Alert Rules' {
     }
 }
 
+Describe 'Start-FioTest.ps1 SSH user (no prompt)' {
+    # Runs the script against a copy of common/ in TestDrive with example-company
+    # nodes. ssh is replaced by a local function, so nothing reaches a node.
+    BeforeAll {
+        $script:SavedSshUser = [System.Environment]::GetEnvironmentVariable('LINUX_SSH_USERNAME')
+        $script:FakeRoot = Join-Path $TestDrive 'repo'
+        $null = New-Item -ItemType Directory -Path $script:FakeRoot -Force
+        Copy-Item -Path (Join-Path $script:ProjectRoot 'common') -Destination $script:FakeRoot -Recurse
+        $script:ClusterFile = Join-Path $TestDrive 'iic-cluster01.yml'
+        Set-Content -LiteralPath $script:ClusterFile -Value @'
+cluster:
+  name: iic-cluster01
+nodes:
+  - name: iic-node01
+  - name: iic-node02
+'@
+        $script:SolutionFile = Join-Path $script:ProjectRoot 'tools\fio\config\fio.json'
+        $script:Script = Join-Path $script:FioScriptsPath 'Start-FioTest.ps1'
+    }
+
+    AfterAll {
+        [System.Environment]::SetEnvironmentVariable('LINUX_SSH_USERNAME', $script:SavedSshUser)
+    }
+
+    BeforeEach {
+        [System.Environment]::SetEnvironmentVariable('LINUX_SSH_USERNAME', $null)
+        # ssh is replaced by a closure that records its arguments
+        $script:SshCalls = [System.Collections.Generic.List[string]]::new()
+        $calls = $script:SshCalls
+        $script:SshStub = { $calls.Add(($args -join ' ')); $global:LASTEXITCODE = 0 }.GetNewClosure()
+    }
+
+    It 'Stops with exit code 2 and a message when -SshUser, cluster.ssh_user, LINUX_SSH_USERNAME and Key Vault are all empty' {
+        Set-Item -Path function:ssh -Value $script:SshStub
+        $global:LASTEXITCODE = 0
+        $out = & $script:Script -ProjectRoot $script:FakeRoot -ClusterConfigPath $script:ClusterFile `
+            -SolutionConfigPath $script:SolutionFile -RunId 'fio-test-missing' 2>&1
+        $LASTEXITCODE | Should -Be 2
+        $text = ($out | ForEach-Object { "$_" }) -join "`n"
+        $text | Should -BeLike '*No SSH user for the Linux nodes. Pass -SshUser or set cluster.ssh_user*'
+        $text | Should -BeLike '*LINUX_SSH_USERNAME*'
+        $script:SshCalls.Count | Should -Be 0
+    }
+
+    It 'Uses LINUX_SSH_USERNAME when it is set (no prompt)' {
+        Set-Item -Path function:ssh -Value $script:SshStub
+        [System.Environment]::SetEnvironmentVariable('LINUX_SSH_USERNAME', 'iic-linuxadmin')
+        $global:LASTEXITCODE = 0
+        $null = & $script:Script -ProjectRoot $script:FakeRoot -ClusterConfigPath $script:ClusterFile `
+            -SolutionConfigPath $script:SolutionFile -RunId 'fio-test-env' 6>$null
+        $script:SshCalls.Count | Should -Be 2
+        $script:SshCalls[0] | Should -BeLike '*iic-linuxadmin@iic-node01*'
+    }
+}
+
 Describe 'Fio Report Templates' {
     $templateCases = @(
         @{ Name = 'cover-page.adoc'; Path = 'tools\fio\reports\templates\cover-page.adoc' }

@@ -50,15 +50,22 @@ try {
         $config = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
 
         if (-not $WorkspaceId) { $WorkspaceId = $config.monitoring_workspace_id }
-        if (-not $WorkspaceKey) {
-            Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
-            $WorkspaceKey = Get-ManagedSecret -SecretName 'log_analytics_key' -ProjectRoot $ProjectRoot
-        }
     }
 
-    if (-not $WorkspaceId -or -not $WorkspaceKey) {
-        Write-Log -Message 'Azure Monitor workspace ID or key not configured. Skipping push.' -Severity Warning
+    if (-not $WorkspaceId) {
+        Write-Log -Message 'Azure Monitor workspace ID not configured. Skipping push.' -Severity Warning
         return
+    }
+
+    # No prompt: -WorkspaceKey, LOG_ANALYTICS_KEY or the Key Vault mapping; otherwise stop (exit 2).
+    if (-not $WorkspaceKey) {
+        Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
+        try {
+            $WorkspaceKey = Get-ManagedSecret -Name 'log_analytics_key' -ProjectRoot $ProjectRoot
+        } catch {
+            Write-Log -Message "No Log Analytics workspace key. Pass -WorkspaceKey. $($_.Exception.Message)" -Severity Error
+            exit 2
+        }
     }
 
     if (-not $MetricsPath) {

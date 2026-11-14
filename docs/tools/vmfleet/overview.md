@@ -25,7 +25,7 @@ VMFleet is the primary storage load testing tool in the Azure Local Load Testing
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
     -ClusterConfigPath "config\clusters\my-cluster.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
-    -FleetAdminCredential (Get-Credential -Message "Fleet VM admin")
+    -FleetAdminCredential $fleetAdmin   # for example Get-ManagedCredential -Name 'vmfleet_admin'
 ```
 
 ## Pipeline Phases

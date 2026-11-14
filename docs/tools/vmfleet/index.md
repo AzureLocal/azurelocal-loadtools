@@ -30,7 +30,7 @@ The VMFleet orchestrator runs all phases end-to-end with checkpoint-based resume
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
     -ClusterConfigPath "config\clusters\my-cluster.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
-    -FleetAdminCredential (Get-Credential -Message "Fleet VM admin")
+    -FleetAdminCredential $fleetAdmin   # see Credential Management; for example Get-ManagedCredential -Name 'vmfleet_admin'
 ```
 
 If the pipeline fails mid-run, resume from the last checkpoint:

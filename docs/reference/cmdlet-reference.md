@@ -96,16 +96,17 @@ Test-PhaseCompleted [-RunId] <string> [-Phase] <string>
 
 ### Get-ManagedCredential
 
-Retrieves credentials from the configured source.
+Retrieves a credential from a parameter, an environment variable or Azure Key Vault. Never prompts.
 
 ```powershell
-Get-ManagedCredential [-Name] <string> [-Source <string>] [-VaultConfig <string>]
+Get-ManagedCredential [-Name] <string> [-Source <string>] [-Credential <PSCredential>] [-Username <string>] [-VaultConfigPath <string>] [-ProjectRoot <string>]
 ```
 
 **Credential Sources**
 
+- `Auto` (default) — `-Credential` when passed, then `<NAME>_USERNAME` / `<NAME>_PASSWORD`, then Key Vault; stops with a message when none has a value
 - `KeyVault` — Retrieve from Azure Key Vault
-- `Interactive` — Prompt user with `Get-Credential`
+- `Environment` — Read `<NAME>_USERNAME` and `<NAME>_PASSWORD`
 - `Parameter` — Expect credential passed as parameter
 
 ## MonitoringManager Module

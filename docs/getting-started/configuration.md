@@ -146,10 +146,10 @@ keyvault:
 Scripts use `CredentialManager` to retrieve credentials without knowing the storage mechanism:
 
 ```powershell
-$cred = Get-ManagedCredential -Name "cluster_admin" -Source KeyVault
+$cred = Get-ManagedCredential -Name "cluster_admin"   # -Credential, then CLUSTER_ADMIN_USERNAME / CLUSTER_ADMIN_PASSWORD, then Key Vault
 ```
 
-See [Credential Management](../operations/credential-management.md) for full details on the three credential modes.
+See [Credential Management](../operations/credential-management.md) for the credential sources (parameter, environment variable, Key Vault). Nothing prompts.
 
 ## Next Steps
 

@@ -34,7 +34,7 @@ The automation layer orchestrates pre-checks, installation, and execution across
 | Orchestrator scripts | `scripts/*.ps1` | Top-level `Start-*` / `Collect-*` / `Install-*` entry points |
 | Logger module | `src/common/modules/Logger/` | Structured JSON-lines logging with correlation IDs |
 | StateManager module | `src/common/modules/StateManager/` | Checkpoint-based resume-after-failure |
-| CredentialManager module | `src/common/modules/CredentialManager/` | Key Vault, interactive, or parameter credential retrieval |
+| CredentialManager module | `src/common/modules/CredentialManager/` | Parameter, environment variable or Key Vault credential retrieval (no prompts) |
 | Ansible roles | `src/ansible/roles/<tool>/` | Linux-target deployment (fio) |
 
 ### Layer 3 — Execution
@@ -93,7 +93,7 @@ Any phase can be resumed from its checkpoint if the run is interrupted.
 ## Security Model
 
 - Credentials are **never hardcoded** in scripts or configuration files
-- Three retrieval modes: Azure Key Vault (production), interactive prompt (development), parameter injection (CI/CD)
+- Three sources: Azure Key Vault (production), environment variables (local runs and CI/CD), parameter injection (orchestration); no interactive prompt
 - All credential access is logged with values masked
 - CI/CD pipelines use GitHub Secrets / Azure DevOps Service Connections
 

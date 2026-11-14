@@ -31,7 +31,7 @@ This plan implements **VMFleet** as the first fully-delivered tool integration, 
 | 🔲 **Open** | **Monitoring collectors and dashboards** | ✅ **This plan** → collection pipeline exists; `vmfleet-workbook.json` + KQL queries added |
 | 🔲 **Open** | **Report generation from test results** | ✅ **This plan** → `ReportGenerator.psm1` + `Export-MetricsDashboard.ps1` (PDF/DOCX/XLSX/HTML) |
 | 🔲 **Open** | **Profile-based test configurations** | ✅ **This plan** → 4 existing profiles + `sequential-throughput.yml` (new) |
-| 🔲 **Open** | **Credential management** | ✅ **This plan** → `CredentialManager.psm1` used in all scripts (Key Vault → interactive fallback) |
+| 🔲 **Open** | **Credential management** | ✅ **This plan** → `CredentialManager.psm1` used in all scripts (parameter → environment variable → Key Vault; no prompt) |
 | 🔲 Open | Pipeline integration examples | ❌ Out of scope for this plan |
 | 🔲 Open | Alerting thresholds and rules | ❌ Out of scope (future: defined in profile `expected_thresholds`) |
 | 🔲 **Open** | **Documentation — tool-specific guides** | ✅ **This plan** → all 6 `docs/tools/vmfleet/*.md` files updated |
@@ -166,7 +166,7 @@ Body:
 | `-ConfigPath` | string | auto | `variables.yml` |
 | `-ClusterConfigPath` | string | auto | cluster YAML |
 | `-ProjectRoot` | string | auto | repo root |
-| `-Credential` | PSCredential | null | Key Vault → prompt fallback |
+| `-Credential` | PSCredential | null | Environment variables or Key Vault; stops when missing |
 | `-ImageName` | string | `ws2022-core-g2` | gallery image resource name |
 | `-PollIntervalSeconds` | int | 30 | ARM poll frequency |
 | `-TimeoutMinutes` | int | 60 | download wait cap |

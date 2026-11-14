@@ -149,14 +149,15 @@ Export-SolutionConfig -Solution "vmfleet"
 - Check `config/credentials/keyvault-config.yml` for correct vault name
 - Ensure Azure authentication: `Connect-AzAccount`
 
-### Interactive Credential Prompt Not Appearing
+### Script Stops with "No credential found"
 
-**Symptom:** Script hangs when using `-CredentialSource Interactive` in non-interactive context.
+**Symptom:** A script stops with exit code 2 and the message `No credential found for 'cluster_admin'. Pass -Credential, set the environment variables CLUSTER_ADMIN_USERNAME and CLUSTER_ADMIN_PASSWORD, or map 'cluster_admin_password' ...`. No script prompts for a credential.
 
-**Resolution:**
+**Resolution:** supply the credential one of these ways:
 
-- Use `-CredentialSource KeyVault` or `-CredentialSource Parameter` in CI/CD pipelines
-- Pass credentials explicitly: `-Credential (Get-Credential)`
+- Pass `-Credential` (a `PSCredential` built by your pipeline or session)
+- Set `CLUSTER_ADMIN_USERNAME` and `CLUSTER_ADMIN_PASSWORD` in the environment
+- Map `cluster_admin_password` (and `cluster_admin_username`) under `keyvault.secrets` in `config/credentials/keyvault-config.yml` and sign in to Azure
 
 ## Monitoring Issues
 

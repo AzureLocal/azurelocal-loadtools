@@ -8,7 +8,8 @@
 # generates solution-specific JSON files in config/variables/solutions/.
 #
 # IMPORTANT: Sensitive values (passwords, keys) should have empty defaults
-# here and be retrieved at runtime from Azure Key Vault or interactive prompt.
+# here and be supplied at runtime as a parameter, an environment variable or
+# from Azure Key Vault. Nothing prompts.
 # =============================================================================
 
 metadata:
@@ -381,10 +382,10 @@ variables:
   # Credential Variables
   # =============================================================================
   - name: credential_source
-    value: "Interactive"
+    value: "Auto"
     type: string
     required: false
-    description: "Credential retrieval mode: KeyVault, Interactive, Parameter"
+    description: "Credential retrieval mode: Auto (parameter, then environment variable, then Key Vault; stops when none has a value), KeyVault, Environment, Parameter. Nothing prompts."
     solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
     category: credentials
 

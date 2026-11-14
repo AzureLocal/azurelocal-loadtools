@@ -7,6 +7,7 @@
 
 # Module-level variables
 $script:ActiveSessions = @{}
+$script:LastSessionId = $null
 $script:ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $script:DefaultLogLevel = 'INFO'
 $script:LogLevels = @{
@@ -46,6 +47,7 @@ function Start-LogSession {
         [string]$LogLevel = 'INFO',
 
         [Parameter()]
+        [Alias('LogRootPath')]
         [string]$LogBasePath
     )
 
@@ -73,6 +75,7 @@ function Start-LogSession {
     }
 
     $script:ActiveSessions[$sessionId] = $session
+    $script:LastSessionId = $sessionId
 
     # Write session start entry
     Write-Log -Message "Log session started" -Severity 'INFO' -Component $Component -SessionId $sessionId -Data @{
@@ -108,7 +111,7 @@ function Write-Log {
         [string]$Message,
 
         [Parameter()]
-        [ValidateSet('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')]
+        [ValidateSet('DEBUG', 'INFO', 'Information', 'WARNING', 'ERROR', 'CRITICAL')]
         [string]$Severity = 'INFO',
 
         [Parameter()]
@@ -123,6 +126,10 @@ function Write-Log {
         [Parameter()]
         [System.Management.Automation.ErrorRecord]$ErrorRecord
     )
+
+    # 'Information' is accepted for the tool scripts and recorded as INFO
+    if ($Severity -eq 'Information') { $Severity = 'INFO' }
+    $Severity = $Severity.ToUpperInvariant()
 
     # Resolve session
     $session = $null
@@ -196,14 +203,20 @@ function Stop-LogSession {
     .SYNOPSIS
         Ends a logging session and writes the closing entry.
     .PARAMETER SessionId
-        The session ID returned by Start-LogSession.
+        The session ID returned by Start-LogSession. Default: the most recently started session.
+        Optional so that a call without it never prompts.
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Closes only the in-memory session.')]
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
+        [Parameter()]
         [string]$SessionId
     )
+
+    if (-not $SessionId) {
+        $SessionId = $script:LastSessionId
+        if (-not $SessionId) { return }
+    }
 
     if (-not $script:ActiveSessions.ContainsKey($SessionId)) {
         Write-Warning "Session not found: $SessionId"
@@ -218,6 +231,7 @@ function Stop-LogSession {
     }
 
     $script:ActiveSessions.Remove($SessionId)
+    if ($script:LastSessionId -eq $SessionId) { $script:LastSessionId = $null }
 }
 
 function Get-LogSession {

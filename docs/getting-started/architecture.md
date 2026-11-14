@@ -44,7 +44,7 @@ The `ConfigManager` PowerShell module reads the master environment file, filters
 | ConfigManager | Variable management, filtering, override chain | `common/modules/ConfigManager/` |
 | Logger | Structured JSON-lines logging with correlation IDs | `common/modules/Logger/` |
 | StateManager | Run state tracking, checkpoints, resume capability | `common/modules/StateManager/` |
-| CredentialManager | KeyVault, interactive, or parameter-based credential retrieval | `common/modules/CredentialManager/` |
+| CredentialManager | Parameter, environment variable or Key Vault credential retrieval; never prompts | `common/modules/CredentialManager/` |
 | MonitoringManager | PerfMon collection, Azure Monitor push | `common/modules/MonitoringManager/` |
 | ReportGenerator | PDF, DOCX, XLSX report generation | `common/modules/ReportGenerator/` |
 
@@ -88,7 +88,7 @@ A typical Azure Local cluster deployment includes:
 All credential handling follows the principle of least privilege:
 
 - Credentials are **never hardcoded** in scripts or configuration files
-- Three credential retrieval modes: Azure Key Vault, interactive prompt, or parameter injection
+- Three credential sources: parameter injection, environment variables, or Azure Key Vault; a missing credential stops with a message instead of prompting
 - Key Vault access via managed identity or service principal
 - CI/CD pipelines use GitHub Secrets / Azure DevOps Service Connections / GitLab CI Variables
 - All credential access is logged (value masked) for audit trail
