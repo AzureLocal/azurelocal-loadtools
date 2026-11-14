@@ -54,6 +54,17 @@ Invoke-Pester tests/ -Output Detailed
 
 There are no GitHub Actions workflows that run a load test, and no GitLab CI pipeline. Both appeared in earlier versions of this page and were never built; they remain on the [roadmap](../roadmap.md).
 
+### Inputs of the VMFleet run
+
+| Input | Default | What it is |
+|-------|---------|------------|
+| `clusterConfig` | `example-cluster.yml` | Cluster file under `config/clusters/`. |
+| `profile` | `general.yml` | VMFleet workload profile. |
+| `skipCleanup` | `false` | Leave the fleet in place after the test. |
+| `variableGroup` | `azurelocal-loadtest-secrets` | The Azure DevOps variable group that holds `CLUSTER_ADMIN_USERNAME` and `CLUSTER_ADMIN_PASSWORD`. The name is chosen per Azure DevOps project, so set it when you run the pipeline or change the default. Authorize the pipeline to use the group (Pipelines, Library, the group, Pipeline permissions). |
+
+The variable group name is a template expression (`${{ parameters.variableGroup }}`): Azure Pipelines resolves it when it compiles the pipeline, before it checks that the pipeline may use the group. A runtime variable (`$(name)`) can't name a variable group. See [Runtime parameters](https://learn.microsoft.com/azure/devops/pipelines/process/runtime-parameters) and [Manage variable groups](https://learn.microsoft.com/azure/devops/pipelines/library/variable-groups).
+
 ### Run the same checks locally
 
 ```powershell

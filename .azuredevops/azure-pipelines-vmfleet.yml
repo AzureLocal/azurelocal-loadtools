@@ -20,12 +20,19 @@ parameters:
     displayName: 'Skip cleanup after test'
     type: boolean
     default: false
+  # The variable group that holds CLUSTER_ADMIN_USERNAME and CLUSTER_ADMIN_PASSWORD. Its name is chosen per Azure DevOps
+  # project: set it when you run the pipeline, or change the default here. A template expression, so it is resolved when the
+  # pipeline is compiled, before the group is authorized; a runtime variable $(...) can't name the group.
+  - name: variableGroup
+    displayName: 'Variable group with the cluster credentials'
+    type: string
+    default: 'azurelocal-loadtest-secrets'
 
 pool:
   name: 'AzureLocal-SelfHosted'  # Update with your agent pool name
 
 variables:
-  - group: azurelocal-loadtest-secrets  # Variable group with credentials
+  - group: ${{ parameters.variableGroup }}  # Variable group with credentials (pipeline input variableGroup)
 
 stages:
   - stage: LoadTest
