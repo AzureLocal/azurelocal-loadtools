@@ -97,6 +97,20 @@ Describe 'VMFleet Monitoring Scripts' {
             $errors.Count | Should -Be 0
         }
     }
+
+    It 'Push-MetricsToAzureMonitor.ps1 reads only config keys that vmfleet.json has' {
+        $path = Join-Path $script:ProjectRoot 'tools\vmfleet\monitoring\Push-MetricsToAzureMonitor.ps1'
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$null)
+        $reads = @($ast.FindAll({
+                    param($n)
+                    $n -is [System.Management.Automation.Language.MemberExpressionAst] -and
+                    $n.Expression -is [System.Management.Automation.Language.VariableExpressionAst] -and
+                    $n.Expression.VariablePath.UserPath -eq 'config'
+                }, $true) | ForEach-Object { $_.Member.Value } | Sort-Object -Unique)
+        $reads | Should -Contain 'log_analytics_workspace_id'
+        $config = Get-Content -LiteralPath (Join-Path $script:ProjectRoot 'tools\vmfleet\config\vmfleet.json') -Raw | ConvertFrom-Json -AsHashtable
+        foreach ($key in $reads) { $config.ContainsKey($key) | Should -BeTrue -Because "the script reads `$config.$key" }
+    }
 }
 
 Describe 'VMFleet Workload Profiles' {

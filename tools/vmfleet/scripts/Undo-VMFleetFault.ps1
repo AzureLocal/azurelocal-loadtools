@@ -23,9 +23,24 @@ param(
     [Parameter()]
     [switch]$AllowFault,
 
+    # Minutes to wait for the repair and the cluster to settle (0 = check once). Default: fault_resync_timeout_minutes in the config file.
     [Parameter()]
     [ValidateRange(0, 600)]
-    [double]$ResyncTimeoutMinutes = 30
+    [double]$ResyncTimeoutMinutes,
+
+    # Seconds between two health polls. Default: fault_settle_poll_seconds in the config file.
+    [Parameter()]
+    [ValidateRange(1, 300)]
+    [int]$PollSeconds,
+
+    # Consecutive healthy polls before the lock is cleared. Default: fault_settle_observations in the config file.
+    [Parameter()]
+    [ValidateRange(1, 20)]
+    [int]$SettleObservations,
+
+    # The tool's config file the fault settings are read from. Default: tools/vmfleet/config/vmfleet.json.
+    [Parameter()]
+    [string]$SolutionConfigPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,7 +50,11 @@ if (-not $ProjectRoot) {
 }
 Import-Module (Join-Path $ProjectRoot 'common\modules\FaultInjection\FaultInjection.psm1') -Force
 
-$undoParams = @{ ComputerName = $ComputerName; AllowFault = $AllowFault; ResyncTimeoutMinutes = $ResyncTimeoutMinutes }
+if (-not $SolutionConfigPath) { $SolutionConfigPath = Join-Path $ProjectRoot 'tools\vmfleet\config\vmfleet.json' }
+$undoParams = @{ ComputerName = $ComputerName; AllowFault = $AllowFault; SolutionConfigPath = $SolutionConfigPath }
+foreach ($name in 'ResyncTimeoutMinutes', 'PollSeconds', 'SettleObservations') {
+    if ($PSBoundParameters.ContainsKey($name)) { $undoParams[$name] = $PSBoundParameters[$name] }
+}
 if ($Credential) { $undoParams['Credential'] = $Credential }
 if ($WhatIfPreference) { $undoParams['WhatIf'] = $true }
 if ($PSBoundParameters.ContainsKey('Confirm')) { $undoParams['Confirm'] = [bool]$PSBoundParameters['Confirm'] }

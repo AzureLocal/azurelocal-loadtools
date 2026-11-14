@@ -33,5 +33,9 @@
   "keyvault_name": "",
   "log_level": "INFO",
   "log_retention_days": 30,
-  "log_max_file_size_mb": 50
+  "log_max_file_size_mb": 50,
+  "fault_drain_timeout_minutes": 15,
+  "fault_resync_timeout_minutes": 30,
+  "fault_settle_poll_seconds": 15,
+  "fault_settle_observations": 3
 }

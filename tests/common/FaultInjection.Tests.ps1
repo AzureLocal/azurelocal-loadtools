@@ -37,13 +37,29 @@ BeforeAll {
         foreach ($k in $Override.Keys) { $h[$k] = $Override[$k] }
         [pscustomobject]$h
     }
+
+    # A vmfleet.json with the four fault settings (the shipped values unless overridden); a $null value leaves the key out.
+    function script:New-FaultConfig {
+        param([hashtable]$Override = @{})
+        $c = [ordered]@{
+            fault_drain_timeout_minutes  = 15
+            fault_resync_timeout_minutes = 30
+            fault_settle_poll_seconds    = 15
+            fault_settle_observations    = 3
+        }
+        foreach ($k in $Override.Keys) { if ($null -eq $Override[$k]) { $c.Remove($k) } else { $c[$k] = $Override[$k] } }
+        $path = Join-Path $TestDrive ([guid]::NewGuid().ToString() + '-vmfleet.json')
+        $c | ConvertTo-Json | Set-Content -LiteralPath $path -Encoding utf8
+        $path
+    }
 }
 
 Describe 'FaultInjection' {
     BeforeEach {
-        InModuleScope FaultInjection -Parameters @{ Lock = (Join-Path $TestDrive ([guid]::NewGuid().ToString() + '\fault-lock.json')) } {
-            param($Lock)
+        InModuleScope FaultInjection -Parameters @{ Lock = (Join-Path $TestDrive ([guid]::NewGuid().ToString() + '\fault-lock.json')); Config = (New-FaultConfig) } {
+            param($Lock, $Config)
             $script:LockPath = $Lock
+            $script:SolutionConfigPath = $Config
         }
         Mock Invoke-FaultRemote -ModuleName FaultInjection { [pscustomobject]@{ Applied = $true; Reason = ''; PnpInstanceId = '' } }
     }
@@ -266,6 +282,156 @@ Describe 'FaultInjection' {
         It 'refuses a tampered lock with an invalid node name' {
             InModuleScope FaultInjection { '{"fault_type":"NodePause","node":"n1; calc","status":"Applied","started_at":"x"}' | Set-Content $script:LockPath }
             { Undo-FaultInjection -ComputerName $script:Target -AllowFault -Confirm:$false } | Should -Throw '*invalid node name*'
+        }
+    }
+
+    Context 'Settings from the config file' {
+        It 'the drain timeout comes from fault_drain_timeout_minutes and reaches the remote call' {
+            $cfg = New-FaultConfig -Override @{ fault_drain_timeout_minutes = 42 }
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -AllowFault -AcceptReducedRedundancy -Confirm:$false -Health (New-Health) -SolutionConfigPath $cfg | Out-Null
+            Should -Invoke Invoke-FaultRemote -ModuleName FaultInjection -Times 1 -Exactly -ParameterFilter { $ArgumentList[4] -eq 42 -and $ArgumentList[5] -eq 10 }
+        }
+        It 'a -DrainTimeoutMinutes parameter wins over the file' {
+            $cfg = New-FaultConfig -Override @{ fault_drain_timeout_minutes = 42 }
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -AllowFault -AcceptReducedRedundancy -Confirm:$false -Health (New-Health) -SolutionConfigPath $cfg -DrainTimeoutMinutes 7 | Out-Null
+            Should -Invoke Invoke-FaultRemote -ModuleName FaultInjection -Times 1 -Exactly -ParameterFilter { $ArgumentList[4] -eq 7 }
+        }
+        It 'the module reads its default config file when no path is passed' {
+            InModuleScope FaultInjection -Parameters @{ C = (New-FaultConfig -Override @{ fault_drain_timeout_minutes = 33 }) } { param($C); $script:SolutionConfigPath = $C }
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -AllowFault -AcceptReducedRedundancy -Confirm:$false -Health (New-Health) | Out-Null
+            Should -Invoke Invoke-FaultRemote -ModuleName FaultInjection -Times 1 -Exactly -ParameterFilter { $ArgumentList[4] -eq 33 }
+        }
+        It 'stops before anything changes when the setting is missing' {
+            $cfg = New-FaultConfig -Override @{ fault_drain_timeout_minutes = $null }
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            { Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -AllowFault -AcceptReducedRedundancy -Confirm:$false -Health (New-Health) -SolutionConfigPath $cfg } | Should -Throw '*fault_drain_timeout_minutes*-DrainTimeoutMinutes*'
+            Should -Invoke Invoke-FaultRemote -ModuleName FaultInjection -Times 0
+            Get-FaultLock | Should -BeNullOrEmpty
+        }
+        It 'stops before anything changes when the setting is out of range' {
+            $cfg = New-FaultConfig -Override @{ fault_drain_timeout_minutes = 500 }
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            { Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -AllowFault -AcceptReducedRedundancy -Confirm:$false -Health (New-Health) -SolutionConfigPath $cfg } | Should -Throw '*from 1 to 120*'
+            Should -Invoke Invoke-FaultRemote -ModuleName FaultInjection -Times 0
+            Get-FaultLock | Should -BeNullOrEmpty
+        }
+        It 'stops when the config file does not exist' {
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            { Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -AllowFault -AcceptReducedRedundancy -Confirm:$false -Health (New-Health) -SolutionConfigPath (Join-Path $TestDrive 'missing.json') } | Should -Throw '*does not exist*'
+            Should -Invoke Invoke-FaultRemote -ModuleName FaultInjection -Times 0
+        }
+        It 'plan only (no -AllowFault) needs no setting' {
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            { Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -Health (New-Health) -SolutionConfigPath (Join-Path $TestDrive 'missing.json') 6>$null } | Should -Not -Throw
+        }
+
+        Context 'Undo' {
+            BeforeEach {
+                $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+                Invoke-FaultInjection -Plan $plan -ComputerName $script:Target -AllowFault -AcceptReducedRedundancy -Confirm:$false -Health (New-Health) | Out-Null
+                Mock Get-FaultHealthSnapshot -ModuleName FaultInjection { New-Health }
+                Mock Start-Sleep -ModuleName FaultInjection {}
+            }
+            It 'the settle count comes from fault_settle_observations' {
+                # Resync 0: one poll only. Two healthy polls needed: not settled, the lock is kept.
+                $cfg = New-FaultConfig -Override @{ fault_resync_timeout_minutes = 0; fault_settle_observations = 2 }
+                $r = Undo-FaultInjection -ComputerName $script:Target -AllowFault -Confirm:$false -SolutionConfigPath $cfg -WarningAction SilentlyContinue
+                $r.Undone | Should -BeFalse
+                Get-FaultLock | Should -Not -BeNullOrEmpty
+                Should -Invoke Get-FaultHealthSnapshot -ModuleName FaultInjection -Times 1 -Exactly
+            }
+            It 'parameters win over the file' {
+                $cfg = New-FaultConfig -Override @{ fault_resync_timeout_minutes = 0; fault_settle_observations = 2 }
+                $r = Undo-FaultInjection -ComputerName $script:Target -AllowFault -Confirm:$false -SolutionConfigPath $cfg -SettleObservations 1
+                $r.Undone | Should -BeTrue
+                Get-FaultLock | Should -BeNullOrEmpty
+            }
+            It 'the poll interval comes from fault_settle_poll_seconds' {
+                $cfg = New-FaultConfig -Override @{ fault_resync_timeout_minutes = 1; fault_settle_poll_seconds = 7; fault_settle_observations = 2 }
+                $r = Undo-FaultInjection -ComputerName $script:Target -AllowFault -Confirm:$false -SolutionConfigPath $cfg
+                $r.Undone | Should -BeTrue
+                Should -Invoke Start-Sleep -ModuleName FaultInjection -ParameterFilter { $Seconds -eq 7 } -Times 1 -Exactly
+            }
+            It 'stops before the undo changes anything when a setting is missing' {
+                $cfg = New-FaultConfig -Override @{ fault_settle_poll_seconds = $null }
+                { Undo-FaultInjection -ComputerName $script:Target -AllowFault -Confirm:$false -SolutionConfigPath $cfg } | Should -Throw '*fault_settle_poll_seconds*-PollSeconds*'
+                Should -Invoke Invoke-FaultRemote -ModuleName FaultInjection -Times 1 -Exactly   # only the injection call
+                (Get-FaultLock).status | Should -Be 'Applied'
+            }
+        }
+    }
+
+    Context 'Constants' {
+        It 'the repair reserve is one capacity drive per node, at most four (Microsoft Learn: plan volumes, reserve capacity)' {
+            InModuleScope FaultInjection { $script:RepairReserveMaxDrives } | Should -Be 4
+            $six = @(1..6 | ForEach-Object { [pscustomobject]@{ Name = "node$_"; State = 'Up' } })
+            $plan = New-FaultPlan -FaultType DriveFault -NodeName 'node1' -DiskSerialNumber 'SER1'
+            $short = Test-FaultPreflight -Health (New-Health -Override @{ Nodes = $six; PoolFreeBytes = 3.5TB }) -Plan $plan
+            ($short.Checks | Where-Object Name -Like 'Pool free space*').Passed | Should -BeFalse
+            $enough = Test-FaultPreflight -Health (New-Health -Override @{ Nodes = $six; PoolFreeBytes = 4TB }) -Plan $plan
+            ($enough.Checks | Where-Object Name -Like 'Pool free space*').Passed | Should -BeTrue
+        }
+        It 'a snapshot is fresh for SnapshotMaxAgeSeconds, and -MaxSnapshotAgeSeconds overrides it for one call' {
+            InModuleScope FaultInjection { $script:SnapshotMaxAgeSeconds } | Should -Be 120
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            $h = New-Health -Override @{ CollectedAt = (Get-Date).ToUniversalTime().AddSeconds(-90).ToString('o') }
+            ((Test-FaultPreflight -Health $h -Plan $plan -AcceptReducedRedundancy).Checks | Where-Object Name -EQ 'Health snapshot is fresh').Passed | Should -BeTrue
+            ((Test-FaultPreflight -Health $h -Plan $plan -AcceptReducedRedundancy -MaxSnapshotAgeSeconds 60).Checks | Where-Object Name -EQ 'Health snapshot is fresh').Passed | Should -BeFalse
+        }
+        It 'a snapshot from a clock a few seconds ahead is accepted, one far ahead is not' {
+            $plan = New-FaultPlan -FaultType NodePause -NodeName 'node1'
+            $ahead = New-Health -Override @{ CollectedAt = (Get-Date).ToUniversalTime().AddSeconds(3).ToString('o') }
+            ((Test-FaultPreflight -Health $ahead -Plan $plan -AcceptReducedRedundancy).Checks | Where-Object Name -EQ 'Health snapshot is fresh').Passed | Should -BeTrue
+            $future = New-Health -Override @{ CollectedAt = (Get-Date).ToUniversalTime().AddMinutes(5).ToString('o') }
+            ((Test-FaultPreflight -Health $future -Plan $plan -AcceptReducedRedundancy).Checks | Where-Object Name -EQ 'Health snapshot is fresh').Passed | Should -BeFalse
+        }
+    }
+}
+
+Describe 'Fault-injection settings in the repository config' {
+    BeforeAll {
+        $script:Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+        $script:Json = Get-Content -LiteralPath (Join-Path $script:Root 'tools\vmfleet\config\vmfleet.json') -Raw | ConvertFrom-Json -AsHashtable
+        $script:HasYaml = [bool](Get-Module -ListAvailable -Name powershell-yaml)
+        if ($script:HasYaml) {
+            Import-Module powershell-yaml
+            $script:Master = ConvertFrom-Yaml (Get-Content -LiteralPath (Join-Path $script:Root 'config\variables\variables.yml') -Raw)
+        }
+    }
+    It '<Name> is in vmfleet.json and in variables.yml (solution vmfleet) with the same value' -ForEach @(
+        @{ Name = 'fault_drain_timeout_minutes'; Value = 15 }
+        @{ Name = 'fault_resync_timeout_minutes'; Value = 30 }
+        @{ Name = 'fault_settle_poll_seconds'; Value = 15 }
+        @{ Name = 'fault_settle_observations'; Value = 3 }
+    ) {
+        $script:Json[$Name] | Should -Be $Value
+        if (-not $script:HasYaml) { Set-ItResult -Skipped -Because 'powershell-yaml not installed'; return }
+        $v = @($script:Master.variables | Where-Object { $_.name -eq $Name })
+        $v.Count | Should -Be 1
+        $v[0].value | Should -Be $Value
+        $v[0].solutions | Should -Contain 'vmfleet'
+        $v[0].category | Should -Be 'fault_injection'
+    }
+    It 'the shipped config passes the module''s own range checks' {
+        Import-Module (Join-Path $script:Root 'common\modules\FaultInjection\FaultInjection.psm1') -Force
+        InModuleScope FaultInjection {
+            foreach ($name in $script:FaultSettings.Keys) { { Get-FaultSetting -Name $name } | Should -Not -Throw }
+        }
+    }
+    It 'no wait in the module or the fault scripts is a typed default any more' {
+        $files = @(
+            Join-Path $script:Root 'common\modules\FaultInjection\FaultInjection.psm1'
+            Join-Path $script:Root 'tools\vmfleet\scripts\Invoke-VMFleetFault.ps1'
+            Join-Path $script:Root 'tools\vmfleet\scripts\Undo-VMFleetFault.ps1'
+        )
+        foreach ($f in $files) {
+            $text = Get-Content -LiteralPath $f -Raw
+            $text | Should -Not -Match '\$(DrainTimeoutMinutes|ResyncTimeoutMinutes|PollSeconds|SettleObservations)\s*=\s*\d'
+            $text | Should -Not -Match 'Start-Sleep -Seconds \d'
+            $text | Should -Not -Match '\[math\]::Min\(\$nodes\.Count,\s*\d'
         }
     }
 }

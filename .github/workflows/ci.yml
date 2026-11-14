@@ -19,7 +19,11 @@ concurrency:
 
 jobs:
   checks:
+    # windows-latest is GitHub's label for its hosted Windows runner. The checks use mocks and read nothing that belongs
+    # to a deployment, so the label is not a setting.
     runs-on: windows-latest
+    # Loadtools' own limit for the module install, the analyzer, every Pester suite and the link check; not a figure
+    # from GitHub or Microsoft.
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

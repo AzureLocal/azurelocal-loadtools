@@ -14,6 +14,10 @@ pr:
       - main
       - master
 
+# The repository resource names the central HCS Platform Engineering template repository that governs this repository's
+# module CI; it is not a value a deployment chooses, and nothing here runs against a cluster. Learn: expressions are not
+# expanded in a resource like repositories (https://learn.microsoft.com/azure/devops/pipelines/process/template-expressions).
+# moduleName is this repository's name.
 resources:
   repositories:
     - repository: platform

@@ -423,3 +423,41 @@ variables:
     description: "Maximum log file size in MB before rotation"
     solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
     category: logging
+
+  # =============================================================================
+  # Failure Injection Variables (VMFleet, opt-in)
+  # =============================================================================
+  # Read by common/modules/FaultInjection (Invoke-VMFleetFault.ps1, Undo-VMFleetFault.ps1)
+  # from tools/vmfleet/config/vmfleet.json. A script parameter of the same meaning wins.
+  # The values are Loadtools' defaults, not Microsoft figures: set them for your cluster.
+  - name: fault_drain_timeout_minutes
+    value: 15
+    type: integer
+    required: false
+    description: "NodePause: minutes the node drain (live migration of its VMs) may take before the fault gives up and keeps the lock (1-120). Raise it for many or large VMs. Parameter -DrainTimeoutMinutes overrides it."
+    solutions: [vmfleet]
+    category: fault_injection
+
+  - name: fault_resync_timeout_minutes
+    value: 30
+    type: integer
+    required: false
+    description: "Undo: minutes to wait for the storage repair and the cluster to settle before the lock is kept for a later undo (0-600, 0 = check once). Raise it when much data changed during the fault. Parameter -ResyncTimeoutMinutes overrides it."
+    solutions: [vmfleet]
+    category: fault_injection
+
+  - name: fault_settle_poll_seconds
+    value: 15
+    type: integer
+    required: false
+    description: "Undo: seconds between two health polls while waiting for the cluster to settle (1-300). Parameter -PollSeconds overrides it."
+    solutions: [vmfleet]
+    category: fault_injection
+
+  - name: fault_settle_observations
+    value: 3
+    type: integer
+    required: false
+    description: "Undo: consecutive healthy polls (no storage job, volumes Healthy, nodes Up, CSVs Online) before the fault lock is cleared (1-20). Parameter -SettleObservations overrides it."
+    solutions: [vmfleet]
+    category: fault_injection

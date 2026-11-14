@@ -18,7 +18,9 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    # ubuntu-latest is GitHub's label for its hosted Linux runner; the docs build reads nothing that belongs to a deployment.
     runs-on: ubuntu-latest
+    # github-pages is the environment GitHub creates for Pages and actions/deploy-pages deploys to; not a deployment setting.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -57,6 +57,28 @@ The profile `failure-injection.yml` holds the General workload for 20 minutes so
 
 Known limit: the lock is a local file on the machine you run from. It does not stop a second operator on another machine. Run faults from one designated host.
 
+## Settings
+
+The waits are choices for the cluster under test. They are settings in `config/variables/variables.yml` (solution `vmfleet`, category `fault_injection`), carried into `tools/vmfleet/config/vmfleet.json`, which is the file the module reads. A script parameter wins over the file. When a setting is missing or out of range the command stops before it changes anything; there is no built-in fallback. The shipped values are Loadtools' defaults, not Microsoft figures.
+
+| Setting | Shipped value | Parameter | What it is |
+|---------|---------------|-----------|------------|
+| `fault_drain_timeout_minutes` | `15` | `Invoke-VMFleetFault.ps1 -DrainTimeoutMinutes` (1-120) | `NodePause`: how long the drain (live migration of the node's VMs) may take. When it runs out the fault stops and the lock is kept. |
+| `fault_resync_timeout_minutes` | `30` | `Undo-VMFleetFault.ps1 -ResyncTimeoutMinutes` (0-600, 0 = check once) | How long the undo waits for the storage repair and the cluster to settle. When it runs out the lock is kept; run the undo again to wait again. |
+| `fault_settle_poll_seconds` | `15` | `Undo-VMFleetFault.ps1 -PollSeconds` (1-300) | Seconds between two health polls during that wait. |
+| `fault_settle_observations` | `3` | `Undo-VMFleetFault.ps1 -SettleObservations` (1-20) | Consecutive healthy polls before the lock is cleared. |
+
+Both scripts take `-SolutionConfigPath` to read another config file.
+
+These are fixed in the module, each with its reason next to it in `FaultInjection.psm1`:
+
+| Constant | Value | Why |
+|----------|-------|-----|
+| `RepairReserveMaxDrives` | `4` | Microsoft recommends reserving the equivalent of one capacity drive per server, up to four drives ([Plan volumes: reserve capacity](https://learn.microsoft.com/windows-server/storage/storage-spaces/plan-volumes#reserve-capacity)). |
+| `SnapshotMaxAgeSeconds` | `120` | Loadtools' safety limit for a snapshot a caller passes in with `-Health`; the module collects its own snapshot right before it decides. `Test-FaultPreflight -MaxSnapshotAgeSeconds` sets another limit for one call. |
+| `SnapshotClockSkewSeconds` | `5` | A snapshot up to five seconds "in the future" is clock difference between the node and the operator host. |
+| `DrainPollSeconds` | `10` | How often the remote loop reads the drain status; the deadline is `fault_drain_timeout_minutes`. |
+
 ## What is not proven
 
 - That `Suspend-ClusterNode`, storage maintenance mode and `Set-PhysicalDisk -Usage Retired` behave as the code expects on your release (12.2609 (latest) or any other).

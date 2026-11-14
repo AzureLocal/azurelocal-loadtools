@@ -49,7 +49,8 @@ try {
         }
         $config = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
 
-        if (-not $WorkspaceId) { $WorkspaceId = $config.monitoring_workspace_id }
+        # The key the config file has (config/variables/variables.yml: log_analytics_workspace_id).
+        if (-not $WorkspaceId) { $WorkspaceId = $config.log_analytics_workspace_id }
     }
 
     if (-not $WorkspaceId) {

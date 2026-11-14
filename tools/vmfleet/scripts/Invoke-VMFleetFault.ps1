@@ -44,7 +44,16 @@ param(
     [switch]$AllowFault,
 
     [Parameter()]
-    [switch]$AcceptReducedRedundancy
+    [switch]$AcceptReducedRedundancy,
+
+    # NodePause: minutes the drain may take. Default: fault_drain_timeout_minutes in the config file.
+    [Parameter()]
+    [ValidateRange(1, 120)]
+    [int]$DrainTimeoutMinutes,
+
+    # The tool's config file the fault settings are read from. Default: tools/vmfleet/config/vmfleet.json.
+    [Parameter()]
+    [string]$SolutionConfigPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -65,6 +74,9 @@ $injectParams = @{
     AcceptReducedRedundancy = $AcceptReducedRedundancy
 }
 if ($Credential) { $injectParams['Credential'] = $Credential }
+if ($PSBoundParameters.ContainsKey('DrainTimeoutMinutes')) { $injectParams['DrainTimeoutMinutes'] = $DrainTimeoutMinutes }
+if (-not $SolutionConfigPath) { $SolutionConfigPath = Join-Path $ProjectRoot 'tools\vmfleet\config\vmfleet.json' }
+$injectParams['SolutionConfigPath'] = $SolutionConfigPath
 if ($WhatIfPreference) { $injectParams['WhatIf'] = $true }
 if ($PSBoundParameters.ContainsKey('Confirm')) { $injectParams['Confirm'] = [bool]$PSBoundParameters['Confirm'] }
 

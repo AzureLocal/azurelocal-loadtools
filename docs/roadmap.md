@@ -25,7 +25,7 @@ Legend: ✅ done, 🟡 partly done (see the note), 🔲 planned.
 
 ## Milestone 2: Documentation overhaul ✅
 
-Tool pages, architecture, reference and operations pages exist. Known gap: some command examples on tool pages use parameter names the scripts do not have (for example `-CredentialSource`); the script `param` blocks are the authority until the pages are rewritten. The [status](reference/status.md) page lists the known gaps.
+Tool pages, architecture, reference and operations pages exist. Known gap: a command example on a tool page can still use a parameter name a script does not have; the script `param` blocks are the authority until the pages are rewritten. The [status](reference/status.md) page lists the known gaps.
 
 ## Milestone 3: Reporting enhancements 🟡
 

@@ -103,8 +103,8 @@ Local collection is always active during test runs:
 Output format is JSON-lines for machine parsing:
 
 ```json
-{"timestamp":"2026-02-13T10:05:00Z","node":"hci-node-01","counter":"CSVFS_ReadIOPS","value":45230}
-{"timestamp":"2026-02-13T10:05:00Z","node":"hci-node-01","counter":"CSVFS_WriteIOPS","value":12840}
+{"timestamp":"2026-02-13T10:05:00Z","node":"iic-azl-n01","counter":"CSVFS_ReadIOPS","value":45230}
+{"timestamp":"2026-02-13T10:05:00Z","node":"iic-azl-n01","counter":"CSVFS_WriteIOPS","value":12840}
 ```
 
 ## Azure Monitor Integration
@@ -112,11 +112,13 @@ Output format is JSON-lines for machine parsing:
 Optionally push collected metrics to Azure Monitor for centralized dashboards and alerting:
 
 ```powershell
+# Workspace key from the LOG_ANALYTICS_KEY environment variable or the log_analytics_key Key Vault mapping
 .\tools\vmfleet\monitoring\Push-MetricsToAzureMonitor.ps1 `
     -MetricsPath "results/run-001/metrics/" `
-    -WorkspaceId "your-log-analytics-workspace-id" `
-    -CredentialSource KeyVault
+    -WorkspaceId "00000000-0000-0000-0000-000000000000"
 ```
+
+The script takes no credential-source switch. The workspace ID comes from `-WorkspaceId`, otherwise from `log_analytics_workspace_id` in `tools/vmfleet/config/vmfleet.json`; without one it logs a warning and pushes nothing. The workspace key comes from `-WorkspaceKey`, then the `LOG_ANALYTICS_KEY` environment variable, then the `log_analytics_key` mapping in `config/credentials/keyvault-config.yml` (sign in to Azure first). When none has a value the script stops with exit code 2; nothing prompts. See [Credential Management](../../operations/credential-management.md).
 
 Each pushed metric contains these core fields:
 

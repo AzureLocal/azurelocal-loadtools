@@ -42,6 +42,76 @@ $script:NamePattern = '^[A-Za-z0-9][A-Za-z0-9-]{0,62}$'
 $script:SerialPattern = '^[A-Za-z0-9_.:-]{1,64}$'
 $script:HostPattern = '^[A-Za-z0-9][A-Za-z0-9.-]{0,252}$'
 
+# -----------------------------------------------------------------------------
+# Settings: values the operator chooses for the cluster under test. They live in
+# config/variables/variables.yml (solution vmfleet, category fault_injection) and in the
+# generated tools/vmfleet/config/vmfleet.json, which is the file read here. A parameter
+# passed to a function wins over the file. A missing or out-of-range value stops the call
+# before anything is changed; there is no built-in fallback.
+# -----------------------------------------------------------------------------
+$script:SolutionConfigPath = Join-Path $script:ProjectRoot 'tools\vmfleet\config\vmfleet.json'
+$script:FaultSettings = @{
+    # NodePause: how long the drain (live migration of the node's VMs) may take. Depends on the VM count and memory.
+    fault_drain_timeout_minutes  = @{ Parameter = 'DrainTimeoutMinutes'; Min = 1; Max = 120 }
+    # Undo: how long to wait for the storage repair and the cluster to settle. Depends on how much data changed.
+    fault_resync_timeout_minutes = @{ Parameter = 'ResyncTimeoutMinutes'; Min = 0; Max = 600 }
+    # Undo: seconds between two health polls while waiting for the cluster to settle.
+    fault_settle_poll_seconds    = @{ Parameter = 'PollSeconds'; Min = 1; Max = 300 }
+    # Undo: consecutive healthy polls before the lock is cleared.
+    fault_settle_observations    = @{ Parameter = 'SettleObservations'; Min = 1; Max = 20 }
+}
+
+# -----------------------------------------------------------------------------
+# Constants: not choices of a test run.
+# -----------------------------------------------------------------------------
+# Repair reserve: Microsoft recommends leaving unallocated the equivalent of one capacity drive per server, up to
+# four drives, so an in-place repair can succeed after any drive fails
+# (https://learn.microsoft.com/windows-server/storage/storage-spaces/plan-volumes#reserve-capacity).
+$script:RepairReserveMaxDrives = 4
+# Freshness of a health snapshot: Loadtools' own safety limit, not a Microsoft figure. The module collects its own
+# snapshot right before the preflight and again after the confirmation, so the limit only matters for a snapshot a
+# caller hands in with -Health; older than two minutes, it may no longer describe the cluster the fault lands on.
+# -MaxSnapshotAgeSeconds can set a different limit for one call.
+$script:SnapshotMaxAgeSeconds = 120
+# CollectedAt comes from the node's clock and the age is measured on the operator host: a snapshot up to five
+# seconds "in the future" is clock difference between the two hosts, not a bad snapshot. Loadtools' own tolerance.
+$script:SnapshotClockSkewSeconds = 5
+# NodePause: seconds between two reads of the drain status. The deadline is the setting fault_drain_timeout_minutes;
+# this is only how often the remote loop looks. Loadtools' own interval.
+$script:DrainPollSeconds = 10
+
+function Get-FaultSetting {
+    <#
+    .SYNOPSIS
+        Reads one fault-injection setting from the tool's config file (vmfleet.json) and checks its range.
+    .PARAMETER Name
+        The config key (fault_drain_timeout_minutes, fault_resync_timeout_minutes, fault_settle_poll_seconds,
+        fault_settle_observations).
+    .PARAMETER SolutionConfigPath
+        The config file. Default: tools/vmfleet/config/vmfleet.json in this checkout.
+    #>
+    [CmdletBinding()]
+    [OutputType([double])]
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [string]$SolutionConfigPath
+    )
+    if (-not $script:FaultSettings.ContainsKey($Name)) { throw "Unknown fault-injection setting '$Name'." }
+    $spec = $script:FaultSettings[$Name]
+    if (-not $SolutionConfigPath) { $SolutionConfigPath = $script:SolutionConfigPath }
+    $hint = "Set $Name in config/variables/variables.yml and in $SolutionConfigPath, or pass -$($spec.Parameter)."
+    if (-not (Test-Path -LiteralPath $SolutionConfigPath)) { throw "The config file $SolutionConfigPath does not exist. $hint" }
+    $config = Get-Content -LiteralPath $SolutionConfigPath -Raw | ConvertFrom-Json -AsHashtable
+    if (-not $config.ContainsKey($Name) -or $null -eq $config[$Name] -or "$($config[$Name])" -eq '') {
+        throw "The setting $Name has no value in $SolutionConfigPath. $hint"
+    }
+    $value = $config[$Name] -as [double]
+    if ($null -eq $value -or $value -lt $spec.Min -or $value -gt $spec.Max) {
+        throw "The setting $Name in $SolutionConfigPath is '$($config[$Name])'; it must be a number from $($spec.Min) to $($spec.Max). $hint"
+    }
+    $value
+}
+
 function Invoke-FaultRemote {
     <#
     .SYNOPSIS
@@ -235,7 +305,8 @@ function Test-FaultPreflight {
     .PARAMETER AcceptReducedRedundancy
         Operator accepts running a two-node cluster on a single data copy for the duration of the test.
     .PARAMETER MaxSnapshotAgeSeconds
-        A snapshot older than this is refused (default 120).
+        A snapshot older than this is refused. Default: the module constant SnapshotMaxAgeSeconds (120), whose
+        reason is written next to it.
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
@@ -244,7 +315,7 @@ function Test-FaultPreflight {
         [Parameter(Mandatory)][pscustomobject]$Plan,
         [switch]$IgnoreLock,
         [switch]$AcceptReducedRedundancy,
-        [ValidateRange(1, 3600)][int]$MaxSnapshotAgeSeconds = 120
+        [ValidateRange(1, 3600)][int]$MaxSnapshotAgeSeconds = $script:SnapshotMaxAgeSeconds
     )
 
     $checks = [System.Collections.Generic.List[pscustomobject]]::new()
@@ -252,7 +323,7 @@ function Test-FaultPreflight {
     $collected = $null
     if ($Health.PSObject.Properties['CollectedAt']) { $collected = $Health.CollectedAt -as [datetime] }
     $age = if ($collected) { [math]::Round(((Get-Date).ToUniversalTime() - $collected.ToUniversalTime()).TotalSeconds) } else { [int]::MaxValue }
-    $checks.Add((New-FaultCheck 'Health snapshot is fresh' ($age -ge -5 -and $age -le $MaxSnapshotAgeSeconds) $(if ($collected) { "$age s old" } else { 'no CollectedAt timestamp' })))
+    $checks.Add((New-FaultCheck 'Health snapshot is fresh' ($age -ge (-$script:SnapshotClockSkewSeconds) -and $age -le $MaxSnapshotAgeSeconds) $(if ($collected) { "$age s old" } else { 'no CollectedAt timestamp' })))
 
     $lock = if ($IgnoreLock) { $null } else { Get-FaultLock }
     $checks.Add((New-FaultCheck 'No other fault active' ($null -eq $lock) $(if ($lock) { "$($lock.fault_type) on $($lock.node) since $($lock.started_at) - run its undo first" } else { 'fault lock clean' })))
@@ -288,9 +359,9 @@ function Test-FaultPreflight {
     $badOp = @($allDisks | Where-Object { $_.HealthStatus -ne 'Healthy' -or ($_.PSObject.Properties['OperationalStatus'] -and $_.OperationalStatus -ne 'OK') })
     $checks.Add((New-FaultCheck 'Every physical disk Healthy/OK (none in maintenance, lost or retired)' ($badOp.Count -eq 0 -and $allDisks.Count -gt 0) "$($allDisks.Count - $badOp.Count)/$($allDisks.Count) healthy"))
 
-    $reserveNeeded = [math]::Min($nodes.Count, 4) * [double]$Health.MaxCapacityDriveBytes
+    $reserveNeeded = [math]::Min($nodes.Count, $script:RepairReserveMaxDrives) * [double]$Health.MaxCapacityDriveBytes
     $free = [double]$Health.PoolFreeBytes
-    $checks.Add((New-FaultCheck 'Pool free space covers the repair reserve (one capacity drive per node, max 4)' ($reserveNeeded -gt 0 -and $free -ge $reserveNeeded) ('free {0:N0} GB, need {1:N0} GB' -f ($free / 1GB), ($reserveNeeded / 1GB))))
+    $checks.Add((New-FaultCheck "Pool free space covers the repair reserve (one capacity drive per node, max $script:RepairReserveMaxDrives)" ($reserveNeeded -gt 0 -and $free -ge $reserveNeeded) ('free {0:N0} GB, need {1:N0} GB' -f ($free / 1GB), ($reserveNeeded / 1GB))))
 
     switch ($Plan.FaultType) {
         'NodePause' {
@@ -372,7 +443,10 @@ function Invoke-FaultInjection {
     .PARAMETER Health
         A pre-collected snapshot (tests / reuse). It must be fresh; stale snapshots are refused.
     .PARAMETER DrainTimeoutMinutes
-        NodePause: how long to wait for the drain to complete before giving up (the lock is kept).
+        NodePause: how long to wait for the drain to complete before giving up (the lock is kept). Default: the
+        setting fault_drain_timeout_minutes in the tool's config file (shipped value 15).
+    .PARAMETER SolutionConfigPath
+        The tool's config file the settings are read from. Default: tools/vmfleet/config/vmfleet.json.
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([pscustomobject])]
@@ -383,7 +457,8 @@ function Invoke-FaultInjection {
         [switch]$AllowFault,
         [switch]$AcceptReducedRedundancy,
         [object]$Health,
-        [ValidateRange(1, 120)][int]$DrainTimeoutMinutes = 15
+        [ValidateRange(1, 120)][int]$DrainTimeoutMinutes,
+        [string]$SolutionConfigPath
     )
 
     if ($ComputerName -notmatch $script:HostPattern) { throw "Invalid computer name '$ComputerName'." }
@@ -395,6 +470,11 @@ function Invoke-FaultInjection {
     if (-not $AllowFault) {
         Write-Information ("PLAN ONLY (no -AllowFault): {0} on {1}: {2}" -f $Plan.FaultType, $Plan.NodeName, ($Plan.ApplyCommands -join '; ')) -InformationAction Continue
         return $Plan
+    }
+
+    # Settings are resolved before the cluster is touched: a missing setting stops here, with nothing changed.
+    if (-not $PSBoundParameters.ContainsKey('DrainTimeoutMinutes')) {
+        $DrainTimeoutMinutes = [int](Get-FaultSetting -Name 'fault_drain_timeout_minutes' -SolutionConfigPath $SolutionConfigPath)
     }
 
     $suppliedHealth = ($null -ne $Health)
@@ -428,8 +508,8 @@ function Invoke-FaultInjection {
 
     Set-FaultLock -Plan $Plan -Status Pending -Confirm:$false
     try {
-        $outcome = Invoke-FaultRemote -ComputerName $ComputerName -Credential $Credential -ArgumentList @($Plan.FaultType, $Plan.NodeName, $Plan.Method, $Plan.DiskSerialNumber, $DrainTimeoutMinutes) -ScriptBlock {
-            param($FaultType, $Node, $How, $Serial, $DrainMinutes)
+        $outcome = Invoke-FaultRemote -ComputerName $ComputerName -Credential $Credential -ArgumentList @($Plan.FaultType, $Plan.NodeName, $Plan.Method, $Plan.DiskSerialNumber, $DrainTimeoutMinutes, $script:DrainPollSeconds) -ScriptBlock {
+            param($FaultType, $Node, $How, $Serial, $DrainMinutes, $DrainPollSeconds)
             $ErrorActionPreference = 'Stop'
             if ($FaultType -eq 'NodePause') {
                 # No -Wait: it has no timeout. Start the drain, then poll against a deadline.
@@ -438,7 +518,7 @@ function Invoke-FaultInjection {
                 do {
                     $n = Get-ClusterNode -Name $Node
                     $done = ("$($n.State)" -eq 'Paused' -and "$($n.DrainStatus)" -eq 'Completed')
-                    if (-not $done) { Start-Sleep -Seconds 10 }
+                    if (-not $done) { Start-Sleep -Seconds $DrainPollSeconds }
                 } while (-not $done -and (Get-Date) -lt $deadline)
                 if (-not $done) { throw "Drain of $Node did not complete within $DrainMinutes minutes (state $($n.State), drain $($n.DrainStatus)). Storage maintenance mode was NOT entered." }
                 $su = Get-StorageFaultDomain -Type StorageScaleUnit | Where-Object FriendlyName -Eq $Node
@@ -492,11 +572,14 @@ function Undo-FaultInjection {
     .PARAMETER AllowFault
         Required, same opt-in as the injection (undo changes the cluster too).
     .PARAMETER ResyncTimeoutMinutes
-        How long to wait for the cluster to settle (0 = check once).
+        How long to wait for the cluster to settle (0 = check once). Default: the setting
+        fault_resync_timeout_minutes in the tool's config file (shipped value 30).
     .PARAMETER PollSeconds
-        Polling interval.
+        Polling interval. Default: the setting fault_settle_poll_seconds (shipped value 15).
     .PARAMETER SettleObservations
-        Consecutive healthy polls required (default 3).
+        Consecutive healthy polls required. Default: the setting fault_settle_observations (shipped value 3).
+    .PARAMETER SolutionConfigPath
+        The tool's config file the settings are read from. Default: tools/vmfleet/config/vmfleet.json.
     #>
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
     [OutputType([pscustomobject])]
@@ -504,9 +587,10 @@ function Undo-FaultInjection {
         [Parameter(Mandatory)][string]$ComputerName,
         [PSCredential]$Credential,
         [switch]$AllowFault,
-        [ValidateRange(0, 600)][double]$ResyncTimeoutMinutes = 30,
-        [ValidateRange(1, 300)][int]$PollSeconds = 15,
-        [ValidateRange(1, 20)][int]$SettleObservations = 3
+        [ValidateRange(0, 600)][double]$ResyncTimeoutMinutes,
+        [ValidateRange(1, 300)][int]$PollSeconds,
+        [ValidateRange(1, 20)][int]$SettleObservations,
+        [string]$SolutionConfigPath
     )
 
     $lock = Get-FaultLock
@@ -521,6 +605,17 @@ function Undo-FaultInjection {
     if ($lock.node -notmatch $script:NamePattern) { throw 'The fault lock holds an invalid node name; refusing to continue. Inspect state/fault-lock.json.' }
     if ($lock.serial_number -and $lock.serial_number -notmatch $script:SerialPattern) { throw 'The fault lock holds an invalid drive serial; refusing to continue.' }
     if ($lock.computer_name -and $lock.computer_name -ne $ComputerName) { throw "REFUSED: the fault lock was written for '$($lock.computer_name)', not '$ComputerName'. Undo it against the same target." }
+
+    # Settings are resolved before the cluster is touched: a missing setting stops here, with nothing changed.
+    if (-not $PSBoundParameters.ContainsKey('ResyncTimeoutMinutes')) {
+        $ResyncTimeoutMinutes = Get-FaultSetting -Name 'fault_resync_timeout_minutes' -SolutionConfigPath $SolutionConfigPath
+    }
+    if (-not $PSBoundParameters.ContainsKey('PollSeconds')) {
+        $PollSeconds = [int](Get-FaultSetting -Name 'fault_settle_poll_seconds' -SolutionConfigPath $SolutionConfigPath)
+    }
+    if (-not $PSBoundParameters.ContainsKey('SettleObservations')) {
+        $SettleObservations = [int](Get-FaultSetting -Name 'fault_settle_observations' -SolutionConfigPath $SolutionConfigPath)
+    }
 
     if (-not $PSCmdlet.ShouldProcess("$($lock.node) ($($lock.fault_type))", 'Undo fault injection')) {
         return [pscustomobject]@{ Undone = $false; Reason = 'NotConfirmed'; Healthy = $null }

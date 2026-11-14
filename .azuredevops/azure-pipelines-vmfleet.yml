@@ -27,9 +27,23 @@ parameters:
     displayName: 'Variable group with the cluster credentials'
     type: string
     default: 'azurelocal-loadtest-secrets'
-
-pool:
-  name: 'AzureLocal-SelfHosted'  # Update with your agent pool name
+  # The self-hosted agent pool that reaches the cluster over WinRM. Its name is chosen per Azure DevOps organization, so it
+  # has no default and the run form asks for it. It can't come from a variable: Learn says a macro variable $(name) is
+  # expanded only in task inputs (https://learn.microsoft.com/azure/devops/pipelines/process/variables#understand-variable-syntax),
+  # and the template expression ${{ variables.name }} does not see variables stored on the pipeline or in a library
+  # (https://learn.microsoft.com/azure/devops/pipelines/process/template-expressions). A runtime parameter is resolved when
+  # the pipeline is compiled (https://learn.microsoft.com/azure/devops/pipelines/process/runtime-parameters).
+  - name: agentPool
+    displayName: 'Self-hosted agent pool with WinRM access to the cluster'
+    type: string
+  # Job timeout. 120 minutes is Loadtools' own limit, not a figure from Microsoft (not measured on a cluster), meant to
+  # cover Install, Deploy (the fleet VMs from the base VHDX), one pass of a shipped profile (the longest,
+  # failure-injection.yml, holds the workload 20 minutes after a 2-minute warmup), Collect, Report and Cleanup.
+  # Raise it for more VMs per node, more iterations or a longer profile.
+  - name: jobTimeoutMinutes
+    displayName: 'Job timeout in minutes'
+    type: number
+    default: 120
 
 variables:
   - group: ${{ parameters.variableGroup }}  # Variable group with credentials (pipeline input variableGroup)
@@ -40,7 +54,9 @@ stages:
     jobs:
       - job: VMFleet
         displayName: 'Execute VMFleet Pipeline'
-        timeoutInMinutes: 120
+        pool:
+          name: ${{ parameters.agentPool }}
+        timeoutInMinutes: ${{ parameters.jobTimeoutMinutes }}
         steps:
           - task: PowerShell@2
             displayName: 'Initialize Environment'

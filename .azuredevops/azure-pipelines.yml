@@ -27,6 +27,8 @@ pr:
     include:
       - main
 
+# Hosted image: windows-latest is Microsoft's label for its hosted Windows image. This pipeline only runs the analyzer,
+# Pester with mocks and the link check, and reads nothing that belongs to a deployment, so the label is not a setting.
 pool:
   vmImage: 'windows-latest'
 

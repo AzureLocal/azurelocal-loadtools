@@ -22,6 +22,23 @@ Describe 'Failure injection stays opt-in' {
         $text | Should -Match "ConfirmImpact = 'High'"
     }
 
+    It '<Name> passes a wait to the module only when the operator gave it, and names the config file' -ForEach @(
+        @{ Name = 'Invoke-VMFleetFault.ps1'; Params = @('DrainTimeoutMinutes') }
+        @{ Name = 'Undo-VMFleetFault.ps1'; Params = @('ResyncTimeoutMinutes', 'PollSeconds', 'SettleObservations') }
+    ) {
+        $path = Join-Path $script:Scripts $Name
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$null)
+        $declared = @($ast.ParamBlock.Parameters)
+        foreach ($p in $Params + 'SolutionConfigPath') {
+            $param = @($declared | Where-Object { $_.Name.VariablePath.UserPath -eq $p })
+            $param.Count | Should -Be 1 -Because "$Name declares -$p"
+            $param[0].DefaultValue | Should -BeNullOrEmpty -Because "-$p takes its default from the config file, not from a literal"
+        }
+        $text = Get-Content -Path $path -Raw
+        $text | Should -Match 'PSBoundParameters'
+        $text | Should -Match 'tools\\vmfleet\\config\\vmfleet\.json'
+    }
+
     It 'the pipeline and the phase scripts never reference the fault module' {
         $files = @(Join-Path $script:ProjectRoot 'tools\vmfleet\Invoke-VMFleetPipeline.ps1') +
         @(Get-ChildItem -Path $script:Scripts -Filter '*.ps1' | Where-Object { $_.Name -notmatch 'VMFleetFault' } | ForEach-Object FullName)

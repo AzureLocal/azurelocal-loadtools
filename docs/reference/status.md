@@ -38,7 +38,7 @@ This page is the **single source of truth** for what is built, what is unit-test
 
 ## Known documentation gaps
 
-- Several tool pages show a `-CredentialSource` parameter that the scripts do not implement. The scripts take a `-Credential` (PSCredential) and fall back to the credential manager. Use the script `param` blocks as the reference until the pages are rewritten.
+- No script has a `-CredentialSource` parameter, and the tool pages no longer show one. The scripts take a `-Credential` (PSCredential) or a secret parameter such as `-WorkspaceKey`, then fall back to the environment variables and the Key Vault mapping (see [Credential Management](../operations/credential-management.md)). For any other command example, the script `param` blocks are the reference.
 - The `monitoring/` and `reports/` folders are per tool (`tools/<tool>/monitoring`, `tools/<tool>/reports/templates`), not at the repository root.
 
 ## What would change a "No" to a "Yes"
