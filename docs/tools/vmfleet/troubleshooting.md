@@ -18,34 +18,55 @@ This guide covers common VMFleet issues and their resolutions.
 **Resolution:**
 
 ```powershell
-# Check available memory per node
-Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
+# Check available memory per node (by IP, with the explicit credential)
+Invoke-Command -ComputerName 192.0.2.11 -Credential $cred -ScriptBlock {
     Get-Counter '\Memory\Available MBytes' | Select-Object -ExpandProperty CounterSamples
 }
 
 # Reduce VM count or memory per VM
-.\src\solutions\vmfleet\scripts\Deploy-VMFleet.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml" `
-    -VMCount 5 `
-    -VMMemoryGB 1
+.\tools\vmfleet\scripts\Deploy-VMFleet.ps1 `
+    -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin `
+    -VMCount 2 -VMMemoryGB 1
 ```
 
-## Base VHD Not Found
+## A step fails: read the node transcript
 
-**Symptom:** Deployment fails with `Base VHD not found` in `Deploy-VMFleet.ps1`.
+Every VMFleet step runs as a one-shot scheduled task on the first node. The error message of the script names the transcript. The same files are always there:
+
+```text
+C:\ClusterStorage\Collect\loadtools\<run id>\<step>\transcript.log   what the step printed (secrets are scrubbed)
+C:\ClusterStorage\Collect\loadtools\<run id>\<step>\result.json      Succeeded or Failed, the error, the output
+C:\ClusterStorage\Collect\loadtools\<run id>\<step>\run.ps1          the generated script that ran
+```
+
+`<step>` is `Install`, `Deploy`, `Test`, `Stop`, `Collect` or `Remove`. The task is unregistered when the step ends; if a script was killed, remove a leftover task on the node with `Get-ScheduledTask -TaskPath '\LoadTools\' | Unregister-ScheduledTask`.
+
+## Cannot Reach a Node
+
+**Symptom:** `Cannot reach nodes: 192.0.2.11` or a remoting error that mentions TrustedHosts or authentication.
 
 **Resolution:**
 
-1. Run image preparation:
+- The nodes are reached by IP with NTLM. Add the IPs to `TrustedHosts` on the management host: `Set-Item WSMan:\localhost\Client\TrustedHosts -Value '192.0.2.11,192.0.2.12' -Concatenate`.
+- Use `DOMAIN\user` for the credential, and an account that is an administrator on every node.
+- Test with `Test-WSMan -ComputerName 192.0.2.11 -Authentication Negotiate -Credential $cred`. `Test-WSMan` without `-Authentication` sends the request anonymously and ignores the credential.
+- Do not enable CredSSP; the scripts do not need it.
 
-```powershell
-.\src\infrastructure\Prepare-VMFleetBaseImage.ps1 `
-        -ConfigPath "config/variables.yml" `
-        -ClusterConfigPath "config/clusters/my-cluster.yml"
-```
+## Install-Fleet Reports a Missing Volume
 
-2. Copy returned VHDX path into `storage.base_vhd_path` in `config/variables.yml`.
-3. Re-run deployment.
+**Symptom:** the Install step fails with `No collect CSV found` or `No CSV found for node`.
+
+**Resolution:** VMFleet needs a CSV named `collect` and at least one CSV per node whose name starts with the node name. Create them (`Get-FleetVolumeEstimate` on a node recommends sizes) and run the install step again.
+
+## Base VHD Not Found
+
+**Symptom:** the Deploy step fails with `The base VHD was not found on the node` or the script stops with `No base VHD`.
+
+**Resolution:**
+
+1. Create the base image: [Deployment: Base image](deployment.md#base-image).
+2. Put the path of the VHDX **on the node** into `storage.base_vhd_path` in `config\clusters\cluster.yml`, or pass `-BaseVHDPath`.
+3. Run the deploy step again.
 
 ## Marketplace Image API Returns 400
 
@@ -58,7 +79,7 @@ Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
 - Confirm image identifier values are valid for Azure Local marketplace:
     - `publisher`: `MicrosoftWindowsServer`
     - `offer`: `WindowsServer`
-    - `sku`: `2022-datacenter-core-g2`
+    - `sku`: one of the Windows Server SKUs in [Deployment: Base image](deployment.md#base-image), for example `2025-datacenter-azure-edition-smalldisk` (the script's `-Sku`)
 
 ## provisioningState Stuck at Downloading
 
@@ -86,13 +107,17 @@ Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
 
 **Resolution:**
 
+Run on the first node (RDP or an interactive remoting session; the VMFleet cmdlets must run on a node):
+
 ```powershell
-# Verify fleet status
-Get-FleetVM | Format-Table Name, State, ComputerName
+# Verify fleet status (State 'Ok' = running with a heartbeat)
+Get-FleetVM | Format-Table Name, OwnerNode, State
 
 # Check Collect volume
-Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
+Get-ClusterSharedVolume | Where-Object Name -like "*collect*"
 ```
+
+A run whose result files are missing shows as `No DiskSpd result files for tag <tag>` in the Collect step: use the same `-RunId` for `Start-VMFleetTest.ps1` and `Collect-VMFleetResults.ps1`.
 
 ## Pipeline Fails Mid-Execution
 
@@ -106,7 +131,7 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 4. Fix the issue and resume:
 
 ```powershell
-.\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/my-cluster.yml" -Resume
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin -Resume
 ```
 
 ## Configuration Issues

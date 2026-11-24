@@ -102,13 +102,15 @@ Start-VMFleetTest
 
 ## Cluster Configuration
 
-Cluster configs in `config/clusters/` define target cluster details. To switch clusters, change the `-ClusterConfig` parameter:
+Cluster configs in `config/clusters/` define target cluster details: the cluster name, the nodes by management IP (`nodes[].name`, the remoting target), the Collect volume and the per-node volumes (`storage`). Copy `config/clusters/example-cluster.yml`; real cluster files are git-ignored. To switch clusters, change the `-ClusterConfigPath` parameter:
 
 ```powershell
 # Target different clusters by swapping config files
-.\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/prod-cluster.yml"
-.\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/dev-cluster.yml"
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath config\clusters\prod-cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath config\clusters\dev-cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin
 ```
+
+The VMFleet scripts read `tools\vmfleet\config\vmfleet.json`, the file generated from the registry (`vm_count_per_node`, `vm_vcpu_count`, `vm_memory_gb`, `vmfleet_version`, `base_vhd_path`, `test_duration_seconds`, `warmup_seconds`, `cooldown_seconds`); the layout and an example are in [VMFleet deployment](../tools/vmfleet/deployment.md#cluster-configuration).
 
 ## Workload Profiles
 

@@ -20,16 +20,20 @@ cd azurelocal-loadtools
 Copy-Item config\variables.example.yml config\variables.yml
 # Edit config\variables.yml with your cluster details
 
-# 2. Run a VMFleet storage benchmark (fully implemented)
+# 2. Run a VMFleet storage benchmark (implemented and unit-tested, not proven on hardware)
+Copy-Item config\clusters\example-cluster.yml config\clusters\cluster.yml   # nodes by management IP; edit it
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ConfigPath "config\variables.yml" `
-    -ProfilePath "tools\vmfleet\config\profiles\general.yml"
+    -ClusterConfigPath config\clusters\cluster.yml `
+    -ProfilePath tools\vmfleet\config\profiles\general.yml `
+    -Credential $cred -FleetAdminCredential $fleetAdmin
 
-# Or run individual steps for any tool:
-.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterName "hci01.corp.infiniteimprobability.com" -Nodes @("hci01-node1")
-.\tools\vmfleet\scripts\Start-VMFleetTest.ps1 -Profile "General" -DurationSeconds 600
-.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 -Nodes @("hci01-node1") -RunId "<run-id>"
+# Or run individual steps (each takes -ClusterConfigPath and -Credential):
+.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred
+.\tools\vmfleet\scripts\Start-VMFleetTest.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -ProfilePath tools\vmfleet\config\profiles\general.yml -RunId run-001
+.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -RunId run-001
 ```
+
+The full VMFleet runbook (base image, Day-2 smoke, General profile, cleanup) is in [VMFleet](tools/vmfleet/index.md).
 
 ## Pick a Test
 

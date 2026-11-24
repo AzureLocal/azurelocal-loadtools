@@ -74,24 +74,28 @@ Ansible is installed as part of the CI/CD pipeline. See the [CI/CD Pipelines](..
 Copy the example cluster configuration and customize:
 
 ```powershell
-Copy-Item config/clusters/example-cluster.yml config/clusters/my-cluster.yml
+Copy-Item config/clusters/example-cluster.yml config/clusters/cluster.yml
 ```
 
-Edit `config/clusters/my-cluster.yml` with your cluster details:
+`config/clusters/cluster.yml` is git-ignored because it holds real IP addresses. Edit it with your cluster details. The management host does not have to be domain-joined: the nodes are reached by management IP (put them in `TrustedHosts`), so the IPs go in `nodes[].name`:
 
 ```yaml
 cluster:
-  name: "my-hci-cluster"
-  domain: "contoso.local"
-  nodes:
-    - name: "hci-node-01"
-      management_ip: "10.0.0.1"
-    - name: "hci-node-02"
-      management_ip: "10.0.0.2"
-  csv_path: "C:\\ClusterStorage\\Volume1"
-  collect_volume_path: "C:\\ClusterStorage\\Collect"
-  base_vhd_path: "C:\\ClusterStorage\\Collect\\BaseImage.vhdx"
+  name: "my-hci-cluster"            # reports only
+nodes:
+  - name: "192.0.2.11"              # management IP, the remoting target; the first node runs the VMFleet steps
+    hostname: "hci-node-01"         # optional, display only
+  - name: "192.0.2.12"
+    hostname: "hci-node-02"
+storage:
+  collect_path: "C:\\ClusterStorage\\Collect"
+  node_volumes:
+    - "C:\\ClusterStorage\\hci-node-01"
+    - "C:\\ClusterStorage\\hci-node-02"
+  base_vhd_path: "C:\\ClusterStorage\\Collect\\base\\vmfleet-base.vhdx"
 ```
+
+The other tools (fio, iPerf3, HammerDB, stress-ng) read `nodes[].name` the same way. See [VMFleet deployment](../tools/vmfleet/deployment.md) for the base image and the credentials.
 
 ## Initialize the Environment
 
@@ -101,6 +105,8 @@ cluster:
     -MasterConfigPath "config/variables/variables.yml" `
     -ClusterConfigPath "config/clusters/cluster.yml"
 ```
+
+(`Initialize-Environment.ps1` only checks that the cluster file exists.)
 
 This will:
 

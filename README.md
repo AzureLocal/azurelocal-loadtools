@@ -45,12 +45,19 @@ cd azurelocal-loadtools
 Copy-Item config\variables\variables.example.yml config\variables\variables.yml
 # Edit config\variables\variables.yml with your cluster details (example values only in the repo)
 
-# 2. Run a VMFleet storage benchmark with the General profile
+# 2. Describe the cluster: nodes by management IP, the Collect volume, the base VHD
+Copy-Item config\clusters\example-cluster.yml config\clusters\cluster.yml   # git-ignored; edit it
+
+# 3. Run a VMFleet storage benchmark with the General profile (not yet proven on hardware)
+$cred       = Get-Credential -Message 'DOMAIN\user, an administrator on every node'
+$fleetAdmin = Get-Credential -UserName 'Administrator' -Message 'Local administrator password of the fleet VMs'
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
-    -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
-    -FleetAdminCredential $fleetAdmin   # for example Get-ManagedCredential -Name 'vmfleet_admin'
+    -ClusterConfigPath config\clusters\cluster.yml `
+    -ProfilePath tools\vmfleet\config\profiles\general.yml `
+    -Credential $cred -FleetAdminCredential $fleetAdmin
 ```
+
+The management host does not have to be domain-joined; it reaches the nodes by IP. The base image, the Day-2 smoke run and the cleanup are in the [VMFleet runbook](docs/tools/vmfleet/index.md).
 
 The parameter names above come from the script `param` blocks. See the [documentation site](https://azurelocal.github.io/azurelocal-loadtools/) for the rest.
 
