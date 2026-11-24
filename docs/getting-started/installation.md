@@ -71,26 +71,22 @@ Ansible is installed as part of the CI/CD pipeline. See the [CI/CD Pipelines](..
 
 ## Configure Cluster Connection
 
-Copy the example cluster configuration and customize:
-
-```powershell
-Copy-Item config/clusters/example-cluster.yml config/clusters/my-cluster.yml
-```
-
-Edit `config/clusters/my-cluster.yml` with your cluster details:
+The repository holds no example cluster file. Create `config/clusters/my-cluster.yml` (the default the scripts look for is `config/clusters/cluster.yml`, or pass `-ClusterConfigPath`) with your cluster details:
 
 ```yaml
 cluster:
   name: "my-hci-cluster"
   domain: "contoso.local"
-  nodes:
-    - name: "hci-node-01"
-      management_ip: "10.0.0.1"
-    - name: "hci-node-02"
-      management_ip: "10.0.0.2"
   csv_path: "C:\\ClusterStorage\\Volume1"
   collect_volume_path: "C:\\ClusterStorage\\Collect"
   base_vhd_path: "C:\\ClusterStorage\\Collect\\BaseImage.vhdx"
+
+# The scripts read the node names from this top-level list, not from cluster.nodes.
+nodes:
+  - name: "hci-node-01"
+    management_ip: "10.0.0.1"
+  - name: "hci-node-02"
+    management_ip: "10.0.0.2"
 ```
 
 ## Initialize the Environment

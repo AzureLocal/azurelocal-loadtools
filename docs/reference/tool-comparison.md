@@ -75,15 +75,15 @@ This page provides a side-by-side comparison of all tools in the Azure Local Loa
 
 ## Report Generation
 
-All tools write an aggregate JSON file consumed by `New-LoadReport.ps1`. The report template and placeholder mapping differ by tool:
+All tools write an aggregate JSON file; there is no `New-LoadReport.ps1`. Each tool has an AsciiDoc template and cover page under `tools/<tool>/reports/templates/`. Only the VMFleet pipeline (`Invoke-VMFleetPipeline.ps1`, `-ReportFormats`) calls the report generator (`New-TestReport` in `common/modules/ReportGenerator`); `tools/vmfleet/scripts/New-VMFleetReport.ps1` writes an offline HTML and CSV report from one aggregate JSON.
 
-| Tool | Template File | Key Placeholders |
-|------|--------------|-----------------|
-| fio | `reports/templates/fio-report.adoc` | `{seq_read_iops}`, `{rand_write_iops}`, `{p99_latency_ms}` |
-| iPerf3 | `reports/templates/iperf-report.adoc` | `{tcp_avg_throughput_mbps}`, `{udp_avg_jitter_ms}` |
-| HammerDB | `reports/templates/hammerdb-report.adoc` | `{peak_nopm}`, `{avg_nopm}`, `{peak_tpm}` |
-| stress-ng | `reports/templates/stress-ng-report.adoc` | `{cpu_avg_bogo_ops_per_sec}`, `{memory_avg_bogo_ops_per_sec}` |
-| VMFleet | `reports/templates/vmfleet-report.adoc` | `{cluster_iops}`, `{avg_latency_ms}` |
+| Tool | Template file | Cover page |
+|------|--------------|-----------|
+| fio | `tools/fio/reports/templates/report-template.adoc` | `cover-page.adoc` in the same folder |
+| iPerf3 | `tools/iperf/reports/templates/report-template.adoc` | `cover-page.adoc` in the same folder |
+| HammerDB | `tools/hammerdb/reports/templates/report-template.adoc` | `cover-page.adoc` in the same folder |
+| stress-ng | `tools/stress-ng/reports/templates/report-template.adoc` | `cover-page.adoc` in the same folder |
+| VMFleet | `tools/vmfleet/reports/templates/report-template.adoc` | `cover-page.adoc` in the same folder |
 
 ---
 

@@ -47,13 +47,9 @@ HammerDB benchmarks SQL Server performance on Azure Local VMs using industry-sta
     -RunId "<run-id-from-previous-step>"
 ```
 
-### Step 4 — Stop the test (if needed)
+### Step 4 — Ending a test early
 
-```powershell
-.\tools\hammerdb\scripts\Stop-HammerDBTest.ps1 `
-    -ClusterName "hci01.corp.infiniteimprobability.com" `
-    -PrimaryNode "hci01-node1"
-```
+There is no stop script for HammerDB. `Start-HammerDBTest.ps1` writes a Tcl script whose `runtimer` is the ramp-up plus the test duration plus 60 seconds, so every run ends on its own after that time. To end one earlier, stop the `hammerdbcli` process on the primary node.
 
 ---
 

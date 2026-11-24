@@ -136,17 +136,11 @@ A node reporting bogo-ops/sec more than 15% below the cluster mean likely experi
 
 ## Report Generation
 
-Aggregate results are available as input for the reporting template:
+There is no per-tool report script (`New-LoadReport.ps1` does not exist in this repository). The aggregate JSON is the input for the report template, `tools/stress-ng/reports/templates/report-template.adoc` (with `cover-page.adoc`). Of the tool scripts, only `tools/vmfleet/Invoke-VMFleetPipeline.ps1` calls the report generator (`New-TestReport` in `common/modules/ReportGenerator`), so a stress-ng report is built from the aggregate JSON and the template by hand until a stress-ng step is added.
 
-```powershell
-.\scripts\New-LoadReport.ps1 -RunId "stressng-cpu-202412011430" -Tool stress-ng `
-    -TemplatePath "reports\templates\stress-ng-report.adoc" `
-    -OutputPath "reports\stressng-cpu-202412011430.pdf"
-```
+The shipped template substitutes only `{revdate}`. These are the aggregate JSON fields a stress-ng report should draw from:
 
-The template uses the following aggregate JSON fields as placeholders:
-
-| Placeholder | Source Field |
+| Report field | Source field |
 |-------------|-------------|
 | `{run_id}` | `run_id` |
 | `{profile}` | `profile` |
