@@ -80,7 +80,8 @@ The cluster comes from the environment's `infrastructure.yml` (schema 5), the on
 | `identity.active_directory.domain_fqdn` | The domain of the nodes |
 | `storage.paths[].path` (else the first `storage.volumes[].name`) | The cluster shared volume (`C:\ClusterStorage\<volume>`) |
 | `azure.tenant_id`, `subscription_id`, `resource_group`, `location`, `custom_location` | The Azure scope; the custom location and the first storage path give the IDs `Prepare-VMFleetBaseImage.ps1` needs |
-| `key_vaults[]` (purpose `management`, else the first) | The Key Vault for credentials |
+| `key_vaults[]` (purpose `management`, else the first; else `cluster.key_vault.name`) | The Key Vault for credentials |
+| `_metadata.schema_version` | Must start with `5`; any other value stops the script |
 
 Pass it as `-InfrastructureFile` to `Initialize-Environment.ps1` and `Export-SolutionConfig`, or as `-ClusterConfigPath` to any tool script. The file must be schema 5 (`_metadata.schema_version`) and hold `cluster.name` and `nodes[].name`, or the script stops and says which is missing. A per-cluster file of the earlier layout is still read, with a warning. To start, copy the Load Tools template from the toolkit (`config/variables/templates/tools/loadtools.yml`) or use your Trailwright export. The part of the file Load Tools reads (the other sections are for the tools that deploy the cluster; example values):
 
