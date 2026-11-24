@@ -25,18 +25,24 @@ function Test-ClusterConnectivity {
 
     $results = @()
     foreach ($node in $NodeNames) {
-        $params = @{ ComputerName = $node; ErrorAction = 'SilentlyContinue' }
-        if ($Credential) { $params['Credential'] = $Credential }
+        $params = @{ ComputerName = $node; ErrorAction = 'SilentlyContinue'; ErrorVariable = 'wsmanError' }
+        if ($Credential) {
+            # Without -Authentication, Test-WSMan sends the request anonymously and ignores the credential, so a
+            # wrong password would still look reachable. Negotiate uses NTLM for an IP address (TrustedHosts).
+            $params['Credential'] = $Credential
+            $params['Authentication'] = 'Negotiate'
+        }
 
+        $wsmanError = $null
         $result = Test-WSMan @params
         $results += [PSCustomObject]@{
-            Node     = $node
+            Node      = $node
             Reachable = $null -ne $result
-            Detail    = if ($result) { 'OK' } else { 'Unreachable' }
+            Detail    = if ($result) { 'OK' } elseif ($wsmanError) { [string]@($wsmanError)[0].Exception.Message } else { 'Unreachable' }
         }
     }
 
-    $unreachable = $results | Where-Object { -not $_.Reachable }
+    $unreachable = @($results | Where-Object { -not $_.Reachable })
     if ($unreachable.Count -gt 0) {
         Write-Warning "Unreachable nodes: $($unreachable.Node -join ', ')"
     }

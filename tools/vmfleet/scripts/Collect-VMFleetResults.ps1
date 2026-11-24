@@ -1,8 +1,10 @@
 # =============================================================================
 # Collect-VMFleetResults.ps1 - Azure Local Load Tools
 # =============================================================================
-# Collects DiskSpd results from fleet VMs and generates structured output.
-# Phase 5 of the VMFleet pipeline.
+# Reads the DiskSpd XML results the fleet VMs left in the Collect volume's result
+# folder (the files of the sweep tagged with -RunId), reduces them per VM on the
+# first node (one-shot scheduled task) and writes <RunId>-aggregate.json and
+# <RunId>-per-vm.json. Phase 7 of the VMFleet pipeline. NOT PROVEN ON A LIVE CLUSTER.
 # =============================================================================
 
 #Requires -Version 7.2
@@ -25,13 +27,18 @@ param(
     [Parameter()]
     [string]$OutputPath,
 
+    # The run id the test was started with. Without it the sweep tag of the last test on the Collect volume is used.
     [Parameter()]
     [string]$RunId,
 
     [Parameter()]
-    [hashtable]$TestMetadata
+    [hashtable]$TestMetadata,
+
+    [Parameter()]
+    [int]$TimeoutMinutes = 30
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 if (-not $ProjectRoot) {
@@ -39,6 +46,7 @@ if (-not $ProjectRoot) {
 }
 
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
+. (Join-Path $PSScriptRoot 'VMFleet-Common.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
@@ -48,92 +56,90 @@ $null = Start-LogSession -Component 'VMFleet-Collect' -LogRootPath (Join-Path $P
 try {
     Write-Log -Message 'Starting VMFleet results collection' -Severity Information
 
+    $runIdWasGiven = [bool]$RunId
     if (-not $RunId) { $RunId = "vmfleet-$(Get-Timestamp -FilenameSafe)" }
 
     if (-not $OutputPath) {
         $OutputPath = Join-Path $ProjectRoot "reports\$RunId"
     }
-    if (-not (Test-Path $OutputPath)) {
+    if (-not (Test-Path -LiteralPath $OutputPath)) {
         New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
     }
 
-    if (-not $ClusterConfigPath) {
-        $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
-    }
+    if (-not $ClusterConfigPath) { $ClusterConfigPath = Get-VMFleetDefaultClusterConfigPath -ProjectRoot $ProjectRoot }
+    $cluster = Get-VMFleetClusterConfig -ClusterConfigPath $ClusterConfigPath
 
-    Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
-    $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
+    $Credential = Get-VMFleetCredentialOrExit -Credential $Credential -ProjectRoot $ProjectRoot
 
-    if (-not $Credential) {
-        Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
-        # No prompt: -Credential, CLUSTER_ADMIN_USERNAME/CLUSTER_ADMIN_PASSWORD or the Key Vault mapping; otherwise stop (exit 2).
-        try {
-            $Credential = Get-ManagedCredential -Name 'cluster_admin' -ProjectRoot $ProjectRoot
-        } catch {
-            Write-Log -Message $_.Exception.Message -Severity Error
-            exit 2
-        }
-    }
+    Write-Log -Message 'Retrieving DiskSpd results from the Collect volume (node task)...' -Severity Information
+    $tag = if ($runIdWasGiven) { ConvertTo-VMFleetSafeName -Name $RunId -MaxLength 24 } else { '' }
+    $nodeResult = Invoke-VMFleetNodeTask -ComputerName $cluster.PrimaryNode -Credential $Credential -Step 'Collect' -RunId $RunId `
+        -CollectPath $cluster.CollectPath -TimeoutSeconds ($TimeoutMinutes * 60) `
+        -Arguments @{ Tag = $tag; CollectPath = $cluster.CollectPath }
 
-    # Collect results from VMFleet
-    Write-Log -Message 'Retrieving results from fleet VMs...' -Severity Information
-
-    $rawResults = Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-        Import-Module VMFleet -ErrorAction Stop
-
-        # Get fleet performance data
-        $data = Get-FleetDataXml
-
-        # Parse fleet results
-        $results = @()
-        foreach ($vm in $data) {
-            $results += @{
-                VMName           = $vm.VMName
-                ReadIOPS         = $vm.ReadIOPS
-                WriteIOPS        = $vm.WriteIOPS
-                TotalIOPS        = $vm.ReadIOPS + $vm.WriteIOPS
-                ReadThroughputMBps  = [math]::Round($vm.ReadBytesPerSecond / 1MB, 2)
-                WriteThroughputMBps = [math]::Round($vm.WriteBytesPerSecond / 1MB, 2)
-                ReadLatencyMs    = [math]::Round($vm.ReadLatencyMs, 3)
-                WriteLatencyMs   = [math]::Round($vm.WriteLatencyMs, 3)
-                AvgLatencyMs     = [math]::Round(($vm.ReadLatencyMs + $vm.WriteLatencyMs) / 2, 3)
+    $rawResults = @(foreach ($vm in @($nodeResult.Output.VMs)) {
+            $readBytes = [double]$vm.ReadBytesPerSecond
+            $writeBytes = [double]$vm.WriteBytesPerSecond
+            $readIops = [double]$vm.ReadIOPS
+            $writeIops = [double]$vm.WriteIOPS
+            $totalIops = $readIops + $writeIops
+            [ordered]@{
+                VMName              = [string]$vm.VMName
+                ReadIOPS            = [math]::Round($readIops, 2)
+                WriteIOPS           = [math]::Round($writeIops, 2)
+                TotalIOPS           = [math]::Round($totalIops, 2)
+                ReadThroughputMBps  = [math]::Round($readBytes / 1MB, 2)
+                WriteThroughputMBps = [math]::Round($writeBytes / 1MB, 2)
+                ReadLatencyMs       = [math]::Round([double]$vm.ReadLatencyMs, 3)
+                WriteLatencyMs      = [math]::Round([double]$vm.WriteLatencyMs, 3)
+                # I/O-weighted average of the read and write latency of this VM
+                AvgLatencyMs        = $(if ($totalIops -gt 0) { [math]::Round((([double]$vm.ReadLatencyMs * $readIops) + ([double]$vm.WriteLatencyMs * $writeIops)) / $totalIops, 3) } else { 0 })
             }
-        }
-
-        return $results
-    }
+        })
+    if ($rawResults.Count -eq 0) { throw 'The node returned no per-VM results.' }
 
     Write-Log -Message "Collected results from $($rawResults.Count) VMs" -Severity Information
 
-    # Aggregate results
-    $aggregate = @{
-        run_id            = $RunId
-        timestamp         = Get-Timestamp
-        cluster_name      = $clusterConfig.cluster.name
-        vm_count          = $rawResults.Count
-        profile_name      = if ($TestMetadata) { $TestMetadata.ProfileName } else { 'unknown' }
-        total_read_iops   = ($rawResults | Measure-Object -Property ReadIOPS -Sum).Sum
-        total_write_iops  = ($rawResults | Measure-Object -Property WriteIOPS -Sum).Sum
-        total_iops        = ($rawResults | Measure-Object -Property TotalIOPS -Sum).Sum
-        avg_read_latency_ms  = [math]::Round(($rawResults | Measure-Object -Property ReadLatencyMs -Average).Average, 3)
-        avg_write_latency_ms = [math]::Round(($rawResults | Measure-Object -Property WriteLatencyMs -Average).Average, 3)
-        avg_latency_ms       = [math]::Round(($rawResults | Measure-Object -Property AvgLatencyMs -Average).Average, 3)
-        total_read_throughput_mbps  = [math]::Round(($rawResults | Measure-Object -Property ReadThroughputMBps -Sum).Sum, 2)
-        total_write_throughput_mbps = [math]::Round(($rawResults | Measure-Object -Property WriteThroughputMBps -Sum).Sum, 2)
+    # Weighted averages: latency is weighted by the I/O count it was measured over.
+    $sumReadIops = ($rawResults | ForEach-Object { $_.ReadIOPS } | Measure-Object -Sum).Sum
+    $sumWriteIops = ($rawResults | ForEach-Object { $_.WriteIOPS } | Measure-Object -Sum).Sum
+    $sumTotalIops = ($rawResults | ForEach-Object { $_.TotalIOPS } | Measure-Object -Sum).Sum
+    $readWeighted = ($rawResults | ForEach-Object { $_.ReadLatencyMs * $_.ReadIOPS } | Measure-Object -Sum).Sum
+    $writeWeighted = ($rawResults | ForEach-Object { $_.WriteLatencyMs * $_.WriteIOPS } | Measure-Object -Sum).Sum
+    $readMbps = ($rawResults | ForEach-Object { $_.ReadThroughputMBps } | Measure-Object -Sum).Sum
+    $writeMbps = ($rawResults | ForEach-Object { $_.WriteThroughputMBps } | Measure-Object -Sum).Sum
+
+    $aggregate = [ordered]@{
+        run_id                      = $RunId
+        timestamp                   = Get-Timestamp
+        cluster_name                = $cluster.ClusterName
+        vm_count                    = $rawResults.Count
+        profile_name                = $(if ($TestMetadata -and $TestMetadata.ContainsKey('ProfileName')) { $TestMetadata['ProfileName'] } else { 'unknown' })
+        total_read_iops             = [math]::Round($sumReadIops, 2)
+        total_write_iops            = [math]::Round($sumWriteIops, 2)
+        total_iops                  = [math]::Round($sumTotalIops, 2)
+        avg_read_latency_ms         = $(if ($sumReadIops -gt 0) { [math]::Round($readWeighted / $sumReadIops, 3) } else { 0 })
+        avg_write_latency_ms        = $(if ($sumWriteIops -gt 0) { [math]::Round($writeWeighted / $sumWriteIops, 3) } else { 0 })
+        avg_latency_ms              = $(if ($sumTotalIops -gt 0) { [math]::Round(($readWeighted + $writeWeighted) / $sumTotalIops, 3) } else { 0 })
+        total_read_throughput_mbps  = [math]::Round($readMbps, 2)
+        total_write_throughput_mbps = [math]::Round($writeMbps, 2)
+        total_throughput_mbps       = [math]::Round($readMbps + $writeMbps, 2)
     }
 
     if ($TestMetadata) {
-        $aggregate['test_parameters'] = $TestMetadata
+        # The task handle is runtime state, not a test parameter.
+        $params = @{}
+        foreach ($key in $TestMetadata.Keys) { if ($key -ne 'TaskHandle') { $params[$key] = $TestMetadata[$key] } }
+        $aggregate['test_parameters'] = $params
     }
 
     # Write results
     $aggregateFile = Join-Path $OutputPath "$RunId-aggregate.json"
-    $aggregate | ConvertTo-Json -Depth 5 | Set-Content -Path $aggregateFile -Encoding UTF8
+    $aggregate | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $aggregateFile -Encoding UTF8
     Write-Log -Message "Aggregate results: $aggregateFile" -Severity Information
 
     $perVmFile = Join-Path $OutputPath "$RunId-per-vm.json"
-    $rawResults | ConvertTo-Json -Depth 5 | Set-Content -Path $perVmFile -Encoding UTF8
+    $rawResults | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $perVmFile -Encoding UTF8
     Write-Log -Message "Per-VM results: $perVmFile" -Severity Information
 
     # Print summary

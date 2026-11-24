@@ -9,6 +9,7 @@ BeforeAll {
     $script:MonitoringPath = Join-Path $script:VMFleetRootPath 'monitoring'
     $script:InfraPath = Join-Path $script:ProjectRoot 'tools\vmfleet\infrastructure'
     $script:ProfilesPath = Join-Path $script:VMFleetRootPath 'config\profiles'
+    Import-Module powershell-yaml -ErrorAction Stop
 }
 
 Describe 'VMFleet Script Standards Compliance' {
@@ -58,6 +59,10 @@ Describe 'VMFleet Script Standards Compliance' {
             $script:Content | Should -Match '\$ErrorActionPreference\s*=\s*''Stop'''
         }
 
+        It 'Should set strict mode' {
+            $script:Content | Should -Match 'Set-StrictMode -Version Latest'
+        }
+
         It 'Should dot-source Common-Functions.ps1' {
             $script:Content | Should -Match 'Common-Functions\.ps1'
         }
@@ -70,6 +75,55 @@ Describe 'VMFleet Script Standards Compliance' {
             $script:Content | Should -Match 'try\s*\{'
             $script:Content | Should -Match 'catch\s*\{'
         }
+    }
+}
+
+Describe 'VMFleet configuration reaches the scripts' {
+    BeforeAll {
+        $script:Json = Get-Content -LiteralPath (Join-Path $script:ProjectRoot 'tools\vmfleet\config\vmfleet.json') -Raw | ConvertFrom-Json -AsHashtable
+        $script:Registry = (Get-Content -LiteralPath (Join-Path $script:ProjectRoot 'config\variables\variables.yml') -Raw | ConvertFrom-Yaml).variables
+    }
+
+    It 'every solution-config key a step script reads exists in vmfleet.json (no vmfleet_* names)' {
+        $keys = @{
+            'Install-VMFleet.ps1' = @('vmfleet_version')
+            'Deploy-VMFleet.ps1'  = @('vm_count_per_node', 'vm_memory_gb', 'vm_vcpu_count', 'base_vhd_path')
+        }
+        foreach ($script in $keys.Keys) {
+            $text = Get-Content -LiteralPath (Join-Path $script:VMFleetScriptsPath $script) -Raw
+            foreach ($key in $keys[$script]) {
+                $text | Should -Match "'$key'" -Because "$script reads $key"
+                $script:Json.ContainsKey($key) | Should -BeTrue -Because "vmfleet.json must have $key"
+            }
+        }
+        $common = Get-Content -LiteralPath (Join-Path $script:VMFleetScriptsPath 'VMFleet-Common.ps1') -Raw
+        foreach ($key in 'test_duration_seconds', 'warmup_seconds', 'cooldown_seconds') {
+            $common | Should -Match "'$key'"
+            $script:Json.ContainsKey($key) | Should -BeTrue
+        }
+    }
+
+    It 'vmfleet_version is in the variables registry (solution vmfleet) with the same value as vmfleet.json' {
+        $var = $script:Registry | Where-Object { $_.name -eq 'vmfleet_version' }
+        $var | Should -Not -BeNullOrEmpty
+        $var.solutions | Should -Contain 'vmfleet'
+        $var.value | Should -Be $script:Json['vmfleet_version']
+        $script:Json['vmfleet_version'] | Should -Be '2.1.0.0'
+    }
+
+    It 'the profiles carry the keys the test step reads: profile.parameters.duration_seconds and warmup_seconds' {
+        foreach ($name in 'general', 'day2-smoke') {
+            $p = (Get-Content -LiteralPath (Join-Path $script:ProfilesPath "$name.yml") -Raw | ConvertFrom-Yaml).profile.parameters
+            $p.Keys | Should -Contain 'duration_seconds'
+            $p.Keys | Should -Contain 'warmup_seconds'
+        }
+    }
+
+    It 'Day2Smoke runs the pipeline with HTML reports (no PDF/XLSX tool needed) and the fleet options the pipeline forwards' {
+        $text = Get-Content -LiteralPath (Join-Path $script:VMFleetScriptsPath 'Invoke-Day2Smoke.ps1') -Raw
+        $text | Should -Match "ReportFormats = @\('HTML'\)"
+        $text | Should -Not -Match "ReportFormats = @\('XLSX'\)"
+        foreach ($p in 'FleetConnectCredential', 'VMCount', 'BaseVHDPath', 'SkipCleanup', 'SkipDeploy') { $text | Should -Match "\`$pipelineParams\['$p'\]" }
     }
 }
 

@@ -1,13 +1,19 @@
 # =============================================================================
 # Install-VMFleet.ps1 - Azure Local Load Tools
 # =============================================================================
-# Installs the VMFleet PowerShell module and DiskSpd on the cluster.
-# Phase 1 of the VMFleet pipeline.
+# Installs the VMFleet module on the first cluster node and runs Install-Fleet
+# there (as a one-shot scheduled task, see VMFleet-Common.ps1). Phase 2 of the
+# VMFleet pipeline.
+#
+# Prerequisites on the cluster: a CSV named 'collect' (ReFS) and one CSV per node
+# whose name starts with the node name (Get-FleetVolumeEstimate sizes them).
+# NOT PROVEN ON A LIVE CLUSTER.
 # =============================================================================
 
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'DiskSpdVersion keeps the common phase-script parameter set; VMFleet 2.1 downloads its own DiskSpd.')]
 param(
     [Parameter()]
     [string]$SolutionConfigPath,
@@ -22,15 +28,31 @@ param(
     [PSCredential]$Credential,
 
     [Parameter()]
+    [string]$RunId,
+
+    [Parameter()]
     [string]$VMFleetVersion,
 
+    # Kept for the common phase-script parameter set; VMFleet 2.1 downloads its own DiskSpd.
     [Parameter()]
     [string]$DiskSpdVersion,
 
+    # Keep the CSV block cache (Install-Fleet turns it off for the whole cluster by default).
     [Parameter()]
-    [switch]$Force
+    [switch]$KeepBlockCache,
+
+    # Do not download DiskSpd; place diskspd.exe (2.1.0.0 or later) in <collect>\tools yourself.
+    [Parameter()]
+    [switch]$NoTools,
+
+    [Parameter()]
+    [switch]$Force,
+
+    [Parameter()]
+    [int]$TimeoutMinutes = 60
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 # Resolve project root
@@ -40,6 +62,7 @@ if (-not $ProjectRoot) {
 
 # Load core modules
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
+. (Join-Path $PSScriptRoot 'VMFleet-Common.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
@@ -49,87 +72,43 @@ $null = Start-LogSession -Component 'VMFleet-Install' -LogRootPath (Join-Path $P
 
 try {
     Write-Log -Message 'Starting VMFleet installation phase' -Severity Information
+    if (-not $RunId) { $RunId = "vmfleet-$(Get-Timestamp -FilenameSafe)" }
 
-    # Load configuration with override chain
-    if (-not $SolutionConfigPath) {
-        $SolutionConfigPath = Join-Path $ProjectRoot 'tools\vmfleet\config\vmfleet.json'
-    }
-    if (-not $ClusterConfigPath) {
-        $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
-    }
+    if (-not $SolutionConfigPath) { $SolutionConfigPath = Join-Path $ProjectRoot 'tools\vmfleet\config\vmfleet.json' }
+    if (-not $ClusterConfigPath) { $ClusterConfigPath = Get-VMFleetDefaultClusterConfigPath -ProjectRoot $ProjectRoot }
 
-    $solutionConfig = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
-    Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    $solutionConfig = Get-Content -LiteralPath $SolutionConfigPath -Raw | ConvertFrom-Json
+    $cluster = Get-VMFleetClusterConfig -ClusterConfigPath $ClusterConfigPath
 
-    # Resolve parameters via override chain
-    $vmfleetVer = if ($VMFleetVersion) { $VMFleetVersion } else { $solutionConfig.vmfleet_version }
-    $diskspdVer = if ($DiskSpdVersion) { $DiskSpdVersion } else { $solutionConfig.diskspd_version }
-    $clusterName = $clusterConfig.cluster.name
-    $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
+    # Override chain: parameter > solution JSON (vmfleet_version)
+    $vmfleetVer = if ($VMFleetVersion) { $VMFleetVersion } else { [string](Get-VMFleetConfigValue $solutionConfig 'vmfleet_version' '') }
+    if (-not $vmfleetVer) { throw 'No VMFleet version: pass -VMFleetVersion or set vmfleet_version in tools\vmfleet\config\vmfleet.json.' }
 
-    Write-Log -Message "Cluster: $clusterName | VMFleet: $vmfleetVer | DiskSpd: $diskspdVer" -Severity Information
-    Write-Log -Message "Nodes: $($nodes -join ', ')" -Severity Information
+    Write-Log -Message "Cluster: $($cluster.ClusterName) | VMFleet: $vmfleetVer | primary node: $($cluster.PrimaryNode)" -Severity Information
+    Write-Log -Message "Nodes: $($cluster.Nodes -join ', ')" -Severity Information
 
-    # Get credentials if not provided
-    if (-not $Credential) {
-        Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
-        # No prompt: -Credential, CLUSTER_ADMIN_USERNAME/CLUSTER_ADMIN_PASSWORD or the Key Vault mapping; otherwise stop (exit 2).
-        try {
-            $Credential = Get-ManagedCredential -Name 'cluster_admin' -ProjectRoot $ProjectRoot
-        } catch {
-            Write-Log -Message $_.Exception.Message -Severity Error
-            exit 2
-        }
-    }
+    $Credential = Get-VMFleetCredentialOrExit -Credential $Credential -ProjectRoot $ProjectRoot
 
-    # Test connectivity
     Write-Log -Message 'Testing cluster connectivity...' -Severity Information
-    $connectivity = Test-ClusterConnectivity -NodeNames $nodes -Credential $Credential
-    $unreachable = $connectivity | Where-Object { -not $_.Reachable }
+    $connectivity = Test-ClusterConnectivity -NodeNames $cluster.Nodes -Credential $Credential
+    $unreachable = @($connectivity | Where-Object { -not $_.Reachable })
     if ($unreachable.Count -gt 0) {
         throw "Cannot reach nodes: $($unreachable.Node -join ', ')"
     }
     Write-Log -Message 'All nodes reachable' -Severity Information
 
-    # Install VMFleet module on the first node (it distributes to CSV)
-    $primaryNode = $nodes[0]
-
-    if ($PSCmdlet.ShouldProcess($primaryNode, "Install VMFleet $vmfleetVer")) {
-        Write-Log -Message "Installing VMFleet module on $primaryNode..." -Severity Information
-
-        Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            param($Version, $ForceInstall)
-
-            $existing = Get-Module -ListAvailable -Name VMFleet | Where-Object { $_.Version -eq $Version }
-            if ($existing -and -not $ForceInstall) {
-                Write-Output "VMFleet $Version already installed"
-                return
-            }
-
-            Install-Module -Name VMFleet -RequiredVersion $Version -Force -AllowClobber -Scope AllUsers
-            Write-Output "VMFleet $Version installed successfully"
-        } -ArgumentList @($vmfleetVer, $Force.IsPresent)
-
-        Write-Log -Message 'VMFleet module installation complete' -Severity Information
-    }
-
-    # Verify DiskSpd availability
-    if ($PSCmdlet.ShouldProcess($primaryNode, "Verify DiskSpd $diskspdVer")) {
-        Write-Log -Message 'Verifying DiskSpd availability...' -Severity Information
-
-        $diskspdCheck = Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            $diskspd = Get-Command 'diskspd.exe' -ErrorAction SilentlyContinue
-            if ($diskspd) {
-                return @{ Found = $true; Path = $diskspd.Source }
-            }
-            return @{ Found = $false; Path = $null }
+    if ($PSCmdlet.ShouldProcess($cluster.PrimaryNode, "Install VMFleet $vmfleetVer and run Install-Fleet")) {
+        Write-Log -Message "Installing VMFleet on $($cluster.PrimaryNode) (node task)..." -Severity Information
+        $nodeArguments = @{
+            VMFleetVersion = $vmfleetVer
+            KeepBlockCache = $KeepBlockCache.IsPresent
+            NoTools        = $NoTools.IsPresent
+            Force          = $Force.IsPresent
         }
-
-        if ($diskspdCheck.Found) {
-            Write-Log -Message "DiskSpd found at: $($diskspdCheck.Path)" -Severity Information
-        } else {
-            Write-Log -Message 'DiskSpd not found. VMFleet will use its bundled version.' -Severity Warning
+        $result = Invoke-VMFleetNodeTask -ComputerName $cluster.PrimaryNode -Credential $Credential -Step 'Install' -RunId $RunId `
+            -CollectPath $cluster.CollectPath -TimeoutSeconds ($TimeoutMinutes * 60) -Arguments $nodeArguments
+        foreach ($component in @($result.Output.Components)) {
+            Write-Log -Message "Installed component: $($component.Component) $($component.Version)" -Severity Information
         }
     }
 

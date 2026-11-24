@@ -47,10 +47,36 @@ param(
     [Parameter()]
     [PSCredential]$FleetAdminCredential,
 
+    # Account the fleet VMs use to reach the Collect volume (an admin on every node). Default: -Credential.
+    [Parameter()]
+    [PSCredential]$FleetConnectCredential,
+
+    # Fleet VMs per node; default vm_count_per_node in the solution config.
+    [Parameter()]
+    [int]$VMCount,
+
+    # Path ON THE NODE of the base VHD(X); default storage.base_vhd_path in the cluster YAML.
+    [Parameter()]
+    [string]$BaseVHDPath,
+
+    [Parameter()]
+    [string]$VMFleetVersion,
+
+    # Keep the fleet after the run (for the next run); remove it later with Remove-VMFleet.ps1.
+    [Parameter()]
+    [switch]$SkipCleanup,
+
+    [Parameter()]
+    [switch]$SkipInstall,
+
+    [Parameter()]
+    [switch]$SkipDeploy,
+
     [Parameter()]
     [string]$ProjectRoot
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $started = (Get-Date).ToUniversalTime()
 
@@ -60,6 +86,7 @@ if (-not $ProjectRoot) {
 if (-not $ProfilePath) { $ProfilePath = Join-Path $ProjectRoot 'tools\vmfleet\config\profiles\day2-smoke.yml' }
 
 Import-Module (Join-Path $ProjectRoot 'common\modules\ResultAnalysis\ResultAnalysis.psm1') -Force
+. (Join-Path $PSScriptRoot 'VMFleet-Common.ps1')
 
 function Write-SmokeResult {
     param($Result, [string]$Dir)
@@ -77,19 +104,26 @@ try {
     foreach ($k in $profileData.profile.expected_thresholds.Keys) { $thresholds[$k] = $profileData.profile.expected_thresholds[$k] }
 
     if (-not $NodeCount -and $ClusterConfigPath -and (Test-Path -LiteralPath $ClusterConfigPath)) {
-        $cc = Get-Content -LiteralPath $ClusterConfigPath -Raw | ConvertFrom-Yaml
-        $NodeCount = @($cc.nodes).Count
+        $NodeCount = @((Get-VMFleetClusterConfig -ClusterConfigPath $ClusterConfigPath).Nodes).Count
     }
 
     $runId = "day2smoke-$($started.ToString('yyyyMMdd-HHmmss'))"
     $pipeline = Join-Path $ProjectRoot 'tools\vmfleet\Invoke-VMFleetPipeline.ps1'
 
     if (-not $ResultPath) {
-        $pipelineParams = @{ ProfilePath = $ProfilePath; RunId = $runId; ProjectRoot = $ProjectRoot; ReportFormats = @('XLSX') }
+        # HTML needs no extra tool (PDF and XLSX need asciidoctor-pdf / ImportExcel).
+        $pipelineParams = @{ ProfilePath = $ProfilePath; RunId = $runId; ProjectRoot = $ProjectRoot; ReportFormats = @('HTML') }
         if ($ClusterConfigPath) { $pipelineParams['ClusterConfigPath'] = $ClusterConfigPath }
         if ($SolutionConfigPath) { $pipelineParams['SolutionConfigPath'] = $SolutionConfigPath }
         if ($Credential) { $pipelineParams['Credential'] = $Credential }
         if ($FleetAdminCredential) { $pipelineParams['FleetAdminCredential'] = $FleetAdminCredential }
+        if ($FleetConnectCredential) { $pipelineParams['FleetConnectCredential'] = $FleetConnectCredential }
+        if ($VMCount) { $pipelineParams['VMCount'] = $VMCount }
+        if ($BaseVHDPath) { $pipelineParams['BaseVHDPath'] = $BaseVHDPath }
+        if ($VMFleetVersion) { $pipelineParams['VMFleetVersion'] = $VMFleetVersion }
+        if ($SkipCleanup) { $pipelineParams['SkipCleanup'] = $true }
+        if ($SkipInstall) { $pipelineParams['SkipInstall'] = $true }
+        if ($SkipDeploy) { $pipelineParams['SkipDeploy'] = $true }
 
         if (-not $PSCmdlet.ShouldProcess($ProjectRoot, "Run the Day2Smoke pipeline (deploys a VM fleet): $pipeline -ProfilePath $ProfilePath -RunId $runId")) {
             $skip = New-Day2SmokeResult -Status Skipped -Message 'Plan only: the pipeline was not run.' -NodeCount $NodeCount -StartedAt $started -FinishedAt (Get-Date).ToUniversalTime()

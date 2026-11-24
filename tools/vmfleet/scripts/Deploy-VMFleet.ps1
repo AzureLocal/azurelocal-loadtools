@@ -1,8 +1,13 @@
 # =============================================================================
 # Deploy-VMFleet.ps1 - Azure Local Load Tools
 # =============================================================================
-# Deploys VMFleet fleet VMs on the cluster using Set-Fleet.
-# Phase 2 of the VMFleet pipeline.
+# Deploys the VMFleet fleet VMs on the cluster: New-Fleet (VMs per node, from the
+# base VHD), Set-Fleet (vCPU and memory), Start-Fleet, then waits until Get-FleetVM
+# reports every VM Ok. Runs on the first node as a one-shot scheduled task
+# (VMFleet-Common.ps1). Phase 3 of the VMFleet pipeline.
+#
+# NOT PROVEN ON A LIVE CLUSTER. Running it creates VMs and copies the base VHD
+# once per VM onto the node volumes.
 # =============================================================================
 
 #Requires -Version 7.2
@@ -22,6 +27,10 @@ param(
     [PSCredential]$Credential,
 
     [Parameter()]
+    [string]$RunId,
+
+    # Fleet VMs PER NODE (New-Fleet -VMs). Default: vm_count_per_node in vmfleet.json.
+    [Parameter()]
     [int]$VMCount,
 
     [Parameter()]
@@ -30,21 +39,37 @@ param(
     [Parameter()]
     [int]$VMProcessorCount,
 
+    # Not applied: VMFleet 2.1 data disks are a separate Set-Fleet -DataDiskSize step this tool does not run yet.
     [Parameter()]
     [int]$DataDiskSizeGB,
 
+    # Not applied, see DataDiskSizeGB.
     [Parameter()]
     [int]$DataDiskCount,
 
+    # Path ON THE NODE of the base VHD(X); a Generation 2 image. Default: storage.base_vhd_path in the cluster YAML.
     [Parameter()]
     [string]$BaseVHDPath,
 
-    # Account the fleet VMs are created with (admin) and that the load generators use to connect.
+    # Local administrator account and password inside the fleet VMs (New-Fleet -Admin / -AdminPass).
     # There is deliberately no default: a fleet must never be created with a well-known password.
     [Parameter()]
-    [PSCredential]$FleetAdminCredential
+    [PSCredential]$FleetAdminCredential,
+
+    # Account the fleet VMs use to reach the Collect volume (New-Fleet -ConnectUser / -ConnectPass). It must be an
+    # administrator on every node. Default: -Credential.
+    [Parameter()]
+    [PSCredential]$FleetConnectCredential,
+
+    # Minutes to wait for every fleet VM to report Ok after Start-Fleet.
+    [Parameter()]
+    [int]$WaitMinutes = 30,
+
+    [Parameter()]
+    [int]$TimeoutMinutes = 240
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 if (-not $ProjectRoot) {
@@ -52,6 +77,7 @@ if (-not $ProjectRoot) {
 }
 
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
+. (Join-Path $PSScriptRoot 'VMFleet-Common.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
@@ -60,113 +86,62 @@ $null = Start-LogSession -Component 'VMFleet-Deploy' -LogRootPath (Join-Path $Pr
 
 try {
     Write-Log -Message 'Starting VMFleet deployment phase' -Severity Information
+    if (-not $RunId) { $RunId = "vmfleet-$(Get-Timestamp -FilenameSafe)" }
 
-    # Load configuration
-    if (-not $SolutionConfigPath) {
-        $SolutionConfigPath = Join-Path $ProjectRoot 'tools\vmfleet\config\vmfleet.json'
-    }
-    if (-not $ClusterConfigPath) {
-        $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
-    }
+    if (-not $SolutionConfigPath) { $SolutionConfigPath = Join-Path $ProjectRoot 'tools\vmfleet\config\vmfleet.json' }
+    if (-not $ClusterConfigPath) { $ClusterConfigPath = Get-VMFleetDefaultClusterConfigPath -ProjectRoot $ProjectRoot }
 
-    $solutionConfig = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
-    Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    $solutionConfig = Get-Content -LiteralPath $SolutionConfigPath -Raw | ConvertFrom-Json
+    $cluster = Get-VMFleetClusterConfig -ClusterConfigPath $ClusterConfigPath
 
-    # Resolve parameters via override chain
-    $vmCount = if ($VMCount) { $VMCount }          else { [int]$solutionConfig.vmfleet_vm_count }
-    $vmMemory = if ($VMMemoryGB) { $VMMemoryGB }       else { [int]$solutionConfig.vmfleet_vm_memory_gb }
-    $vmProcessors = if ($VMProcessorCount) { $VMProcessorCount } else { [int]$solutionConfig.vmfleet_vm_processors }
-    $diskSize = if ($DataDiskSizeGB) { $DataDiskSizeGB }   else { [int]$solutionConfig.vmfleet_data_disk_size_gb }
-    $diskCount = if ($DataDiskCount) { $DataDiskCount }    else { [int]$solutionConfig.vmfleet_data_disk_count }
-    $baseVhd = if ($BaseVHDPath) { $BaseVHDPath }      else { $solutionConfig.vmfleet_base_vhd_path }
-    $csvPath = $clusterConfig.storage.csv_path
-    $clusterName = $clusterConfig.cluster.name
-    $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
+    # Override chain: parameter > solution JSON (registry names: vm_count_per_node, vm_vcpu_count, vm_memory_gb, base_vhd_path)
+    $vmCount = if ($VMCount) { $VMCount } else { [int](Get-VMFleetConfigValue $solutionConfig 'vm_count_per_node' 0) }
+    $vmMemory = if ($VMMemoryGB) { $VMMemoryGB } else { [int](Get-VMFleetConfigValue $solutionConfig 'vm_memory_gb' 0) }
+    $vmProcessors = if ($VMProcessorCount) { $VMProcessorCount } else { [int](Get-VMFleetConfigValue $solutionConfig 'vm_vcpu_count' 0) }
+    $baseVhd = if ($BaseVHDPath) { $BaseVHDPath } elseif ($cluster.BaseVhdPath) { $cluster.BaseVhdPath } else { [string](Get-VMFleetConfigValue $solutionConfig 'base_vhd_path' '') }
 
-    Write-Log -Message "Deploying $vmCount VMs (${vmMemory}GB RAM, $vmProcessors vCPU, ${diskCount}x${diskSize}GB disks)" -Severity Information
-    Write-Log -Message "Cluster: $clusterName | CSV: $csvPath | Base VHD: $baseVhd" -Severity Information
+    if ($vmCount -lt 1) { throw 'The VM count per node is not set: pass -VMCount or set vm_count_per_node in tools\vmfleet\config\vmfleet.json.' }
+    if (-not $baseVhd -and -not $WhatIfPreference) { throw 'No base VHD: pass -BaseVHDPath, set storage.base_vhd_path in the cluster YAML or base_vhd_path in vmfleet.json. See docs\tools\vmfleet\deployment.md (base image).' }
 
-    # Get credentials
-    if (-not $Credential) {
-        Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
-        # No prompt: -Credential, CLUSTER_ADMIN_USERNAME/CLUSTER_ADMIN_PASSWORD or the Key Vault mapping; otherwise stop (exit 2).
-        try {
-            $Credential = Get-ManagedCredential -Name 'cluster_admin' -ProjectRoot $ProjectRoot
-        } catch {
-            Write-Log -Message $_.Exception.Message -Severity Error
-            exit 2
-        }
+    $expected = $vmCount * $cluster.Nodes.Count
+    Write-Log -Message "Deploying $vmCount VMs per node on $($cluster.Nodes.Count) nodes ($expected in total), $vmProcessors vCPU, ${vmMemory}GB RAM each" -Severity Information
+    Write-Log -Message "Cluster: $($cluster.ClusterName) | Base VHD (on the node): $baseVhd" -Severity Information
+    if ($DataDiskSizeGB -or $DataDiskCount) {
+        Write-Log -Message 'DataDiskSizeGB and DataDiskCount are not applied: this tool does not add VMFleet data disks (Set-Fleet -DataDiskSize).' -Severity Warning
     }
 
+    $Credential = Get-VMFleetCredentialOrExit -Credential $Credential -ProjectRoot $ProjectRoot
+    if (-not $FleetConnectCredential) { $FleetConnectCredential = $Credential }
     if (-not $FleetAdminCredential -and -not $WhatIfPreference) {
-        throw 'FleetAdminCredential is required: supply the credential the fleet VMs are created with (no default password is used).'
+        throw 'FleetAdminCredential is required: supply the local administrator account the fleet VMs are created with (no default password is used).'
     }
-    Write-Log -Message 'VM memory, vCPU and data-disk values are resolved and logged only: this phase passes the VM count, base VHD and CSV to the fleet cmdlet. Verify the per-VM sizing options of your VMFleet version on the cluster.' -Severity Warning
 
-    # Validate base VHD exists
-    if ($PSCmdlet.ShouldProcess($primaryNode, "Validate base VHD")) {
-        $vhdExists = Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            param($Path)
-            Test-Path $Path
-        } -ArgumentList @($baseVhd)
+    if ($PSCmdlet.ShouldProcess($cluster.ClusterName, "Deploy $expected fleet VMs ($vmCount per node)")) {
+        # New-Fleet -Admin is a local account name: strip DOMAIN\ or @domain.
+        $adminName = ($FleetAdminCredential.UserName -split '@')[0]
+        $adminName = ($adminName -split '\\')[-1]
+        if (-not $adminName) { $adminName = 'Administrator' }
 
-        if (-not $vhdExists) {
-            throw "Base VHD not found at: $baseVhd. Deploy a base image first."
+        $nodeArguments = @{
+            BaseVhdPath        = $baseVhd
+            VMsPerNode         = $vmCount
+            ExpectedVMs        = $expected
+            Admin              = $adminName
+            ConnectUser        = $FleetConnectCredential.UserName
+            ProcessorCount     = $vmProcessors
+            MemoryStartupBytes = ([int64]$vmMemory * 1GB)
+            WaitMinutes        = $WaitMinutes
         }
-        Write-Log -Message 'Base VHD validated' -Severity Information
-    }
-
-    # Deploy fleet VMs
-    if ($PSCmdlet.ShouldProcess($clusterName, "Deploy $vmCount fleet VMs")) {
-        Write-Log -Message 'Deploying fleet VMs via Set-Fleet...' -Severity Information
-
-        Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            param($Count, $BaseVHD, $CSVPath, $FleetAuth)
-
-            Import-Module VMFleet -ErrorAction Stop
-
-            # Set-Fleet creates the fleet VM infrastructure
-            $setFleetParams = @{
-                VMs            = $Count
-                AdminPassword  = $FleetAuth.Password
-                ConnectUser    = $FleetAuth.UserName
-                ConnectPassword = $FleetAuth.Password
-            }
-
-            if ($BaseVHD) { $setFleetParams['BaseDiskPath'] = $BaseVHD }
-            if ($CSVPath) { $setFleetParams['CSV'] = $CSVPath }
-
-            Set-Fleet @setFleetParams
-
-            Write-Output "Fleet VMs deployment initiated for $Count VMs"
-        } -ArgumentList @($vmCount, $baseVhd, $csvPath, $FleetAdminCredential)
-
-        Write-Log -Message 'Fleet VM deployment command issued' -Severity Information
-    }
-
-    # Wait for VMs to be ready
-    Write-Log -Message 'Waiting for fleet VMs to become ready...' -Severity Information
-    $timeout = New-TimeSpan -Minutes 30
-    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-
-    do {
-        Start-Sleep -Seconds 30
-        $vmStatus = Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            Import-Module VMFleet -ErrorAction Stop
-            $vms = Get-Fleet
-            @{
-                Total   = ($vms | Measure-Object).Count
-                Running = ($vms | Where-Object { $_.State -eq 'Running' } | Measure-Object).Count
-            }
+        $nodeSecrets = @{
+            FleetAdminPassword = $FleetAdminCredential.GetNetworkCredential().Password
+            ConnectPassword    = $FleetConnectCredential.GetNetworkCredential().Password
         }
-        Write-Log -Message "VMs: $($vmStatus.Running)/$($vmStatus.Total) running" -Severity Information
-    } while ($vmStatus.Running -lt $vmStatus.Total -and $stopwatch.Elapsed -lt $timeout)
 
-    if ($vmStatus.Running -lt $vmStatus.Total) {
-        Write-Log -Message "Timeout: Only $($vmStatus.Running)/$($vmStatus.Total) VMs running after 30 minutes" -Severity Warning
-    } else {
-        Write-Log -Message 'All fleet VMs are running' -Severity Information
+        Write-Log -Message 'Deploying fleet VMs with New-Fleet, Set-Fleet and Start-Fleet (node task)...' -Severity Information
+        $result = Invoke-VMFleetNodeTask -ComputerName $cluster.PrimaryNode -Credential $Credential -Step 'Deploy' -RunId $RunId `
+            -CollectPath $cluster.CollectPath -TimeoutSeconds ($TimeoutMinutes * 60) -Arguments $nodeArguments -Secrets $nodeSecrets
+        $nodeSecrets = $null
+        Write-Log -Message "Fleet VMs Ok: $($result.Output.VMsOk) of $($result.Output.VMsExpected)" -Severity Information
     }
 
     Write-Log -Message 'VMFleet deployment phase completed' -Severity Information

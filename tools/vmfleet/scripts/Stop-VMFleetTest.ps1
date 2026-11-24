@@ -1,7 +1,9 @@
 # =============================================================================
 # Stop-VMFleetTest.ps1 - Azure Local Load Tools
 # =============================================================================
-# Stops a running VMFleet workload. Phase 4 of the VMFleet pipeline.
+# Stops the VMFleet workload with Stop-Fleet (pauses the fleet and shuts the fleet
+# VMs down), run on the first node as a one-shot scheduled task. Phase 6 of the
+# VMFleet pipeline. NOT PROVEN ON A LIVE CLUSTER.
 # =============================================================================
 
 #Requires -Version 7.2
@@ -19,9 +21,16 @@ param(
     [PSCredential]$Credential,
 
     [Parameter()]
-    [switch]$Force
+    [string]$RunId,
+
+    [Parameter()]
+    [switch]$Force,
+
+    [Parameter()]
+    [int]$TimeoutMinutes = 30
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 if (-not $ProjectRoot) {
@@ -29,6 +38,7 @@ if (-not $ProjectRoot) {
 }
 
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
+. (Join-Path $PSScriptRoot 'VMFleet-Common.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
@@ -36,32 +46,16 @@ $null = Start-LogSession -Component 'VMFleet-Stop' -LogRootPath (Join-Path $Proj
 
 try {
     Write-Log -Message 'Stopping VMFleet workload' -Severity Information
+    if (-not $RunId) { $RunId = "vmfleet-$(Get-Timestamp -FilenameSafe)" }
 
-    if (-not $ClusterConfigPath) {
-        $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
-    }
+    if (-not $ClusterConfigPath) { $ClusterConfigPath = Get-VMFleetDefaultClusterConfigPath -ProjectRoot $ProjectRoot }
+    $cluster = Get-VMFleetClusterConfig -ClusterConfigPath $ClusterConfigPath
 
-    Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
-    $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
+    $Credential = Get-VMFleetCredentialOrExit -Credential $Credential -ProjectRoot $ProjectRoot
 
-    if (-not $Credential) {
-        Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
-        # No prompt: -Credential, CLUSTER_ADMIN_USERNAME/CLUSTER_ADMIN_PASSWORD or the Key Vault mapping; otherwise stop (exit 2).
-        try {
-            $Credential = Get-ManagedCredential -Name 'cluster_admin' -ProjectRoot $ProjectRoot
-        } catch {
-            Write-Log -Message $_.Exception.Message -Severity Error
-            exit 2
-        }
-    }
-
-    if ($PSCmdlet.ShouldProcess($primaryNode, 'Stop VMFleet workload')) {
-        Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            Import-Module VMFleet -ErrorAction Stop
-            Stop-Fleet
-            Write-Output 'VMFleet workload stop command issued'
-        }
+    if ($PSCmdlet.ShouldProcess($cluster.PrimaryNode, 'Stop VMFleet workload (Stop-Fleet)')) {
+        $null = Invoke-VMFleetNodeTask -ComputerName $cluster.PrimaryNode -Credential $Credential -Step 'Stop' -RunId $RunId `
+            -CollectPath $cluster.CollectPath -TimeoutSeconds ($TimeoutMinutes * 60)
 
         Write-Log -Message 'VMFleet workload stopped' -Severity Information
         Write-Host 'VMFleet workload stopped.' -ForegroundColor Green
