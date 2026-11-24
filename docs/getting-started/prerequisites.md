@@ -8,7 +8,7 @@ Before deploying the Azure Local Load Testing Framework, ensure the following co
 
 | Requirement | Details |
 |-------------|---------|
-| Azure Local Version | Azure Local 23H2 or later (the docs target 12.2611 (latest)); Azure Stack HCI 22H2 only with limitations |
+| Azure Local Version | Azure Local 2605 or later on OS build 26100 (the docs target 12.2611.1004.9, OS 26100.33822, the latest release); older releases are not tested |
 | Cluster Nodes | Minimum 2 nodes; recommended 4+ for meaningful fleet testing |
 | Storage Spaces Direct (S2D) | Enabled and healthy (`Get-StorageSubSystem` shows `HealthStatus: Healthy`) |
 | Cluster Shared Volumes | At least one CSV for VM fleet storage; additional CSV for results collection |

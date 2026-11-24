@@ -36,7 +36,10 @@
 :   The time delay between issuing an I/O request and receiving the response. Measured in milliseconds. Lower is better.
 
 **Master Environment File**
-:   The `variables.yml` file containing all configuration variables tagged by solution.
+:   The `config/variables/variables.yml` file holding the test settings (no cluster facts), tagged by solution.
+
+**infrastructure.yml**
+:   The one file every Azure Local tool reads (azurelocal-toolkit registry, schema 5). Load Tools takes the cluster name, nodes, domain, volume, Azure scope and Key Vault from it (`-InfrastructureFile`, `-ClusterConfigPath`).
 
 **PerfMon**
 :   Windows Performance Monitor. A built-in tool for collecting performance counter data from Windows systems.

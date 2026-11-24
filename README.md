@@ -42,12 +42,14 @@ Monitoring collectors and report templates live inside each tool (`tools/<tool>/
 # 1. Clone and configure
 git clone https://github.com/AzureLocal/azurelocal-loadtools
 cd azurelocal-loadtools
-Copy-Item config\variables\variables.example.yml config\variables\variables.yml
-# Edit config\variables\variables.yml with your cluster details (example values only in the repo)
+# The cluster (name, nodes, domain, volume, Azure scope, Key Vault) comes from the environment's infrastructure.yml,
+# the one file every Azure Local tool reads (azurelocal-toolkit config/variables registry, schema 5).
+# config\variables\variables.yml is committed and holds the test settings only.
+.\common\helpers\Initialize-Environment.ps1 -Solution VMFleet -InfrastructureFile ".\infrastructure.yml"
 
 # 2. Run a VMFleet storage benchmark with the General profile
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
     -FleetAdminCredential $fleetAdmin   # for example Get-ManagedCredential -Name 'vmfleet_admin'
 ```
@@ -71,6 +73,22 @@ Every tool follows the same pattern: **Install → Run Test → Collect Results*
 "Unit-tested" means Pester tests with mocks and fixtures, no cluster. Details, test counts and known gaps: [Implementation status](docs/reference/status.md). The [roadmap](docs/roadmap.md) agrees with this table.
 
 ---
+
+## Where Load Tools fits in the Azure Local tool chain
+
+Load Tools is a **day 2** tool: it measures a cluster that is already deployed. It reads the same `infrastructure.yml` (schema 5) as every other Azure Local tool, and writes nothing back to it.
+
+```text
+Surveyor (sizing handoff) -> Trailwright (infrastructure.yml) -> hardware discovery -> ZTP -> toolkit OS configuration, gate, ARM deploy -> Ranger / Sonar / Load Tools
+```
+
+| Step | Tool | Hands over |
+|------|------|-----------|
+| Plan | [Surveyor](https://azurelocal.cloud/azurelocal-surveyor/), [Trailwright](https://azurelocal.cloud/azurelocal-trailwright/) | `azure-local-sizing-handoff-*.json`, then `infrastructure.yml` |
+| Deploy | [azurelocal-toolkit](https://github.com/AzureLocal/azurelocal-toolkit), [azurelocal-ztp](https://github.com/AzureLocal/azurelocal-ztp) | The deployed cluster; the file stays the record of what was built |
+| Day 2 | **Load Tools** | Reads `cluster.name`, `nodes[].name`, `identity.active_directory.domain_fqdn`, `storage.paths` or `storage.volumes` (the cluster shared volume), `azure.*` and `key_vaults[]`; writes results to `reports/<run-id>` |
+
+Pass the file as `-InfrastructureFile` (`Initialize-Environment.ps1`, `Export-SolutionConfig`) or as `-ClusterConfigPath` (every tool script). A per-cluster file of the earlier layout (`config/clusters/*.yml`) is still read, with a warning. `config/variables/variables.yml` holds the test settings (profiles, durations, VMFleet sizing, monitoring, reporting, fault injection) and no cluster facts.
 
 ## What is in this release
 
@@ -96,7 +114,8 @@ Every tool follows the same pattern: **Install → Run Test → Collect Results*
 
 ## Prerequisites
 
-- **Azure Local** cluster registered with Azure Arc (the docs target 12.2611 (latest))
+- **Azure Local** 2605 or later (OS build 26100) registered with Azure Arc; the docs target 12.2611.1004.9 (OS 26100.33822), the latest release
+- The environment's `infrastructure.yml` (schema 5), written by Trailwright and filled by hardware discovery, so the cluster name, the nodes, the domain and the Azure scope are never typed twice
 - Azure subscription with appropriate RBAC
 - PowerShell 7.2+ on a Windows management station (Windows 10/11 or Windows Server 2019+); Windows PowerShell 5.1 is not supported
 - Required module: `powershell-yaml`; for VMFleet also the `VMFleet` module. Optional: `Az.KeyVault`, `Az.Monitor`, `ImportExcel`, plus `asciidoctor-pdf` and `pandoc` for PDF and DOCX reports

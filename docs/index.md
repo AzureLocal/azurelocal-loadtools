@@ -17,18 +17,18 @@ Automated performance and load testing for Azure Local clusters — storage, net
 # 1. Clone and configure
 git clone https://github.com/AzureLocal/azurelocal-loadtools
 cd azurelocal-loadtools
-# Create config\clusters\cluster.yml: cluster.name plus a top-level nodes list with one name per node
-# (the scripts read cluster.name and nodes[].name from this file; see Getting Started, Installation)
+# Use the environment's infrastructure.yml (schema 5, written by Trailwright and filled by hardware discovery).
+# The scripts read cluster.name and nodes[].name from it; see Getting Started, Installation.
 
 # 2. Run a VMFleet storage benchmark (fully implemented)
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config\clusters\cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml"
 
 # Or run individual steps (each reads the cluster name and nodes from the cluster file):
-.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterConfigPath "config\clusters\cluster.yml"
-.\tools\vmfleet\scripts\Start-VMFleetTest.ps1 -ClusterConfigPath "config\clusters\cluster.yml" -ProfilePath "tools\vmfleet\config\profiles\general.yml" -DurationSeconds 600
-.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 -ClusterConfigPath "config\clusters\cluster.yml" -RunId "<run-id>"
+.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterConfigPath ".\infrastructure.yml"
+.\tools\vmfleet\scripts\Start-VMFleetTest.ps1 -ClusterConfigPath ".\infrastructure.yml" -ProfilePath "tools\vmfleet\config\profiles\general.yml" -DurationSeconds 600
+.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 -ClusterConfigPath ".\infrastructure.yml" -RunId "<run-id>"
 ```
 
 ## Pick a Test

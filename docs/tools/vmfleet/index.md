@@ -28,7 +28,7 @@ The VMFleet orchestrator runs all phases end-to-end with checkpoint-based resume
 ```powershell
 # From the repository root
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
     -FleetAdminCredential $fleetAdmin   # see Credential Management; for example Get-ManagedCredential -Name 'vmfleet_admin'
 ```
@@ -37,7 +37,7 @@ If the pipeline fails mid-run, resume from the last checkpoint:
 
 ```powershell
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -Resume
 ```
 
@@ -45,20 +45,20 @@ If the pipeline fails mid-run, resume from the last checkpoint:
 
 Run each phase independently. This is useful for debugging, re-running a single phase, or learning how the pipeline works.
 
-Every script reads the cluster name and the node list from the cluster file (`-ClusterConfigPath`, default `config\clusters\cluster.yml`); none takes `-ClusterName` or `-Nodes`.
+Every script reads the cluster name and the node list from the cluster file (`-ClusterConfigPath`): the environment's `infrastructure.yml` (`cluster.name` and `nodes[].name`). The default, `config\clusters\cluster.yml`, is a per-cluster file of the earlier layout that is read with a warning, so pass the file. None of the scripts takes `-ClusterName` or `-Nodes`.
 
 **1. Install VMFleet on the cluster**
 
 ```powershell
 .\tools\vmfleet\scripts\Install-VMFleet.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml"
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
 **2. Deploy fleet VMs**
 
 ```powershell
 .\tools\vmfleet\scripts\Deploy-VMFleet.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -VMCount 4 `
     -VMMemoryGB 2
 ```
@@ -67,7 +67,7 @@ Every script reads the cluster name and the node list from the cluster file (`-C
 
 ```powershell
 .\tools\vmfleet\scripts\Start-VMFleetTest.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
     -DurationSeconds 600
 ```
@@ -76,21 +76,21 @@ Every script reads the cluster name and the node list from the cluster file (`-C
 
 ```powershell
 .\tools\vmfleet\scripts\Watch-VMFleetMonitor.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml"
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
 **5. Stop the test** (if needed before duration completes)
 
 ```powershell
 .\tools\vmfleet\scripts\Stop-VMFleetTest.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml"
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
 **6. Collect and aggregate results**
 
 ```powershell
 .\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -RunId "<run-id>"
 ```
 
@@ -98,7 +98,7 @@ Every script reads the cluster name and the node list from the cluster file (`-C
 
 ```powershell
 .\tools\vmfleet\scripts\Remove-VMFleet.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml"
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
 ---

@@ -1,19 +1,16 @@
 # Variable Reference
 
-All load testing tools read from a single central configuration file: `config/variables.yml`. This file is the **single source of truth** — cluster details, credentials, testing defaults, and monitoring settings are all declared here and consumed by every automation tool.
+All load testing tools read their **test settings** from one file: `config/variables/variables.yml` (committed). It holds the testing defaults, VMFleet sizing, monitoring, reporting, logging and fault-injection settings, and the credential references. It holds **no cluster facts**: the cluster name, nodes, domain, cluster shared volume, Azure scope and Key Vault come from the environment's `infrastructure.yml` (azurelocal-toolkit registry, schema 5), read with `-InfrastructureFile` or `-ClusterConfigPath`. Do not keep a second copy of them.
 
 > [!TIP]
 > **Getting started**
-> Copy the example and fill in your values:
-> ```powershell
-> cp config/variables.example.yml config/variables.yml
-> ```
-> **Never commit** `variables.yml` — it is excluded by `.gitignore` because it contains environment-specific values and Key Vault references.
+> `config/variables/variables.yml` is committed with sensible test defaults; change a setting there or pass the parameter. `config/variables/variables.example.yml` is a reference of the layout, not the file the tools read.
+> **Never put a secret or a cluster fact in it.** Secrets are `keyvault://` references; cluster facts live in `infrastructure.yml`.
 >
 !!! info "Additional configs"
     Detailed configs live in subdirectories under `config/`:
 
-    - `config/clusters/` — Per-cluster connection details
+    - `infrastructure.yml` (not in this repository) — the cluster, nodes, domain, volume, Azure scope and Key Vault; `config/clusters/` held a per-cluster file in the earlier layout, which is still read with a warning
     - `config/credentials/` — Key Vault credential mappings
     - `config/profiles/` — Workload profiles (vmfleet, fio, iperf, etc.)
     - `config/variables/` — Master variable registry and solution schemas
@@ -28,6 +25,22 @@ All load testing tools read from a single central configuration file: `config/va
 | Keys within sections | `snake_case` | `subscription_id`, `default_tool` |
 | Booleans | Descriptive name | `enable_real_time: true` |
 | Secrets | `keyvault://` URI | `keyvault://kv-name/secret-name` |
+
+---
+
+## Where the cluster facts come from
+
+The Azure, Key Vault, Azure Local Cluster and `storage.csv_path` sections below describe the reference layout in `variables.example.yml`. In a run, `Import-InfrastructureConfig` (ConfigManager) reads the same facts from the environment's `infrastructure.yml`:
+
+| Fact in the generated solution JSON | `infrastructure.yml` key |
+|-------------------------------------|--------------------------|
+| `cluster_name` | `cluster.name` |
+| `cluster_nodes` | `nodes[].name` |
+| `cluster_domain` | `identity.active_directory.domain_fqdn` |
+| `csv_path` | the root of the first `storage.paths[].path`, else `C:\ClusterStorage\<first storage.volumes[].name>` |
+| `azure_tenant_id`, `azure_subscription_id`, `azure_resource_group`, `azure_location` | `azure.tenant_id`, `subscription_id`, `resource_group`, `location` |
+| `keyvault_name` | `key_vaults[].name` (purpose `management`, else the first; else `cluster.key_vault.name`) |
+| `azure_custom_location_id`, `storage_path_id` | built from `azure.custom_location`, the first `storage.paths[].name`, the subscription and the resource group |
 
 ---
 

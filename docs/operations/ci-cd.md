@@ -58,7 +58,7 @@ There are no GitHub Actions workflows that run a load test, and no GitLab CI pip
 
 | Input | Default | What it is |
 |-------|---------|------------|
-| `clusterConfig` | `example-cluster.yml` | Cluster file under `config/clusters/`. |
+| `clusterConfig` | `example-cluster.yml` | Cluster file under `config/clusters/` (an `infrastructure.yml` copied there is read as is). |
 | `profile` | `general.yml` | VMFleet workload profile. |
 | `skipCleanup` | `false` | Leave the fleet in place after the test. |
 | `variableGroup` | `azurelocal-loadtest-secrets` | The Azure DevOps variable group that holds `CLUSTER_ADMIN_USERNAME` and `CLUSTER_ADMIN_PASSWORD`. The name is chosen per Azure DevOps project, so set it when you run the pipeline or change the default. Authorize the pipeline to use the group (Pipelines, Library, the group, Pipeline permissions). |

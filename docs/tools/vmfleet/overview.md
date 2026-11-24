@@ -23,7 +23,7 @@ VMFleet is the primary storage load testing tool in the Azure Local Load Testing
 ```powershell
 # Run the full VMFleet pipeline end-to-end
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config\clusters\my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
     -FleetAdminCredential $fleetAdmin   # for example Get-ManagedCredential -Name 'vmfleet_admin'
 ```
@@ -49,7 +49,7 @@ If the pipeline fails mid-execution, resume from the last successful checkpoint:
 
 ```powershell
 .\src\solutions\vmfleet\orchestrator\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -Resume
 ```
 

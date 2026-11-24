@@ -11,7 +11,7 @@ This document covers the custom PowerShell functions provided by the core module
 Generates a solution-specific JSON configuration file from the master environment.
 
 ```powershell
-Export-SolutionConfig [-Solution] <string> [-MasterConfigPath <string>] [-OutputPath <string>]
+Export-SolutionConfig [-Solution] <string> [-MasterConfigPath <string>] [-OutputPath <string>] [-ClusterConfigPath <string>] [-InfrastructureFile <string>]
 ```
 
 **Parameters**
@@ -19,8 +19,10 @@ Export-SolutionConfig [-Solution] <string> [-MasterConfigPath <string>] [-Output
 | Parameter | Type | Description |
 | --- | --- | --- |
 | `-Solution` | string | Solution name: vmfleet, fio, iperf, hammerdb, stress-ng |
-| `-MasterConfigPath` | string | Path to variables.yml (default: `config/variables/variables.yml`) |
+| `-MasterConfigPath` | string | Path to the test-settings file `variables.yml` (default: `config/variables/variables.yml`) |
 | `-OutputPath` | string | Output path for generated JSON (default: `config/variables/solutions/{solution}.json`) |
+| `-InfrastructureFile` | string | The environment's `infrastructure.yml` (schema 5). Its cluster facts (`cluster_name`, `cluster_domain`, `cluster_nodes`, `csv_path`, `azure_*`, `keyvault_name`) are written to the solution JSON |
+| `-ClusterConfigPath` | string | A cluster file. An `infrastructure.yml` is read as with `-InfrastructureFile`; a per-cluster file of the earlier layout is merged, with a warning |
 
 ### Get-ConfigValue
 

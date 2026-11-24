@@ -37,7 +37,7 @@ The tool scripts take a `-Credential` parameter (the cluster administrator, `clu
 $env:CLUSTER_ADMIN_USERNAME = 'iic\svc-loadtools'
 $env:CLUSTER_ADMIN_PASSWORD = '<from your secret store>'
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config\clusters\iic-cluster01.yml"
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
 The Linux tools (fio, iPerf3, stress-ng) connect over SSH with a key. The SSH user comes from `-SshUser`, then `cluster.ssh_user` in the cluster file, then the `LINUX_SSH_USERNAME` environment variable, then the `linux_ssh_username` Key Vault mapping. When none is set, the script stops with exit code 2.

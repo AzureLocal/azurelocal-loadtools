@@ -12,7 +12,7 @@ In addition to the [common prerequisites](../../getting-started/prerequisites.md
 | Base VHD | Windows Server 2022 Datacenter Core Gen2 VHDX for fleet VMs |
 | Collect Volume | 200GB+ ReFS volume named "Collect" for VMFleet result aggregation |
 | CSV Space | Sufficient free space on CSVs for fleet VMs (count × memory + data disk) |
-| Azure Local marketplace pathing | Valid `azure_local.custom_location_id` and `azure_local.storage_path_id` in `config/variables.yml` |
+| Azure Local marketplace pathing | The `azure.custom_location` key and a `storage.paths[]` entry in the `infrastructure.yml` given as `-ClusterConfigPath` (the script builds the custom location and storage path IDs from them) |
 
 ## Software Requirements
 
@@ -29,11 +29,11 @@ Run the image preparation script before first deployment. It checks whether the 
 
 ```powershell
 .\src\infrastructure\Prepare-VMFleetBaseImage.ps1 `
-    -ConfigPath "config/variables.yml" `
-    -ClusterConfigPath "config/clusters/my-cluster.yml"
+    -ConfigPath "config/variables/variables.yml" `
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
-On success, the script prints the resolved VHDX path. Copy that value into `storage.base_vhd_path` in `config/variables.yml` before running `Deploy-VMFleet.ps1`.
+On success, the script prints the resolved VHDX path. Copy that value into `storage.base_vhd_path` in `config/variables/variables.yml` before running `Deploy-VMFleet.ps1`.
 
 ## Validation
 
@@ -41,7 +41,7 @@ Run pre-checks to verify VMFleet-specific readiness:
 
 ```powershell
 .\src\solutions\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -WhatIf
 ```
 

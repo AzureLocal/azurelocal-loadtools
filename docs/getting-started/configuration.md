@@ -11,24 +11,20 @@ The configuration system is the backbone of the Azure Local Load Testing Framewo
 ```text
 config/
 ├── variables/
-│   ├── variables.yml       ← Single source of truth for ALL variables
-│   ├── schema.json                  ← JSON Schema for validation
+│   ├── variables.yml                ← The test settings (committed, no cluster facts)
+│   ├── variables.example.yml        ← Reference layout of the values a run uses
+│   ├── schema/variables.schema.json ← JSON Schema for validation
 │   └── solutions/                   ← Generated per-solution config files
 │       ├── vmfleet.json
 │       ├── fio.json
 │       └── ...
-├── clusters/                        ← Per-cluster connection configs
-│   └── example-cluster.yml
-├── profiles/                        ← Workload test profiles
-│   ├── vmfleet/
-│   └── ...
-└── credentials/
-    └── keyvault-config.yml          ← Key Vault connection settings
+tools/<tool>/config/profiles/        ← Workload test profiles (per tool)
+infrastructure.yml                   ← The cluster, from the environment (not in this repo)
 ```
 
 ## Master Environment File
 
-The `variables.yml` file contains **every** variable used across all solutions. Each variable is tagged with the solutions that consume it.
+The `variables.yml` file contains the **test settings** used across all solutions (profile defaults, durations, VMFleet sizing, monitoring, reporting, logging, fault injection). Each variable is tagged with the solutions that consume it. It holds no cluster facts: the cluster name, nodes, domain, cluster shared volume, Azure scope and Key Vault come from `infrastructure.yml` (see [Cluster Configuration](#cluster-configuration)).
 
 **Variable Structure**
 
@@ -102,13 +98,18 @@ Start-VMFleetTest
 
 ## Cluster Configuration
 
-Cluster configs in `config/clusters/` define target cluster details. To switch clusters, change the `-ClusterConfig` parameter:
+The cluster is the environment's `infrastructure.yml` (schema 5), the one file every Azure Local tool reads. To target a cluster, pass its file:
 
 ```powershell
-# Target different clusters by swapping config files
-.\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/prod-cluster.yml"
-.\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/dev-cluster.yml"
+# Target different clusters by passing a different environment file
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath ".\prod\infrastructure.yml"
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath ".\dev\infrastructure.yml"
+
+# Resolve the cluster facts into the solution JSON files
+Export-SolutionConfig -Solution "vmfleet" -InfrastructureFile ".\prod\infrastructure.yml"
 ```
+
+The file must be schema 5 and hold `cluster.name` and `nodes[].name`. The facts Load Tools reads are listed in [Variable Reference](../reference/variables.md#where-the-cluster-facts-come-from). A per-cluster file of the earlier layout (`config/clusters/*.yml`) is still read, with a warning.
 
 ## Workload Profiles
 

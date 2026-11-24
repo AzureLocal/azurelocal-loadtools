@@ -29,11 +29,14 @@ The framework consists of five major layers:
 
 ```text
 variables.yml    →    ConfigManager Module    →    vmfleet.json
-  (all variables,               (filters by              (only VMFleet
+  (test settings,               (filters by              (only VMFleet
    tagged by solution)           solution tag)             variables)
+                                    ↑
+                          infrastructure.yml (-InfrastructureFile):
+                          cluster name, nodes, domain, volume, Azure scope
 ```
 
-The `ConfigManager` PowerShell module reads the master environment file, filters variables by their solution tags, and generates solution-specific JSON files. Downstream scripts consume only the generated JSON — never the master YAML directly.
+The `ConfigManager` PowerShell module reads the master environment file, filters variables by their solution tags, and generates solution-specific JSON files. Downstream scripts take their test settings from the generated JSON, never from the master YAML directly. The cluster facts come from the environment's `infrastructure.yml`.
 
 ## Component Diagram
 

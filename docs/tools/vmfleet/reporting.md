@@ -36,7 +36,7 @@ New-TestReport `
     -OutputPath "reports/run-2026-02-13-001/" `
     -Formats @("PDF", "DOCX", "XLSX") `
     -IncludeMetrics `
-    -ClusterConfig "config/clusters/my-cluster.yml"
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
 Or generate reports as part of the results collection:

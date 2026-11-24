@@ -27,7 +27,7 @@ Use the built-in watcher during active tests:
 
 ```powershell
 .\src\solutions\vmfleet\scripts\Watch-VMFleetMonitor.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -RefreshIntervalSeconds 5 `
     -DurationMinutes 30
 ```
@@ -85,17 +85,17 @@ Local collection is always active during test runs:
 ```powershell
 # Collect all metric categories with 5-second intervals
 .\tools\vmfleet\monitoring\Collect-StorageMetrics.ps1 `
-    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -SampleIntervalSeconds 5 `
     -OutputPath "results/run-001/metrics/storage/"
 
 .\tools\vmfleet\monitoring\Collect-NetworkMetrics.ps1 `
-    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -SampleIntervalSeconds 5 `
     -OutputPath "results/run-001/metrics/network/"
 
 .\tools\vmfleet\monitoring\Collect-ComputeMetrics.ps1 `
-    -ClusterConfig "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -SampleIntervalSeconds 5 `
     -OutputPath "results/run-001/metrics/compute/"
 ```

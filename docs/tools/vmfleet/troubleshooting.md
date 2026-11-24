@@ -25,7 +25,7 @@ Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
 
 # Reduce VM count or memory per VM
 .\src\solutions\vmfleet\scripts\Deploy-VMFleet.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -VMCount 5 `
     -VMMemoryGB 1
 ```
@@ -40,11 +40,11 @@ Invoke-Command -ComputerName $ClusterNodes -ScriptBlock {
 
 ```powershell
 .\src\infrastructure\Prepare-VMFleetBaseImage.ps1 `
-        -ConfigPath "config/variables.yml" `
-        -ClusterConfigPath "config/clusters/my-cluster.yml"
+        -ConfigPath "config/variables/variables.yml" `
+        -ClusterConfigPath ".\infrastructure.yml"
 ```
 
-2. Copy returned VHDX path into `storage.base_vhd_path` in `config/variables.yml`.
+2. Copy returned VHDX path into `storage.base_vhd_path` in `config/variables/variables.yml`.
 3. Re-run deployment.
 
 ## Marketplace Image API Returns 400
@@ -106,7 +106,7 @@ Get-ClusterSharedVolume | Where-Object Name -like "*Collect*"
 4. Fix the issue and resume:
 
 ```powershell
-.\Invoke-VMFleetPipeline.ps1 -ClusterConfig "config/clusters/my-cluster.yml" -Resume
+.\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath ".\infrastructure.yml" -Resume
 ```
 
 ## Configuration Issues

@@ -61,7 +61,7 @@ Expected: `iperf 3.x.x` on all nodes.
 ```powershell
 # Local run: pass the SSH user and key (or set cluster.ssh_user / cluster.ssh_key_path)
 .\tools\iperf\scripts\Start-IperfTest.ps1 `
-    -ClusterConfigPath "config\clusters\iic-cluster01.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -ProfilePath "tools\iperf\config\profiles\tcp-throughput.yml" `
     -SshUser "iic-linuxadmin" `
     -SshKeyPath "$env:USERPROFILE\.ssh\azurelocal_rsa"

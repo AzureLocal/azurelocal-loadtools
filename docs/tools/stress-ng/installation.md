@@ -44,7 +44,7 @@ stress-ng --version
 
 ### Verify Across All Cluster Nodes
 
-From the runner, iterate over all target nodes defined in your variables file:
+From the runner, iterate over all target nodes defined in `config/variables/variables.yml`:
 
 ```powershell
 $nodes = @("hci01-node1", "hci01-node2", "hci01-node3", "hci01-node4")
@@ -71,7 +71,7 @@ hci01-node4: stress-ng, version 0.15.06
 
 ## SSH Key Configuration
 
-`Start-StressNgTest.ps1` connects to each node as the non-root SSH user defined in your cluster variables file. The key pair must be pre-distributed.
+`Start-StressNgTest.ps1` connects to each node as the non-root SSH user defined in the `credentials.linux_ssh` block of `config/variables/variables.yml`. The key pair must be pre-distributed.
 
 ```powershell
 # Generate key pair once on the runner (if not already present)
@@ -84,10 +84,10 @@ foreach ($node in @("hci01-node1","hci01-node2","hci01-node3","hci01-node4")) {
 }
 ```
 
-Set the `linux_ssh` credential block in your variables file:
+Set the `linux_ssh` credential block in `config/variables/variables.yml`:
 
 ```yaml
-# config/variables.yml
+# config/variables/variables.yml
 credentials:
   linux_ssh:
     username: azurelocaladmin

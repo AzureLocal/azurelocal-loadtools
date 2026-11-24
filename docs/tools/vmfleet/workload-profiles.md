@@ -31,7 +31,7 @@ This guide covers the predefined workload profiles for VMFleet testing and how t
 
 ```powershell
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -ProfilePaths @(
         "tools/vmfleet/config/profiles/general.yml",
         "tools/vmfleet/config/profiles/peak-iops.yml",

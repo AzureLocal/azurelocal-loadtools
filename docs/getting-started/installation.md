@@ -71,23 +71,53 @@ Ansible is installed as part of the CI/CD pipeline. See the [CI/CD Pipelines](..
 
 ## Configure Cluster Connection
 
-The repository holds no example cluster file. Create `config/clusters/my-cluster.yml` (the default the scripts look for is `config/clusters/cluster.yml`, or pass `-ClusterConfigPath`) with your cluster details:
+The cluster comes from the environment's `infrastructure.yml` (schema 5), the one file every Azure Local tool reads. Trailwright writes it from the plan, hardware discovery fills the serial numbers and MAC addresses, and the toolkit deploys from it. Load Tools reads these keys and nothing else of it:
+
+| Key | Used for |
+|-----|----------|
+| `cluster.name` | The cluster to test |
+| `nodes[].name` | The nodes the scripts connect to |
+| `identity.active_directory.domain_fqdn` | The domain of the nodes |
+| `storage.paths[].path` (else the first `storage.volumes[].name`) | The cluster shared volume (`C:\ClusterStorage\<volume>`) |
+| `azure.tenant_id`, `subscription_id`, `resource_group`, `location`, `custom_location` | The Azure scope; the custom location and the first storage path give the IDs `Prepare-VMFleetBaseImage.ps1` needs |
+| `key_vaults[]` (purpose `management`, else the first) | The Key Vault for credentials |
+
+Pass it as `-InfrastructureFile` to `Initialize-Environment.ps1` and `Export-SolutionConfig`, or as `-ClusterConfigPath` to any tool script. The file must be schema 5 (`_metadata.schema_version`) and hold `cluster.name` and `nodes[].name`, or the script stops and says which is missing. A per-cluster file of the earlier layout is still read, with a warning. To start, copy the Load Tools template from the toolkit (`config/variables/templates/tools/loadtools.yml`) or use your Trailwright export. The part of the file Load Tools reads (the other sections are for the tools that deploy the cluster; example values):
 
 ```yaml
-cluster:
-  name: "my-hci-cluster"
-  domain: "contoso.local"
-  csv_path: "C:\\ClusterStorage\\Volume1"
-  collect_volume_path: "C:\\ClusterStorage\\Collect"
-  base_vhd_path: "C:\\ClusterStorage\\Collect\\BaseImage.vhdx"
+_metadata:
+  schema_version: "5.6.35"
+  scope: "loadtools"
 
-# The scripts read the node names from this top-level list, not from cluster.nodes.
+azure:
+  tenant_id: "00000000-0000-0000-0000-000000000000"
+  subscription_id: "00000000-0000-0000-0000-000000000000"
+  resource_group: "rg-iic-azl-01"
+  location: "eastus"
+  custom_location: "cl-iic-azl-01"
+
+key_vaults:
+  - name: "kv-iic-mgmt-01"
+    purpose: "management"
+
+cluster:
+  name: "iic-azl-01"
+
 nodes:
-  - name: "hci-node-01"
-    management_ip: "10.0.0.1"
-  - name: "hci-node-02"
-    management_ip: "10.0.0.2"
+  - name: "iic-azl-n01"
+  - name: "iic-azl-n02"
+
+identity:
+  active_directory:
+    domain_fqdn: "improbability.cloud"
+
+storage:
+  paths:
+    - name: "sp-workloads-01"
+      path: "C:\\ClusterStorage\\vol-workloads-01\\vms"
 ```
+
+`_metadata.scope: loadtools` marks a file cut for this tool; the full file works the same. The VMFleet base image path and the collect volume are test settings (`storage.base_vhd_path` and the others in `config/variables/variables.yml`), not cluster facts.
 
 ## Initialize the Environment
 
@@ -95,14 +125,14 @@ nodes:
 # Run the environment initialization script
 .\common\helpers\Initialize-Environment.ps1 -Solution VMFleet `
     -MasterConfigPath "config/variables/variables.yml" `
-    -ClusterConfigPath "config/clusters/cluster.yml"
+    -InfrastructureFile ".\infrastructure.yml"
 ```
 
 This will:
 
 1. Check the local prerequisites (PowerShell 7.2+, `powershell-yaml`, optional modules and report tools, and the `VMFleet` module when `-Solution VMFleet`); skip with `-SkipPrerequisiteCheck`
-2. Create `config/variables/variables.yml` from the example when it is missing, and load the core modules from `common/modules`
-3. Validate the master and cluster configuration files when they are given
+2. Check that `config/variables/variables.yml` (committed, the test settings) exists, and stop with an error when it is missing; load the core modules from `common/modules`
+3. Validate the master configuration file and read the cluster facts from the `infrastructure.yml` (the script returns them as an object; without `-InfrastructureFile` it warns that the cluster facts are not resolved)
 4. Create the working directory structure
 
 Cluster connectivity, Storage Spaces Direct health and base VHD checks are not part of this script; run them per tool (see the [VMFleet prerequisites](../tools/vmfleet/prerequisites.md)).

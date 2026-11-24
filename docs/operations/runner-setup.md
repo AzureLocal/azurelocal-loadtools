@@ -83,7 +83,7 @@ $env:LINUX_SSH_KEY | Set-Content "$env:ProgramData\azurelocal-runner\.ssh\azurel
 icacls "$env:ProgramData\azurelocal-runner\.ssh\azurelocal_rsa" /inheritance:r /grant:r "$($env:USERNAME):F"
 ```
 
-In `config/variables.yml`, set:
+In `config/variables/variables.yml`, set:
 
 ```yaml
 credentials:

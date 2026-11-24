@@ -11,11 +11,11 @@ Before deployment, prepare the base image from Azure Local marketplace (or verif
 
 ```powershell
 .\src\infrastructure\Prepare-VMFleetBaseImage.ps1 `
-    -ConfigPath "config/variables.yml" `
-    -ClusterConfigPath "config/clusters/my-cluster.yml"
+    -ConfigPath "config/variables/variables.yml" `
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
-After completion, set the resolved VHDX path in `storage.base_vhd_path` in `config/variables.yml`.
+After completion, set the resolved VHDX path in `storage.base_vhd_path` in `config/variables/variables.yml`.
 
 ## Install VMFleet
 
@@ -23,7 +23,7 @@ Installs the VMFleet PowerShell module and prepares the cluster:
 
 ```powershell
 .\src\solutions\vmfleet\scripts\Install-VMFleet.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml"
+    -ClusterConfigPath ".\infrastructure.yml"
 ```
 
 ## Deploy Fleet VMs
@@ -32,7 +32,7 @@ Creates fleet VMs across all cluster nodes:
 
 ```powershell
 .\src\solutions\vmfleet\scripts\Deploy-VMFleet.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -VMCount 10 `
     -VMProcessorCount 2 `
     -VMMemoryGB 2
@@ -52,7 +52,7 @@ To remove fleet VMs and restore the cluster to its pre-test state:
 
 ```powershell
 .\src\solutions\vmfleet\scripts\Remove-VMFleet.ps1 `
-    -ClusterConfigPath "config/clusters/my-cluster.yml" `
+    -ClusterConfigPath ".\infrastructure.yml" `
     -Confirm
 ```
 

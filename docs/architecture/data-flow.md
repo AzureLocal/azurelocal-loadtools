@@ -12,7 +12,7 @@ This page traces the three primary data flows through the framework: configurati
 
 ### Key Rules
 
-- Downstream scripts **never read** `variables.yml` directly. They only consume the generated JSON files.
+- Downstream scripts **never read** `variables.yml` directly. They consume the generated JSON files (the test settings from `variables.yml`, plus the cluster facts that `Export-SolutionConfig -InfrastructureFile` reads from the environment's `infrastructure.yml`). The tool scripts read the cluster name and nodes from the file given with `-ClusterConfigPath`, which can be that same `infrastructure.yml`.
 - Variables are tagged by solution name in the master YAML (`solutions: [fio, iperf]`). `ConfigManager` emits only variables tagged for the target solution.
 - Override chain (lowest wins): master YAML → environment variable → `-Variables` parameter → profile YAML
 
