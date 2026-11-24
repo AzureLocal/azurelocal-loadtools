@@ -60,7 +60,7 @@ try {
 
     $solutionConfig = Get-Content -Path $SolutionConfigPath -Raw | ConvertFrom-Json
     Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
 
     # Resolve parameters via override chain
     $vmfleetVer = if ($VMFleetVersion) { $VMFleetVersion } else { $solutionConfig.vmfleet_version }

@@ -141,7 +141,7 @@ try {
 
         # Test cluster connectivity
         Import-Module powershell-yaml -ErrorAction Stop
-        $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+        $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
         $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
 
         $connectivity = Test-ClusterConnectivity -NodeNames $nodes -Credential $Credential

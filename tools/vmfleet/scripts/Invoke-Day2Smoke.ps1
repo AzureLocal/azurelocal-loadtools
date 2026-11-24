@@ -59,6 +59,7 @@ if (-not $ProjectRoot) {
 }
 if (-not $ProfilePath) { $ProfilePath = Join-Path $ProjectRoot 'tools\vmfleet\config\profiles\day2-smoke.yml' }
 
+Import-Module (Join-Path $ProjectRoot 'common\modules\ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $ProjectRoot 'common\modules\ResultAnalysis\ResultAnalysis.psm1') -Force
 
 function Write-SmokeResult {
@@ -77,7 +78,7 @@ try {
     foreach ($k in $profileData.profile.expected_thresholds.Keys) { $thresholds[$k] = $profileData.profile.expected_thresholds[$k] }
 
     if (-not $NodeCount -and $ClusterConfigPath -and (Test-Path -LiteralPath $ClusterConfigPath)) {
-        $cc = Get-Content -LiteralPath $ClusterConfigPath -Raw | ConvertFrom-Yaml
+        $cc = Import-ClusterConfig -Path $ClusterConfigPath
         $NodeCount = @($cc.nodes).Count
     }
 

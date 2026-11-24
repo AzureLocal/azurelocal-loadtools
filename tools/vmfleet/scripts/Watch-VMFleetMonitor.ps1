@@ -38,6 +38,7 @@ if (-not $ProjectRoot) {
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 
 if ($LogToFile) {
+    Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
     Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
     $null = Start-LogSession -Component 'VMFleet-Watch' -LogRootPath (Join-Path $ProjectRoot 'logs\vmfleet')
 }
@@ -48,7 +49,7 @@ try {
     }
 
     Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
     $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
 
     if (-not $Credential) {

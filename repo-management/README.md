@@ -8,7 +8,6 @@ This folder documents how this repository is configured and how its automation w
 |------|---------|
 | [`setup.md`](setup.md) | Branch protection, labels, secrets, CODEOWNERS, and replication guide |
 | [`automation.md`](automation.md) | Every GitHub Actions workflow — what it does, when it runs, secrets required |
-| [`canonical-variable-migration.md`](canonical-variable-migration.md) | In-progress tracking for the canonical variable migration (Wave 1) |
 | `scripts/` | Repo-management helper scripts |
 
 ## Canonical References

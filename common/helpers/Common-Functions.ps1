@@ -183,7 +183,7 @@ function Copy-ToClusterNodes {
 function Get-ClusterNodesFromConfig {
     <#
     .SYNOPSIS
-        Extracts node names from a cluster config file.
+        Extracts node names from the environment's infrastructure.yml (or a per-cluster file of the earlier layout).
     #>
     [CmdletBinding()]
     param(
@@ -192,7 +192,10 @@ function Get-ClusterNodesFromConfig {
     )
 
     Import-Module powershell-yaml -ErrorAction Stop
-    $config = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    if (-not (Get-Command Import-ClusterConfig -ErrorAction SilentlyContinue)) {
+        Import-Module (Join-Path $PSScriptRoot '..\modules\ConfigManager\ConfigManager.psm1') -Force
+    }
+    $config = Import-ClusterConfig -Path $ClusterConfigPath
 
     return $config.nodes | ForEach-Object { $_.name }
 }

@@ -42,6 +42,7 @@ if (-not $ProjectRoot) {
 
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
+Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
 $logSession = Start-LogSession -Component 'VMFleet-BaseImage' -LogBasePath (Join-Path $ProjectRoot 'logs\vmfleet')
@@ -112,13 +113,16 @@ try {
 
     Import-Module powershell-yaml -ErrorAction Stop
     $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Yaml
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
 
-    $subscriptionId = $config.azure.subscription_id
-    $resourceGroup = $config.azure.resource_group
-    $location = $config.azure.location
-    $customLocationId = $config.azure_local.custom_location_id
-    $storagePathId = $config.azure_local.storage_path_id
+    # With the environment's infrastructure.yml as the cluster file, the Azure scope, the custom location and the storage
+    # path come from it (azure.*, azure.custom_location, storage.paths[]); the config file is then not read for them.
+    $infrastructure = if ($clusterConfig -is [System.Collections.IDictionary] -and $clusterConfig.Contains('_metadata')) { (Import-InfrastructureConfig -InfrastructureFile $ClusterConfigPath).Values } else { $null }
+    $subscriptionId = if ($infrastructure) { $infrastructure.azure_subscription_id } else { $config.azure.subscription_id }
+    $resourceGroup = if ($infrastructure) { $infrastructure.azure_resource_group } else { $config.azure.resource_group }
+    $location = if ($infrastructure) { $infrastructure.azure_location } else { $config.azure.location }
+    $customLocationId = if ($infrastructure) { $infrastructure.azure_custom_location_id } else { $config.azure_local.custom_location_id }
+    $storagePathId = if ($infrastructure) { $infrastructure.storage_path_id } else { $config.azure_local.storage_path_id }
     $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
     $primaryNode = $nodes[0]
 

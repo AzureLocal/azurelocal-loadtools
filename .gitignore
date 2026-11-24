@@ -29,12 +29,14 @@ config/credentials/*.key
 config/credentials/*.pem
 config/credentials/.env
 
-# User-specific config (actual values — never commit)
-config/variables.yml
+# The environment's infrastructure.yml (the cluster, its nodes, the Azure scope) belongs to the environment repository,
+# never here. config/variables/variables.yml holds the test settings only and is committed.
+infrastructure.yml
+infrastructure.*.yml
+!tests/fixtures/infrastructure.*.yml
 
-# Generated solution config files (built from variables.yml)
-# Uncomment the next line if you want these regenerated every time:
-# config/variables/solutions/*.json
+# Generated solution config files (built from variables.yml and the infrastructure file)
+config/variables/solutions/*.json
 
 # PowerShell module artifacts
 *.nupkg

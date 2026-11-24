@@ -35,6 +35,7 @@ if (-not $ProjectRoot) {
 
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
+Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
 
 $null = Start-LogSession -Component 'Monitoring-Compute' -LogRootPath (Join-Path $ProjectRoot 'logs\monitoring')
@@ -47,7 +48,7 @@ try {
     }
 
     Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
     $nodes = $clusterConfig.nodes | ForEach-Object { $_.name }
 
     if (-not $OutputPath) {

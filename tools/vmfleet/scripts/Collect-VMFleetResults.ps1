@@ -62,7 +62,7 @@ try {
     }
 
     Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Get-Content -Path $ClusterConfigPath -Raw | ConvertFrom-Yaml
+    $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
     $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
 
     if (-not $Credential) {

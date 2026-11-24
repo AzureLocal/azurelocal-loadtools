@@ -1,22 +1,24 @@
 # =============================================================================
 # variables.example.yml
-# Central configuration — single source of truth for load testing deployments.
+# Reference layout of the values a Load Tools run uses (validated by
+# config/variables/schema/variables.schema.json). Placeholder values only.
 #
-# Copy this file to variables.yml and fill in your values:
-#   cp config/variables.example.yml config/variables.yml
-#
-# DO NOT commit variables.yml — it is excluded by .gitignore.
+# This is NOT the file the tools read:
+#   - config/variables/variables.yml (committed) holds the test settings.
+#   - The cluster, its nodes, the domain, the cluster shared volume, the Azure scope
+#     and the Key Vault come from the environment's infrastructure.yml
+#     (-InfrastructureFile; Initialize-Environment.ps1, Export-SolutionConfig).
+#     The azure, keyvault, azure_local, storage and networking sections below show
+#     the facts that file supplies; do not keep a second copy of them.
 #
 # Key Vault References:
 #   Secrets use keyvault:// URIs and are resolved at runtime.
 #   Format: keyvault://<vault-name>/<secret-name>
 #   NEVER put actual passwords or secrets in this file.
 #
-# Detailed configs live in subdirectories:
-#   - config/clusters/         Cluster definitions (per-cluster YAML)
-#   - config/credentials/      Key Vault credential mappings
-#   - config/profiles/         Workload profiles (vmfleet, fio, iperf, etc.)
-#   - config/variables/        Master variable registry and solution schemas
+# Related folders:
+#   - config/variables/        variables.yml and the schema
+#   - tools/<tool>/config/     Solution settings and workload profiles (profiles/)
 # =============================================================================
 
 

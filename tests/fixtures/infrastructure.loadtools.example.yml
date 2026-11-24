@@ -1,0 +1,36 @@
+# The loadtools cut of an infrastructure.yml (azurelocal-toolkit, schema 5): only the keys Load Tools reads.
+# Placeholder values of the Infinite Improbability Corp example (improbability.cloud); nothing here is a real environment.
+_metadata:
+  schema_version: "5.6.30"
+  scope: loadtools
+
+azure:
+  tenant_id: "00000000-0000-0000-0000-000000000000"
+  subscription_id: "00000000-0000-0000-0000-000000000001"
+  resource_group: "rg-iic-azl-01"
+  location: "eastus"
+  custom_location: "cl-iic-azl-01"
+
+key_vaults:
+  - name: "kv-iic-backup-01"
+    purpose: "backup"
+  - name: "kv-iic-mgmt-01"
+    purpose: "management"
+
+cluster:
+  name: "iic-azl-01"
+
+nodes:
+  - name: "iic-azl-n01"
+  - name: "iic-azl-n02"
+
+identity:
+  active_directory:
+    domain_fqdn: "improbability.cloud"
+
+storage:
+  volumes:
+    - name: "vol-workloads-01"
+  paths:
+    - name: "sp-workloads-01"
+      path: "C:\\ClusterStorage\\vol-workloads-01\\vms"

@@ -3,12 +3,17 @@
 # =============================================================================
 # Bootstrap script that validates prerequisites, loads modules, and prepares
 # the environment for load testing operations.
+#
+# The cluster facts (cluster, nodes, domain, cluster shared volume, Azure scope,
+# Key Vault) are read from the environment's infrastructure.yml, the one file
+# every Azure Local tool reads: -InfrastructureFile <infrastructure.yml>. The
+# script resolves them and returns them as an object. config/variables/
+# variables.yml holds the test settings only.
 # =============================================================================
 
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Legacy -Verbose switch kept for existing callers.')]
 param(
     [Parameter()]
     [string]$ProjectRoot,
@@ -20,14 +25,14 @@ param(
     [string]$ClusterConfigPath,
 
     [Parameter()]
+    [string]$InfrastructureFile,
+
+    [Parameter()]
     [ValidateSet('VMFleet', 'fio', 'iPerf', 'HammerDB', 'StressNg')]
     [string]$Solution = 'VMFleet',
 
     [Parameter()]
-    [switch]$SkipPrerequisiteCheck,
-
-    [Parameter()]
-    [switch]$Verbose
+    [switch]$SkipPrerequisiteCheck
 )
 
 $ErrorActionPreference = 'Stop'
@@ -162,7 +167,8 @@ function Test-ConfigFiles {
     [CmdletBinding()]
     param(
         [string]$MasterConfigPath,
-        [string]$ClusterConfigPath
+        [string]$ClusterConfigPath,
+        [string]$InfrastructureFile
     )
 
     if ($MasterConfigPath -and -not (Test-Path $MasterConfigPath)) {
@@ -171,9 +177,12 @@ function Test-ConfigFiles {
     if ($ClusterConfigPath -and -not (Test-Path $ClusterConfigPath)) {
         Write-Error "Cluster config not found: $ClusterConfigPath"
     }
+    if ($InfrastructureFile -and -not (Test-Path $InfrastructureFile)) {
+        Write-Error "Infrastructure file not found: $InfrastructureFile"
+    }
 
     if ($MasterConfigPath -and (Test-Path $MasterConfigPath)) {
-        $validation = Test-MasterConfig -ConfigPath $MasterConfigPath -ErrorAction SilentlyContinue
+        $validation = Test-MasterConfig -MasterConfigPath $MasterConfigPath -ErrorAction SilentlyContinue
         if (-not $validation.IsValid) {
             Write-Warning "Master config validation issues found."
         }
@@ -183,7 +192,6 @@ function Test-ConfigFiles {
 function Initialize-MasterConfig {
     [CmdletBinding()]
     param(
-        [string]$ProjectRoot,
         [string]$MasterConfigPath
     )
 
@@ -191,19 +199,9 @@ function Initialize-MasterConfig {
         return
     }
 
-    $exampleCandidates = @(
-        (Join-Path $ProjectRoot 'config\variables\variables.example.yml'),
-        (Join-Path $ProjectRoot 'config\variables.example.yml')
-    )
-
-    $examplePath = $exampleCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-    if (-not $examplePath) {
-        Write-Error "Master config not found: $MasterConfigPath. No variables.example.yml template found."
-    }
-
-    New-Item -ItemType Directory -Path (Split-Path -Parent $MasterConfigPath) -Force | Out-Null
-    Copy-Item -Path $examplePath -Destination $MasterConfigPath -Force
-    Write-Host "[WARN] Master config was missing. Created $MasterConfigPath from $examplePath" -ForegroundColor Yellow
+    # config/variables/variables.yml is committed (the test settings, no secrets or cluster facts). A missing one is not
+    # replaced by variables.example.yml, which has another layout.
+    Write-Error "Master config not found: $MasterConfigPath. It is committed with the repository (config/variables/variables.yml); restore it with git, or pass -MasterConfigPath."
 }
 
 # ---- Directory Structure ----
@@ -250,14 +248,30 @@ Import-CoreModules -ProjectRoot $ProjectRoot
 
 # Step 4: Validate configs
 $defaultMaster = Join-Path $ProjectRoot 'config\variables\variables.yml'
-$defaultCluster = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
-
 $masterConfig = if ($MasterConfigPath) { $MasterConfigPath } else { $defaultMaster }
-$clusterConfig = if ($ClusterConfigPath) { $ClusterConfigPath } else { $defaultCluster }
 
-Initialize-MasterConfig -ProjectRoot $ProjectRoot -MasterConfigPath $masterConfig
+Initialize-MasterConfig -MasterConfigPath $masterConfig
 
-Test-ConfigFiles -MasterConfigPath $masterConfig -ClusterConfigPath $clusterConfig
+Test-ConfigFiles -MasterConfigPath $masterConfig -ClusterConfigPath $ClusterConfigPath -InfrastructureFile $InfrastructureFile
+
+# Step 5: The cluster facts, from the environment's infrastructure.yml. -ClusterConfigPath may name it too (the tool
+# scripts take it that way); a per-cluster file of the earlier layout is read with a warning.
+$infrastructure = $null
+if ($InfrastructureFile) {
+    $infrastructure = Import-InfrastructureConfig -InfrastructureFile $InfrastructureFile
+    $v = $infrastructure.Values
+    Write-Host "`nCluster facts from $($infrastructure.Source)" -ForegroundColor Cyan
+    Write-Host "  Cluster: $($v.cluster_name) | Nodes: $($v.cluster_nodes -join ', ') | Domain: $(if ($v.cluster_domain) { $v.cluster_domain } else { '(none)' })" -ForegroundColor Gray
+    Write-Host "  CSV: $(if ($v.csv_path) { $v.csv_path } else { '(not in the file)' }) | Key Vault: $(if ($v.keyvault_name) { $v.keyvault_name } else { '(none)' })" -ForegroundColor Gray
+    Write-Host "  Azure: subscription $($v.azure_subscription_id), resource group $($v.azure_resource_group), $($v.azure_location)" -ForegroundColor Gray
+}
+elseif ($ClusterConfigPath) {
+    $null = Import-ClusterConfig -Path $ClusterConfigPath
+}
+else {
+    Write-Warning 'No infrastructure file given: the cluster facts are not resolved. Pass -InfrastructureFile <infrastructure.yml>.'
+}
 
 Write-Host "`nEnvironment initialized successfully." -ForegroundColor Green
 Write-Host "Solution: $Solution | Config: $masterConfig" -ForegroundColor Gray
+if ($infrastructure) { return $infrastructure.Values }

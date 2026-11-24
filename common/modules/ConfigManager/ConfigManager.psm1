@@ -8,6 +8,9 @@
 
 #Requires -Modules powershell-yaml
 
+# Cluster facts (the cluster, its nodes, the domain, the CSV, the Azure scope, the Key Vault) are not defined here: they
+# come from the environment's infrastructure.yml (azurelocal-toolkit schema 5). variables.yml holds the test settings only.
+
 # Module-level variables
 $script:MasterConfig = $null
 $script:MasterConfigLoadedFrom = $null
@@ -67,6 +70,126 @@ function Import-MasterConfig {
     return $script:MasterConfig
 }
 
+function Get-InfrastructureValue {
+    # One value of the parsed infrastructure file by dotted path ('cluster.name'); $null when a key on the way is missing.
+    [CmdletBinding()]
+    param([Parameter(Mandatory)]$Data, [Parameter(Mandatory)][string]$Path)
+    $node = $Data
+    foreach ($segment in $Path -split '\.') {
+        if ($node -is [System.Collections.IDictionary] -and $node.Contains($segment)) { $node = $node[$segment] } else { return $null }
+    }
+    return $node
+}
+
+function Import-InfrastructureConfig {
+    <#
+    .SYNOPSIS
+        Reads the cluster facts Load Tools needs from the environment's infrastructure.yml (azurelocal-toolkit, schema 5).
+    .DESCRIPTION
+        The one source of the cluster facts. The file is the full infrastructure.yml or its loadtools cut
+        (New-InfrastructureArtifacts.ps1 -Cut loadtools, _metadata.scope loadtools). Keys read:
+          cluster.name                              -> cluster_name
+          nodes[].name                              -> cluster_nodes
+          identity.active_directory.domain_fqdn     -> cluster_domain (empty for a local identity design)
+          storage.paths[].path (else storage.volumes[].name) -> csv_path: the first cluster shared volume,
+                                                       C:\ClusterStorage\<volume>
+          azure.tenant_id, subscription_id, resource_group, location -> azure_tenant_id, azure_subscription_id,
+                                                       azure_resource_group, azure_location
+          key_vaults[].name (purpose management, else the first; else cluster.key_vault.name) -> keyvault_name
+          azure.custom_location, storage.paths[].name (the first) -> azure_custom_location_id, storage_path_id: the
+                                                       ARM resource IDs Prepare-VMFleetBaseImage.ps1 needs, built with
+                                                       the subscription and resource group above
+        Returns Source, Values (the names above, as the solution configs use them) and ClusterConfig (the parsed file with
+        cluster.domain and storage.csv_path filled in, the shape the tool scripts read through -ClusterConfigPath).
+    .PARAMETER InfrastructureFile
+        Path to infrastructure.yml.
+    #>
+    [CmdletBinding()]
+    [OutputType([pscustomobject])]
+    param([Parameter(Mandatory)][string]$InfrastructureFile)
+
+    if (-not (Test-Path -LiteralPath $InfrastructureFile -PathType Leaf)) { throw "Infrastructure file not found: $InfrastructureFile" }
+    $data = ConvertFrom-Yaml (Get-Content -LiteralPath $InfrastructureFile -Raw)
+    $version = [string](Get-InfrastructureValue -Data $data -Path '_metadata.schema_version')
+    if ($version -notmatch '^5(\.|$)') { throw "$InfrastructureFile is not an infrastructure.yml of schema 5 (_metadata.schema_version is '$version')." }
+
+    $name = [string](Get-InfrastructureValue -Data $data -Path 'cluster.name')
+    $nodes = @(@(Get-InfrastructureValue -Data $data -Path 'nodes') | Where-Object { $_ -is [System.Collections.IDictionary] -and $_['name'] } | ForEach-Object { [string]$_['name'] })
+    $problems = @()
+    if (-not $name) { $problems += 'cluster.name' }
+    if ($nodes.Count -eq 0) { $problems += 'nodes[].name' }
+    if ($problems.Count) { throw "$InfrastructureFile has no $($problems -join ' and '): Load Tools needs the cluster and its nodes." }
+
+    $domain = [string](Get-InfrastructureValue -Data $data -Path 'identity.active_directory.domain_fqdn')
+
+    # The first cluster shared volume: the root of the first storage path, else the first volume of storage.volumes.
+    $csv = ''
+    foreach ($entry in @(Get-InfrastructureValue -Data $data -Path 'storage.paths')) {
+        if ($entry -is [System.Collections.IDictionary] -and [string]$entry['path'] -match '^(?<root>[A-Za-z]:\\ClusterStorage\\[^\\]+)') { $csv = $Matches['root']; break }
+    }
+    if (-not $csv) {
+        foreach ($entry in @(Get-InfrastructureValue -Data $data -Path 'storage.volumes')) {
+            if ($entry -is [System.Collections.IDictionary] -and $entry['name']) { $csv = "C:\ClusterStorage\$([string]$entry['name'])"; break }
+        }
+    }
+
+    $vaults = @(@(Get-InfrastructureValue -Data $data -Path 'key_vaults') | Where-Object { $_ -is [System.Collections.IDictionary] -and $_['name'] })
+    $vault = @($vaults | Where-Object { [string]$_['purpose'] -eq 'management' } | Select-Object -First 1)
+    if (-not $vault) { $vault = @($vaults | Select-Object -First 1) }
+    $vaultName = if ($vault) { [string]$vault[0]['name'] } else { [string](Get-InfrastructureValue -Data $data -Path 'cluster.key_vault.name') }
+
+    $values = [ordered]@{
+        cluster_name          = $name
+        cluster_domain        = $domain
+        cluster_nodes         = $nodes
+        csv_path              = $csv
+        azure_tenant_id       = [string](Get-InfrastructureValue -Data $data -Path 'azure.tenant_id')
+        azure_subscription_id = [string](Get-InfrastructureValue -Data $data -Path 'azure.subscription_id')
+        azure_resource_group  = [string](Get-InfrastructureValue -Data $data -Path 'azure.resource_group')
+        azure_location        = [string](Get-InfrastructureValue -Data $data -Path 'azure.location')
+        keyvault_name         = $vaultName
+    }
+    $scope = "/subscriptions/$($values.azure_subscription_id)/resourceGroups/$($values.azure_resource_group)"
+    $customLocation = [string](Get-InfrastructureValue -Data $data -Path 'azure.custom_location')
+    $storagePath = @(@(Get-InfrastructureValue -Data $data -Path 'storage.paths') | Where-Object { $_ -is [System.Collections.IDictionary] -and $_['name'] } | Select-Object -First 1)
+    $values['azure_custom_location_id'] = if ($customLocation -and $values.azure_subscription_id -and $values.azure_resource_group) { "$scope/providers/Microsoft.ExtendedLocation/customLocations/$customLocation" } else { '' }
+    $values['storage_path_id'] = if ($storagePath -and $values.azure_subscription_id -and $values.azure_resource_group) { "$scope/providers/Microsoft.AzureStackHCI/storageContainers/$([string]$storagePath[0]['name'])" } else { '' }
+
+    # The shape the tool scripts read: cluster.name, cluster.domain, nodes[].name and storage.csv_path.
+    if ($data['cluster'] -isnot [System.Collections.IDictionary]) { $data['cluster'] = @{} }
+    if ($domain -and -not $data['cluster']['domain']) { $data['cluster']['domain'] = $domain }
+    if ($csv) {
+        if ($data['storage'] -isnot [System.Collections.IDictionary]) { $data['storage'] = @{} }
+        if (-not $data['storage']['csv_path']) { $data['storage']['csv_path'] = $csv }
+    }
+    return [pscustomobject]@{ Source = (Resolve-Path -LiteralPath $InfrastructureFile).Path; Values = $values; ClusterConfig = $data }
+}
+
+function Import-ClusterConfig {
+    <#
+    .SYNOPSIS
+        Reads the cluster file a tool script is given (-ClusterConfigPath): the environment's infrastructure.yml, or a
+        per-cluster file of the earlier layout.
+    .DESCRIPTION
+        An infrastructure.yml (_metadata.schema_version 5.x) is read with Import-InfrastructureConfig and returned in the
+        shape the scripts use (cluster.name, cluster.domain, nodes[].name, storage.csv_path). Any other file is parsed as it
+        is, with a warning: the per-cluster file is replaced by infrastructure.yml, which holds the same facts once for
+        every tool.
+    .PARAMETER Path
+        Path to the file.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "Cluster config not found: $Path" }
+    $data = ConvertFrom-Yaml (Get-Content -LiteralPath $Path -Raw)
+    if ($data -is [System.Collections.IDictionary] -and $data.Contains('_metadata') -and $data['_metadata'] -is [System.Collections.IDictionary] -and $data['_metadata'].Contains('schema_version')) {
+        return (Import-InfrastructureConfig -InfrastructureFile $Path).ClusterConfig
+    }
+    Write-Warning "$Path is a per-cluster file of the earlier layout. Give the environment's infrastructure.yml (-ClusterConfigPath or -InfrastructureFile) instead: it holds the cluster, nodes, domain, volumes, Azure scope and Key Vault once for every tool."
+    return $data
+}
+
 function Export-SolutionConfig {
     <#
     .SYNOPSIS
@@ -81,7 +204,13 @@ function Export-SolutionConfig {
     .PARAMETER OutputPath
         Output path for the generated JSON file.
     .PARAMETER ClusterConfigPath
-        Optional cluster config to merge cluster-specific values.
+        Optional cluster config to merge cluster-specific values. An infrastructure.yml is read as with -InfrastructureFile.
+    .PARAMETER InfrastructureFile
+        The environment's infrastructure.yml. Its cluster facts (cluster_name, cluster_domain, cluster_nodes, csv_path,
+        azure_*, keyvault_name; see Import-InfrastructureConfig) are written to the solution JSON. variables.yml does not
+        define them.
+    .EXAMPLE
+        Export-SolutionConfig -Solution "vmfleet" -InfrastructureFile ./infrastructure.yml
     .EXAMPLE
         Export-SolutionConfig -Solution "vmfleet"
     .EXAMPLE
@@ -100,7 +229,10 @@ function Export-SolutionConfig {
         [string]$OutputPath,
 
         [Parameter()]
-        [string]$ClusterConfigPath
+        [string]$ClusterConfigPath,
+
+        [Parameter()]
+        [string]$InfrastructureFile
     )
 
     # Load master config
@@ -136,27 +268,34 @@ function Export-SolutionConfig {
         }
     }
 
-    # Merge cluster config values if provided
-    if ($ClusterConfigPath -and (Test-Path $ClusterConfigPath)) {
+    # The cluster facts come from the infrastructure file (-InfrastructureFile, or -ClusterConfigPath when it is one). Each
+    # fact goes to the solutions that use it; a per-cluster file of the earlier layout is still merged, with a warning.
+    $factSolutions = @{
+        cluster_name = '*'; cluster_domain = '*'; cluster_nodes = '*'; csv_path = @('vmfleet', 'fio')
+        azure_tenant_id = '*'; azure_subscription_id = '*'; azure_resource_group = '*'; azure_location = '*'; keyvault_name = '*'
+        azure_custom_location_id = @('vmfleet'); storage_path_id = @('vmfleet')
+    }
+    $facts = $null
+    if ($InfrastructureFile) {
+        Write-Verbose "Reading cluster facts from: $InfrastructureFile"
+        $facts = (Import-InfrastructureConfig -InfrastructureFile $InfrastructureFile).Values
+    }
+    elseif ($ClusterConfigPath -and (Test-Path $ClusterConfigPath)) {
         Write-Verbose "Merging cluster config from: $ClusterConfigPath"
-        $clusterYaml = Get-Content -Path $ClusterConfigPath -Raw
-        $clusterConfig = ConvertFrom-Yaml $clusterYaml
-
-        if ($clusterConfig.cluster) {
-            $clusterMapping = @{
-                'cluster_name'       = $clusterConfig.cluster.name
-                'cluster_domain'     = $clusterConfig.cluster.domain
-                'cluster_nodes'      = @($clusterConfig.cluster.nodes | ForEach-Object { $_.name })
-                'csv_path'           = $clusterConfig.cluster.csv_path
-                'collect_volume_path' = $clusterConfig.cluster.collect_volume_path
-                'base_vhd_path'      = $clusterConfig.cluster.base_vhd_path
-            }
-
-            foreach ($key in $clusterMapping.Keys) {
-                if ($configObject.Contains($key) -and $clusterMapping[$key]) {
-                    $configObject[$key] = $clusterMapping[$key]
-                }
-            }
+        $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
+        $domain = if ($clusterConfig.cluster) { $clusterConfig.cluster.domain } else { $null }
+        $csvPath = if ($clusterConfig.storage -and $clusterConfig.storage.csv_path) { $clusterConfig.storage.csv_path } elseif ($clusterConfig.cluster) { $clusterConfig.cluster.csv_path } else { $null }
+        $facts = [ordered]@{
+            cluster_name   = if ($clusterConfig.cluster) { $clusterConfig.cluster.name } else { $null }
+            cluster_domain = $domain
+            cluster_nodes  = @($clusterConfig.nodes | ForEach-Object { $_.name })
+            csv_path       = $csvPath
+        }
+    }
+    if ($facts) {
+        foreach ($key in $facts.Keys) {
+            $applies = $factSolutions[$key] -eq '*' -or $Solution -in @($factSolutions[$key])
+            if ($applies -and $facts[$key]) { $configObject[$key] = $facts[$key] }
         }
     }
 
@@ -337,6 +476,8 @@ function Export-AllSolutionConfigs {
         Path to variables.yml.
     .PARAMETER ClusterConfigPath
         Optional cluster config to merge.
+    .PARAMETER InfrastructureFile
+        The environment's infrastructure.yml: the source of the cluster facts (see Export-SolutionConfig).
     #>
     [CmdletBinding()]
     param(
@@ -344,14 +485,17 @@ function Export-AllSolutionConfigs {
         [string]$MasterConfigPath,
 
         [Parameter()]
-        [string]$ClusterConfigPath
+        [string]$ClusterConfigPath,
+
+        [Parameter()]
+        [string]$InfrastructureFile
     )
 
     $solutions = @('vmfleet', 'fio', 'iperf', 'hammerdb', 'stress-ng')
 
     foreach ($solution in $solutions) {
         Write-Verbose "Generating config for: $solution"
-        Export-SolutionConfig -Solution $solution -MasterConfigPath $MasterConfigPath -ClusterConfigPath $ClusterConfigPath
+        Export-SolutionConfig -Solution $solution -MasterConfigPath $MasterConfigPath -ClusterConfigPath $ClusterConfigPath -InfrastructureFile $InfrastructureFile
     }
 
     Write-Verbose "All solution configs generated successfully"
@@ -364,4 +508,6 @@ Export-ModuleMember -Function @(
     'Export-AllSolutionConfigs'
     'Get-ConfigValue'
     'Test-MasterConfig'
+    'Import-InfrastructureConfig'
+    'Import-ClusterConfig'
 )

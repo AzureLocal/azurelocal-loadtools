@@ -1,11 +1,19 @@
 # =============================================================================
 # Azure Local Load Tools - Master Environment Configuration
 # =============================================================================
-# This file contains ALL variables used across all load testing solutions.
-# Each variable is tagged with the solutions that consume it.
+# This file holds the TEST settings of the load testing solutions: profile
+# defaults, durations, VMFleet sizing, monitoring, reporting, logging and fault
+# injection. Each variable is tagged with the solutions that consume it.
 #
-# The ConfigManager module reads this file, filters by solution tag, and
-# generates solution-specific JSON files in config/variables/solutions/.
+# It holds NO cluster facts. The cluster name, its nodes, the Active Directory
+# domain, the cluster shared volume, the Azure scope (tenant, subscription,
+# resource group, location) and the Key Vault come from the environment's
+# infrastructure.yml (azurelocal-toolkit, schema 5; the loadtools cut):
+#   Export-SolutionConfig -Solution vmfleet -InfrastructureFile ./infrastructure.yml
+#
+# The ConfigManager module reads this file, filters by solution tag, adds the
+# cluster facts from infrastructure.yml and generates solution-specific JSON
+# files in config/variables/solutions/.
 #
 # IMPORTANT: Sensitive values (passwords, keys) should have empty defaults
 # here and be supplied at runtime as a parameter, an environment variable or
@@ -18,43 +26,10 @@ metadata:
   last_modified: "2026-02-13"
 
 # =============================================================================
-# Cluster Variables
+# Test volumes (the cluster itself is in infrastructure.yml)
 # =============================================================================
 variables:
-  # --- Cluster Connection ---
-  - name: cluster_name
-    value: ""
-    type: string
-    required: true
-    description: "Azure Local cluster name"
-    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
-    category: cluster
-
-  - name: cluster_domain
-    value: ""
-    type: string
-    required: true
-    description: "Active Directory domain for the cluster"
-    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
-    category: cluster
-
-  - name: cluster_nodes
-    value: []
-    type: array
-    required: true
-    description: "List of cluster node hostnames"
-    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
-    category: cluster
-
-  # --- Storage Paths ---
-  - name: csv_path
-    value: "C:\\ClusterStorage\\Volume1"
-    type: string
-    required: true
-    description: "Path to the Cluster Shared Volume for VM storage"
-    solutions: [vmfleet, fio]
-    category: cluster
-
+  # --- VMFleet volumes ---
   - name: collect_volume_path
     value: "C:\\ClusterStorage\\Collect"
     type: string
@@ -389,13 +364,6 @@ variables:
     solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
     category: credentials
 
-  - name: keyvault_name
-    value: ""
-    type: string
-    required: false
-    description: "Azure Key Vault name for credential storage"
-    solutions: [vmfleet, fio, iperf, hammerdb, stress-ng]
-    category: credentials
 
   # =============================================================================
   # Logging Variables
