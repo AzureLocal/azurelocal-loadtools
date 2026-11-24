@@ -81,7 +81,7 @@ These are fixed in the module, each with its reason next to it in `FaultInjectio
 
 ## What is not proven
 
-- That `Suspend-ClusterNode`, storage maintenance mode and `Set-PhysicalDisk -Usage Retired` behave as the code expects on your release (12.2609 (latest) or any other).
+- That `Suspend-ClusterNode`, storage maintenance mode and `Set-PhysicalDisk -Usage Retired` behave as the code expects on your release (12.2611 (latest) or any other).
 - That the "in maintenance mode" check matches what your cluster reports.
 - The repair-reserve rule is the Microsoft planning guideline, not a guarantee that a particular drive can be evacuated.
 - The remote cmdlets run only in mocks today. First proof order: preflight output on a healthy cluster (read-only), then a `DriveFault` with `Retire` on a non-production cluster, then `NodePause`.

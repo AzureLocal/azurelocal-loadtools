@@ -19,4 +19,4 @@
 ## Checklist
 
 - [ ] No secrets, real subscription or tenant IDs, or environment-specific names committed (example values only)
-- [ ] Release wording follows the public convention (12.2609 (latest))
+- [ ] Release wording follows the public convention (12.2611 (latest))

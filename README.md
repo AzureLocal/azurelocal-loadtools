@@ -96,7 +96,7 @@ Every tool follows the same pattern: **Install → Run Test → Collect Results*
 
 ## Prerequisites
 
-- **Azure Local** cluster registered with Azure Arc (the docs target 12.2609 (latest))
+- **Azure Local** cluster registered with Azure Arc (the docs target 12.2611 (latest))
 - Azure subscription with appropriate RBAC
 - PowerShell 7.2+ on a Windows management station (Windows 10/11 or Windows Server 2019+); Windows PowerShell 5.1 is not supported
 - Required module: `powershell-yaml`; for VMFleet also the `VMFleet` module. Optional: `Az.KeyVault`, `Az.Monitor`, `ImportExcel`, plus `asciidoctor-pdf` and `pandoc` for PDF and DOCX reports

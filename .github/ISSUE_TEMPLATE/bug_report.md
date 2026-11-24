@@ -11,7 +11,7 @@ labels: ["type/bug"]
 
 ## Environment
 
-- Azure Local version (for example 12.2609):
+- Azure Local version (for example 12.2611):
 - Tool (VMFleet, fio, iPerf, HammerDB, stress-ng):
 - PowerShell version:
 - Repo commit or tag:
