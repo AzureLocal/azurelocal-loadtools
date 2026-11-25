@@ -23,23 +23,27 @@ This guide covers the predefined workload profiles for VMFleet testing and how t
 
 ```powershell
 .\tools\vmfleet\scripts\Start-VMFleetTest.ps1 `
-    -ProfilePath "tools/vmfleet/config/profiles/general.yml" `
-    -DurationSeconds 300
+    -ClusterConfigPath config\clusters\cluster.yml -Credential $cred `
+    -ProfilePath tools\vmfleet\config\profiles\general.yml -RunId general-001
 ```
 
-### Profile Sweep
+The script runs `Start-FleetSweep -b <KB> -t <threads> -o <outstanding I/O> -w <write %> -p r|s -d <seconds> -Warm <seconds> -Cool <seconds> -AddSpec <run tag>` on the first node and waits for it. The values come from the profile's `profile.parameters` (`block_size`, `write_ratio`, `random_ratio`, `outstanding_io`, `threads_per_vm`, `duration_seconds`, `warmup_seconds`, `cooldown_seconds`); a script parameter (`-BlockSize`, `-WriteRatio`, `-RandomRatio`, `-OutstandingIO`, `-ThreadsPerVM`, `-DurationSeconds`, `-WarmupSeconds`, `-CooldownSeconds`) beats the profile, and the profile beats `test_duration_seconds`, `warmup_seconds` and `cooldown_seconds` in `vmfleet.json`.
+
+VMFleet's sweep runs one pattern, random or sequential. `random_ratio` of 50 or more runs random (`-p r`), below 50 sequential (`-p s`); a mix such as the General profile's 70 runs as 100% random, and the script logs a warning.
+
+### Several profiles in a row
+
+The pipeline runs one profile per run. Run it once per profile with its own run id; with the fleet in place the install and deploy phases only check and reuse it:
 
 ```powershell
-.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath ".\infrastructure.yml" `
-    -ProfilePaths @(
-        "tools/vmfleet/config/profiles/general.yml",
-        "tools/vmfleet/config/profiles/peak-iops.yml",
-        "tools/vmfleet/config/profiles/sql-oltp.yml",
-        "tools/vmfleet/config/profiles/vdi.yml",
-        "tools/vmfleet/config/profiles/sequential-throughput.yml"
-    )
+foreach ($name in 'general', 'peak-iops', 'sql-oltp', 'vdi', 'sequential-throughput') {
+    .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
+        -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin `
+        -ProfilePath "tools\vmfleet\config\profiles\$name.yml" -RunId "$name-001" -VMCount 4 -SkipCleanup
+}
 ```
+
+Remove the fleet at the end with `Remove-VMFleet.ps1`.
 
 ## Profile Configuration
 

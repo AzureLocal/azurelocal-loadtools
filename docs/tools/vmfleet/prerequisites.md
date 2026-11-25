@@ -5,51 +5,47 @@
 
 In addition to the [common prerequisites](../../getting-started/prerequisites.md), VMFleet requires the following.
 
+## Management host
+
+| Requirement | Details |
+| --- | --- |
+| PowerShell | 7.2 or later, with the `powershell-yaml` module. The management host does **not** need to be domain-joined. |
+| WinRM to the nodes | Each node by its **management IP**, HTTP 5985, NTLM. The IPs are in `TrustedHosts` (`Set-Item WSMan:\localhost\Client\TrustedHosts -Value '<ip>,<ip>' -Concatenate`). Names are not resolved. |
+| Credentials | `-Credential`: a domain account (`DOMAIN\user`) that is an administrator on every node. `-FleetAdminCredential`: the local administrator password for the fleet VMs. Nothing prompts; build them in your session or take them from the environment or Key Vault ([credential management](../../operations/credential-management.md)). |
+| Cluster YAML | `config\clusters\cluster.yml` from `config\clusters\example-cluster.yml`: the cluster name, the nodes as IPs, the Collect volume and the per-node volumes ([Deployment](deployment.md#cluster-configuration)). |
+
 ## Cluster Storage Requirements
 
 | Requirement | Details |
 | --- | --- |
-| Base VHD | Windows Server 2022 Datacenter Core Gen2 VHDX for fleet VMs |
-| Collect Volume | 200GB+ ReFS volume named "Collect" for VMFleet result aggregation |
-| CSV Space | Sufficient free space on CSVs for fleet VMs (count × memory + data disk) |
+| Base VHD | One Generation 2 Windows Server VHD(X) readable from the first node; see [Base image](deployment.md#base-image). A small image (the 32 GB `smalldisk` SKU) keeps the per-VM copy small. |
+| Collect volume | A CSV named `collect`, ReFS (VMFleet default 200 GB; `Get-FleetVolumeEstimate` recommends a size) |
+| Node volumes | At least one CSV per node whose name starts with the node name; VMs and their VHDs live there |
+| CSV space | A full copy of the base VHD per VM on the node's own volume |
 | Azure Local marketplace pathing | The `azure.custom_location` key and a `storage.paths[]` entry in the `infrastructure.yml` given as `-ClusterConfigPath` (the script builds the custom location and storage path IDs from them) |
 
-## Software Requirements
+`Install-Fleet` checks the Collect volume and the node volumes and stops with a message naming what is missing.
+
+## Software on the first node
 
 | Requirement | Details |
 | --- | --- |
-| VMFleet Module | PowerShell VMFleet module (`Install-Module -Name VMFleet`) |
-| DiskSpd | Included with VMFleet; no separate installation required |
-| Az PowerShell | `Az.Accounts` and `Az.Resources` for marketplace image REST operations |
-| WinRM access | Working PowerShell remoting from management station to all cluster nodes |
-
-## Base Image Preparation
-
-Run the image preparation script before first deployment. It checks whether the image already exists on cluster storage, and if not, triggers a marketplace download and tracks progress until completion.
-
-```powershell
-.\src\infrastructure\Prepare-VMFleetBaseImage.ps1 `
-    -ConfigPath "config/variables/variables.yml" `
-    -ClusterConfigPath ".\infrastructure.yml"
-```
-
-On success, the script prints the resolved VHDX path. Copy that value into `storage.base_vhd_path` in `config/variables/variables.yml` before running `Deploy-VMFleet.ps1`.
+| VMFleet module | 2.1.0.0 from the PowerShell Gallery; the install step runs `Install-Module -RequiredVersion` (the node needs internet, or pre-stage the module) |
+| DiskSpd | 2.1.0.0 or later in `<collect>\tools`; `Install-Fleet` downloads it from `aka.ms/getdiskspd`, or place it there first |
+| Windows PowerShell 5.1 | The scheduled tasks run `powershell.exe`; the VMFleet and FailoverClusters modules need it |
 
 ## Validation
 
-Run pre-checks to verify VMFleet-specific readiness:
+Nothing in these checks changes the cluster:
 
 ```powershell
-.\src\solutions\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath ".\infrastructure.yml" `
-    -WhatIf
+# WinRM, by IP, with the credential (Negotiate = NTLM for an IP address)
+Test-WSMan -ComputerName 192.0.2.11 -Authentication Negotiate -Credential $cred
+
+# The cluster YAML parses and the nodes are what you expect
+. .\tools\vmfleet\scripts\VMFleet-Common.ps1
+Get-VMFleetClusterConfig -ClusterConfigPath config\clusters\cluster.yml
+
+# What the install step would do
+.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -WhatIf
 ```
-
-Checks performed:
-
-- Cluster node connectivity via WinRM
-- Storage Spaces Direct health status
-- Required CSV volumes exist and are online
-- Base VHD file exists and is accessible
-- Sufficient disk space for fleet VMs
-- VMFleet PowerShell module availability

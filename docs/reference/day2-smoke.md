@@ -11,8 +11,11 @@ An optional, roughly 15-minute VMFleet run for a Day-2 readiness gate. It uses t
 ## Run it
 
 ```powershell
-# Run the pipeline, then evaluate (asks for confirmation; -WhatIf prints the plan and exits 3)
-.\tools\vmfleet\scripts\Invoke-Day2Smoke.ps1 -OutputPath out\smoke -NodeCount 4 -FleetAdminCredential $fleetCred
+# Run the pipeline, then evaluate (asks for confirmation; -WhatIf prints the plan and exits 3).
+# The cluster YAML lists the nodes by management IP (-NodeCount is then read from it); -SkipCleanup keeps the fleet.
+.\tools\vmfleet\scripts\Invoke-Day2Smoke.ps1 -OutputPath out\smoke `
+    -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin `
+    -VMCount 4 -SkipCleanup
 
 # Evaluate a run that already exists (no cluster access)
 .\tools\vmfleet\scripts\Invoke-Day2Smoke.ps1 -ResultPath reports\<run-id>\<run-id>-aggregate.json -OutputPath out\smoke -NodeCount 4
@@ -20,6 +23,8 @@ An optional, roughly 15-minute VMFleet run for a Day-2 readiness gate. It uses t
 # Add the regression check against an approved baseline
 .\tools\vmfleet\scripts\Invoke-Day2Smoke.ps1 -ResultPath candidate.json -BaselinePath baseline.json -OutputPath out\smoke -NodeCount 4
 ```
+
+In run mode the script passes these to the pipeline: `-ClusterConfigPath`, `-SolutionConfigPath`, `-Credential`, `-FleetAdminCredential`, `-FleetConnectCredential`, `-VMCount`, `-BaseVHDPath`, `-VMFleetVersion`, `-SkipInstall`, `-SkipDeploy` and `-SkipCleanup`. The run writes an HTML and CSV report to `reports\<run id>`; the profile parameters (`profile.parameters.duration_seconds` 600 and `warmup_seconds` 120) are read by the test step.
 
 Thresholds come from `tools/vmfleet/config/profiles/day2-smoke.yml` (`min_iops_per_node`, `max_latency_ms`, `min_throughput_mbps`); the values shipped are examples, set your own.
 

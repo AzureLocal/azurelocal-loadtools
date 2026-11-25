@@ -70,7 +70,7 @@ Tool pages, architecture, reference and operations pages exist. Known gap: a com
 Suggested order for the owner, cheapest and safest first. Record the date, Azure Local release and outcome in the [status](reference/status.md) table after each step.
 
 1. Read-only: the fault preflight and the health snapshot against a healthy cluster (no change made).
-2. VMFleet pipeline with the General profile, end to end, including the deploy phase (fleet VMs; supply `-FleetAdminCredential`).
+2. VMFleet pipeline with the General profile, end to end, including the deploy phase (fleet VMs; supply `-Credential` and `-FleetAdminCredential`). The exact commands, the cluster YAML and the base image steps are in the [VMFleet runbook](tools/vmfleet/index.md#run-this-test); run the Day2Smoke profile first as the shorter dry run, and finish with the cleanup. Not yet run on hardware.
 3. Day-2 smoke (`Invoke-Day2Smoke.ps1`) and a comparison against the first run as the baseline.
 4. fio, iPerf3 and stress-ng on a few Linux VMs; HammerDB on a Windows VM.
 5. Failure injection, last: `DriveFault` with `Retire` on a non-production cluster, then `NodePause`.

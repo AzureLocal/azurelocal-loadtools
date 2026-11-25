@@ -47,12 +47,19 @@ cd azurelocal-loadtools
 # config\variables\variables.yml is committed and holds the test settings only.
 .\common\helpers\Initialize-Environment.ps1 -Solution VMFleet -InfrastructureFile ".\infrastructure.yml"
 
-# 2. Run a VMFleet storage benchmark with the General profile
+# 2. Describe the cluster: nodes by management IP, the Collect volume, the base VHD
+Copy-Item config\clusters\example-cluster.yml config\clusters\cluster.yml   # git-ignored; edit it
+
+# 3. Run a VMFleet storage benchmark with the General profile (not yet proven on hardware)
+$cred       = Get-Credential -Message 'DOMAIN\user, an administrator on every node'
+$fleetAdmin = Get-Credential -UserName 'Administrator' -Message 'Local administrator password of the fleet VMs'
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath ".\infrastructure.yml" `
-    -ProfilePath "tools\vmfleet\config\profiles\general.yml" `
-    -FleetAdminCredential $fleetAdmin   # for example Get-ManagedCredential -Name 'vmfleet_admin'
+    -ClusterConfigPath config\clusters\cluster.yml `
+    -ProfilePath tools\vmfleet\config\profiles\general.yml `
+    -Credential $cred -FleetAdminCredential $fleetAdmin
 ```
+
+The management host does not have to be domain-joined; it reaches the nodes by IP. The base image, the Day-2 smoke run and the cleanup are in the [VMFleet runbook](docs/tools/vmfleet/index.md).
 
 The parameter names above come from the script `param` blocks. See the [documentation site](https://azurelocal.github.io/azurelocal-loadtools/) for the rest.
 
@@ -88,7 +95,7 @@ Surveyor (sizing handoff) -> Trailwright (infrastructure.yml) -> hardware discov
 | Deploy | [azurelocal-toolkit](https://github.com/AzureLocal/azurelocal-toolkit), [azurelocal-ztp](https://github.com/AzureLocal/azurelocal-ztp) | The deployed cluster; the file stays the record of what was built |
 | Day 2 | **Load Tools** | Reads `cluster.name`, `nodes[].name`, `identity.active_directory.domain_fqdn`, `storage.paths` or `storage.volumes` (the cluster shared volume), `azure.*` and `key_vaults[]`; writes results to `reports/<run-id>` |
 
-Pass the file as `-InfrastructureFile` (`Initialize-Environment.ps1`, `Export-SolutionConfig`) or as `-ClusterConfigPath` (every tool script). A per-cluster file of the earlier layout (`config/clusters/*.yml`) is still read, with a warning. `config/variables/variables.yml` holds the test settings (profiles, durations, VMFleet sizing, monitoring, reporting, fault injection) and no cluster facts.
+Pass the file as `-InfrastructureFile` (`Initialize-Environment.ps1`, `Export-SolutionConfig`) or as `-ClusterConfigPath` (every tool script). A per-cluster file of the earlier layout (`config/clusters/*.yml`) is still read, with a warning; the VMFleet scripts read their own per-cluster file (`config/clusters/example-cluster.yml`: nodes by management IP) without one. `config/variables/variables.yml` holds the test settings (profiles, durations, VMFleet sizing, monitoring, reporting, fault injection) and no cluster facts.
 
 ## What is in this release
 

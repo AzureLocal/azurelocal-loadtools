@@ -72,6 +72,19 @@ Describe 'Prepare-VMFleetBaseImage Script' {
             $script:Params | Should -Contain 'ConfigPath'
         }
 
+        It 'Should take the Azure IDs as parameters (never stored in the repo) as well as from -ConfigPath' {
+            foreach ($name in 'SubscriptionId', 'ResourceGroup', 'Location', 'CustomLocationId', 'StoragePathId', 'Sku') {
+                $script:Params | Should -Contain $name
+            }
+        }
+
+        It 'Should take the Azure scope, custom location and storage path from an infrastructure.yml given as -ClusterConfigPath, and let a parameter win' {
+            $content = Get-Content -Path $script:ScriptPath -Raw
+            $content | Should -Match 'Import-InfrastructureConfig -InfrastructureFile \$ClusterConfigPath'
+            $content | Should -Match 'if \(-not \$SubscriptionId\) \{ \$SubscriptionId = \[string\]\(Get-VMFleetConfigValue \$infrastructure ''azure_subscription_id'''
+            $content | Should -Match 'if \(-not \$StoragePathId\) \{ \$StoragePathId = \[string\]\(Get-VMFleetConfigValue \$infrastructure ''storage_path_id'''
+        }
+
         It 'Should have -ClusterConfigPath parameter' {
             $script:Params | Should -Contain 'ClusterConfigPath'
         }
@@ -112,9 +125,25 @@ Describe 'Prepare-VMFleetBaseImage Script' {
             $content | Should -Match '2023-09-01-preview'
         }
 
-        It 'Should request Windows Server 2022 Core Gen2' {
+        It 'Should default to a Windows Server Azure Edition SKU that Microsoft Learn lists for Azure Local' {
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($script:ScriptPath, [ref]$null, [ref]$null)
+            $sku = $ast.ParamBlock.Parameters | Where-Object { $_.Name.VariablePath.UserPath -eq 'Sku' }
+            $sku.DefaultValue.Value | Should -BeIn @('2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core', '2025-datacenter-azure-edition', '2022-datacenter-azure-edition-core', '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-hotpatch')
             $content = Get-Content -Path $script:ScriptPath -Raw
-            $content | Should -Match '2022-datacenter-core-g2'
+            $content | Should -Not -Match '2022-datacenter-core-g2'
+        }
+
+        It 'Should build the ARM URLs with ${name}?api-version (a bare $name? is read as part of the variable name)' {
+            $content = Get-Content -Path $script:ScriptPath -Raw
+            $content | Should -Match '\$\{ImageName\}\?api-version'
+            $content | Should -Match '\$\{StoragePathId\}\?api-version'
+            $content | Should -Not -Match '\$ImageName\?'
+            $content | Should -Not -Match '\$storagePathId\?'
+        }
+
+        It 'Should stop on an HTTP error from Invoke-AzRestMethod (it does not throw by itself)' {
+            $content = Get-Content -Path $script:ScriptPath -Raw
+            $content | Should -Match 'StatusCode -ge 400'
         }
 
         It 'Should set hyperVGeneration to V2' {

@@ -89,3 +89,7 @@ Gemfile.lock
 # Claude Code local settings (logs and machine-local overrides only)
 .claude/logs/
 .claude/settings.local.json
+
+# Cluster configs hold real management IPs: keep only the example under version control
+config/clusters/*.yml
+!config/clusters/example-cluster.yml

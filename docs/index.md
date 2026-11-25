@@ -18,18 +18,22 @@ Automated performance and load testing for Azure Local clusters — storage, net
 git clone https://github.com/AzureLocal/azurelocal-loadtools
 cd azurelocal-loadtools
 # Use the environment's infrastructure.yml (schema 5, written by Trailwright and filled by hardware discovery).
-# The scripts read cluster.name and nodes[].name from it; see Getting Started, Installation.
+# The scripts read cluster.name and nodes[].name from it (pass it as -ClusterConfigPath), or the VMFleet per-cluster file below; see Getting Started, Installation.
 
-# 2. Run a VMFleet storage benchmark (fully implemented)
+# 2. Run a VMFleet storage benchmark (implemented and unit-tested, not proven on hardware)
+Copy-Item config\clusters\example-cluster.yml config\clusters\cluster.yml   # nodes by management IP; edit it
 .\tools\vmfleet\Invoke-VMFleetPipeline.ps1 `
-    -ClusterConfigPath ".\infrastructure.yml" `
-    -ProfilePath "tools\vmfleet\config\profiles\general.yml"
+    -ClusterConfigPath config\clusters\cluster.yml `
+    -ProfilePath tools\vmfleet\config\profiles\general.yml `
+    -Credential $cred -FleetAdminCredential $fleetAdmin
 
-# Or run individual steps (each reads the cluster name and nodes from the cluster file):
-.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterConfigPath ".\infrastructure.yml"
-.\tools\vmfleet\scripts\Start-VMFleetTest.ps1 -ClusterConfigPath ".\infrastructure.yml" -ProfilePath "tools\vmfleet\config\profiles\general.yml" -DurationSeconds 600
-.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 -ClusterConfigPath ".\infrastructure.yml" -RunId "<run-id>"
+# Or run individual steps (each takes -ClusterConfigPath and -Credential):
+.\tools\vmfleet\scripts\Install-VMFleet.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred
+.\tools\vmfleet\scripts\Start-VMFleetTest.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -ProfilePath tools\vmfleet\config\profiles\general.yml -RunId run-001
+.\tools\vmfleet\scripts\Collect-VMFleetResults.ps1 -ClusterConfigPath config\clusters\cluster.yml -Credential $cred -RunId run-001
 ```
+
+The full VMFleet runbook (base image, Day-2 smoke, General profile, cleanup) is in [VMFleet](tools/vmfleet/index.md).
 
 ## Pick a Test
 

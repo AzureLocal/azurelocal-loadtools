@@ -1,0 +1,40 @@
+# =============================================================================
+# Example cluster configuration for the VMFleet scripts
+# =============================================================================
+# Copy to config/clusters/cluster.yml (git-ignored) and edit. Addresses below are
+# documentation addresses (RFC 5737), not real ones.
+#
+# The management host that runs Load Tools does NOT have to be domain-joined and
+# does not need to resolve the cluster or node names. It reaches each node by its
+# management IP over WinRM (HTTP 5985, NTLM) with an explicit domain credential
+# (-Credential, DOMAIN\user, an administrator on every node). Add the IPs to
+# TrustedHosts on the management host:
+#   Set-Item WSMan:\localhost\Client\TrustedHosts -Value '192.0.2.11,192.0.2.12' -Concatenate
+#
+# nodes[].name is the remoting target: put the management IP there. The first node
+# runs every VMFleet step (VMFleet must run on a cluster node).
+# =============================================================================
+
+cluster:
+  name: "azl-cluster-01"            # used in reports only; the name is not resolved
+
+nodes:
+  - name: "192.0.2.11"              # management IP of node 1
+    hostname: "azl-node-01"         # optional, display only
+  - name: "192.0.2.12"
+    hostname: "azl-node-02"
+
+storage:
+  # The VMFleet 'collect' volume (a CSV named collect, ReFS, see Get-FleetVolumeEstimate).
+  # Scripts, run folders, transcripts and results are written below it.
+  collect_path: "C:\\ClusterStorage\\Collect"
+
+  # One CSV per node whose name starts with the node name (VMFleet requirement). Informational here:
+  # Install-Fleet checks them itself and stops with a message when one is missing.
+  node_volumes:
+    - "C:\\ClusterStorage\\azl-node-01"
+    - "C:\\ClusterStorage\\azl-node-02"
+
+  # Path ON THE NODE of the Generation 2 base VHD(X) every fleet VM is copied from.
+  # See docs/tools/vmfleet/deployment.md, "Base image".
+  base_vhd_path: "C:\\ClusterStorage\\Collect\\base\\vmfleet-base.vhdx"

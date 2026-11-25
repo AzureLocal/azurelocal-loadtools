@@ -1,8 +1,11 @@
 # =============================================================================
 # Watch-VMFleetMonitor.ps1 - Azure Local Load Tools
 # =============================================================================
-# Real-time monitoring dashboard for a running VMFleet workload.
-# Can be run alongside Start-VMFleetTest for live metrics.
+# Real-time monitoring dashboard for a running VMFleet workload: the CSV file system
+# counters of every node (IOPS, throughput, latency), summed over the cluster.
+# Run it in a second window while Start-VMFleetTest.ps1 is running. NOT PROVEN ON A
+# LIVE CLUSTER. (VMFleet 2.1 has no cmdlet that returns live data; its own live view,
+# Watch-FleetCluster, is interactive and must run on a node.)
 # =============================================================================
 
 #Requires -Version 7.2
@@ -28,6 +31,7 @@ param(
     [switch]$LogToFile
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 if (-not $ProjectRoot) {
@@ -35,6 +39,7 @@ if (-not $ProjectRoot) {
 }
 
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
+. (Join-Path $PSScriptRoot 'VMFleet-Common.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 
 if ($LogToFile) {
@@ -45,12 +50,11 @@ if ($LogToFile) {
 
 try {
     if (-not $ClusterConfigPath) {
-        $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
+        $ClusterConfigPath = Get-VMFleetDefaultClusterConfigPath -ProjectRoot $ProjectRoot
     }
 
-    Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
-    $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
+    $cluster = Get-VMFleetClusterConfig -ClusterConfigPath $ClusterConfigPath
+    $nodes = $cluster.Nodes
 
     if (-not $Credential) {
         Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
@@ -64,7 +68,7 @@ try {
     }
 
     Write-Host "VMFleet Monitor - Refreshing every ${RefreshIntervalSeconds}s | Press Ctrl+C to stop" -ForegroundColor Cyan
-    Write-Host "Cluster: $($clusterConfig.cluster.name) | Node: $primaryNode" -ForegroundColor Gray
+    Write-Host "Cluster: $($cluster.ClusterName) | Nodes: $($nodes -join ', ')" -ForegroundColor Gray
     Write-Host ''
 
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -80,30 +84,46 @@ try {
         }
 
         try {
-            $liveData = Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-                Import-Module VMFleet -ErrorAction Stop
+            # VMFleet 2.1 has no cmdlet that returns live data: read the CSV file system counters of every node
+            # (each Invoke-Command reads its own node only, so there is no second hop).
+            $nodeSamples = @(foreach ($node in $nodes) {
+                    Invoke-RemoteCommand -ComputerName $node -Credential $Credential -MaxRetries 1 -ScriptBlock {
+                        $paths = '\Cluster CSVFS(_Total)\reads/sec', '\Cluster CSVFS(_Total)\writes/sec', '\Cluster CSVFS(_Total)\read bytes/sec',
+                        '\Cluster CSVFS(_Total)\write bytes/sec', '\Cluster CSVFS(_Total)\avg. sec/read', '\Cluster CSVFS(_Total)\avg. sec/write'
+                        $values = @{}
+                        foreach ($sample in (Get-Counter -Counter $paths -ErrorAction Stop).CounterSamples) {
+                            $values[($sample.Path -split '\\')[-1]] = $sample.CookedValue
+                        }
+                        $values
+                    }
+                })
 
-                $data = Get-FleetDataXml -ErrorAction SilentlyContinue
-                if (-not $data) { return $null }
-
-                $vmCount = ($data | Measure-Object).Count
-                @{
-                    VMCount           = $vmCount
-                    TotalReadIOPS     = ($data | Measure-Object -Property ReadIOPS -Sum).Sum
-                    TotalWriteIOPS    = ($data | Measure-Object -Property WriteIOPS -Sum).Sum
-                    AvgReadLatencyMs  = [math]::Round(($data | Measure-Object -Property ReadLatencyMs -Average).Average, 2)
-                    AvgWriteLatencyMs = [math]::Round(($data | Measure-Object -Property WriteLatencyMs -Average).Average, 2)
-                    TotalReadMBps     = [math]::Round(($data | Measure-Object -Property ReadBytesPerSecond -Sum).Sum / 1MB, 1)
-                    TotalWriteMBps    = [math]::Round(($data | Measure-Object -Property WriteBytesPerSecond -Sum).Sum / 1MB, 1)
+            $liveData = $null
+            if ($nodeSamples.Count -gt 0) {
+                $sumOf = { param($key) ($nodeSamples | ForEach-Object { [double]$_[$key] } | Measure-Object -Sum).Sum }
+                $readIops = & $sumOf 'reads/sec'
+                $writeIops = & $sumOf 'writes/sec'
+                $readLatency = ($nodeSamples | ForEach-Object { [double]$_['avg. sec/read'] * [double]$_['reads/sec'] } | Measure-Object -Sum).Sum
+                $writeLatency = ($nodeSamples | ForEach-Object { [double]$_['avg. sec/write'] * [double]$_['writes/sec'] } | Measure-Object -Sum).Sum
+                if (($readIops + $writeIops) -gt 0) {
+                    $liveData = @{
+                        VMCount           = $nodeSamples.Count
+                        TotalReadIOPS     = [math]::Round($readIops)
+                        TotalWriteIOPS    = [math]::Round($writeIops)
+                        AvgReadLatencyMs  = $(if ($readIops -gt 0) { [math]::Round($readLatency / $readIops * 1000, 2) } else { 0 })
+                        AvgWriteLatencyMs = $(if ($writeIops -gt 0) { [math]::Round($writeLatency / $writeIops * 1000, 2) } else { 0 })
+                        TotalReadMBps     = [math]::Round((& $sumOf 'read bytes/sec') / 1MB, 1)
+                        TotalWriteMBps    = [math]::Round((& $sumOf 'write bytes/sec') / 1MB, 1)
+                    }
                 }
-            } -MaxRetries 1
+            }
 
             if ($liveData) {
                 $totalIOPS = $liveData.TotalReadIOPS + $liveData.TotalWriteIOPS
                 $elapsed = Format-Duration $stopwatch.Elapsed
 
                 # Clear line and print update
-                Write-Host "`r[$elapsed] VMs:$($liveData.VMCount) | IOPS:$totalIOPS (R:$($liveData.TotalReadIOPS) W:$($liveData.TotalWriteIOPS)) | Lat(ms) R:$($liveData.AvgReadLatencyMs) W:$($liveData.AvgWriteLatencyMs) | Thru(MB/s) R:$($liveData.TotalReadMBps) W:$($liveData.TotalWriteMBps)" -NoNewline
+                Write-Host "`r[$elapsed] Nodes:$($liveData.VMCount) | IOPS:$totalIOPS (R:$($liveData.TotalReadIOPS) W:$($liveData.TotalWriteIOPS)) | Lat(ms) R:$($liveData.AvgReadLatencyMs) W:$($liveData.AvgWriteLatencyMs) | Thru(MB/s) R:$($liveData.TotalReadMBps) W:$($liveData.TotalWriteMBps)" -NoNewline
 
                 if ($LogToFile) {
                     Write-Log -Message "IOPS=$totalIOPS ReadLat=$($liveData.AvgReadLatencyMs)ms WriteLat=$($liveData.AvgWriteLatencyMs)ms ReadMBps=$($liveData.TotalReadMBps) WriteMBps=$($liveData.TotalWriteMBps)" -Severity Information

@@ -73,6 +73,14 @@ variables:
     solutions: [vmfleet]
     category: deployment
 
+  - name: vmfleet_version
+    value: "2.1.0.0"
+    type: string
+    required: true
+    description: "VMFleet PowerShell module version installed on the first cluster node (PSGallery). The VMFleet cmdlets and parameters this tool calls are those of 2.1.0.0."
+    solutions: [vmfleet]
+    category: deployment
+
   - name: vmfleet_admin_username
     value: ""
     type: string

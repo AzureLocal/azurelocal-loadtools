@@ -109,7 +109,17 @@ The cluster is the environment's `infrastructure.yml` (schema 5), the one file e
 Export-SolutionConfig -Solution "vmfleet" -InfrastructureFile ".\prod\infrastructure.yml"
 ```
 
-The file must be schema 5 and hold `cluster.name` and `nodes[].name`. The facts Load Tools reads are listed in [Variable Reference](../reference/variables.md#where-the-cluster-facts-come-from). A per-cluster file of the earlier layout (`config/clusters/*.yml`) is still read, with a warning.
+The file must be schema 5 and hold `cluster.name` and `nodes[].name`. The facts Load Tools reads are listed in [Variable Reference](../reference/variables.md#where-the-cluster-facts-come-from). A per-cluster file of the earlier layout (`config/clusters/*.yml`) is still read, with a warning; the VMFleet scripts read their own per-cluster file (`config/clusters/example-cluster.yml`: nodes by management IP) without one.
+
+The VMFleet scripts also read their own per-cluster file from `config/clusters/`, which reaches the nodes by management IP instead of by name. It defines the cluster name, the nodes by management IP (`nodes[].name`, the remoting target), the Collect volume and the per-node volumes (`storage`). Copy `config/clusters/example-cluster.yml`; real cluster files are git-ignored. To switch clusters, change the `-ClusterConfigPath` parameter:
+
+```powershell
+# Target different clusters by swapping config files
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath config\clusters\prod-cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin
+.\tools\vmfleet\Invoke-VMFleetPipeline.ps1 -ClusterConfigPath config\clusters\dev-cluster.yml -Credential $cred -FleetAdminCredential $fleetAdmin
+```
+
+The VMFleet scripts read `tools\vmfleet\config\vmfleet.json`, the file generated from the registry (`vm_count_per_node`, `vm_vcpu_count`, `vm_memory_gb`, `vmfleet_version`, `base_vhd_path`, `test_duration_seconds`, `warmup_seconds`, `cooldown_seconds`); the layout and an example are in [VMFleet deployment](../tools/vmfleet/deployment.md#cluster-configuration).
 
 ## Workload Profiles
 

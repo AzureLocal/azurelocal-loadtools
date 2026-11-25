@@ -1,8 +1,15 @@
 # =============================================================================
 # Remove-VMFleet.ps1 - Azure Local Load Tools
 # =============================================================================
-# Tears down VMFleet VMs and cleans up cluster resources.
-# Phase 7 (cleanup) of the VMFleet pipeline.
+# Removes the whole VMFleet fleet with Remove-Fleet (every fleet VM, its cluster
+# role, its folder on the node volumes, the flag files and the FleetInternal
+# vSwitch), run on the first node as a one-shot scheduled task. Then it checks that
+# no vm-* VM and no vm-* folder is left and fails if one is. Cleanup phase of the
+# VMFleet pipeline. NOT PROVEN ON A LIVE CLUSTER.
+#
+# It does NOT delete the base image, the Collect volume or the VMFleet module.
+# -RemoveCollectData also deletes the DiskSpd result files (result-*.xml,
+# perfctr-*.blg) from <collect>\result.
 # =============================================================================
 
 #Requires -Version 7.2
@@ -20,12 +27,21 @@ param(
     [PSCredential]$Credential,
 
     [Parameter()]
-    [switch]$RemoveVHDs,
+    [string]$RunId,
+
+    # Also delete the DiskSpd result files from the Collect volume (the old name RemoveVHDs still works).
+    [Parameter()]
+    [Alias('RemoveVHDs')]
+    [switch]$RemoveCollectData,
 
     [Parameter()]
-    [switch]$Force
+    [switch]$Force,
+
+    [Parameter()]
+    [int]$TimeoutMinutes = 60
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 if (-not $ProjectRoot) {
@@ -33,6 +49,7 @@ if (-not $ProjectRoot) {
 }
 
 . (Join-Path $ProjectRoot 'common\helpers\Common-Functions.ps1')
+. (Join-Path $PSScriptRoot 'VMFleet-Common.ps1')
 $modulesPath = Join-Path $ProjectRoot 'common\modules'
 Import-Module (Join-Path $modulesPath 'ConfigManager\ConfigManager.psm1') -Force
 Import-Module (Join-Path $modulesPath 'Logger\Logger.psm1') -Force
@@ -41,77 +58,25 @@ $null = Start-LogSession -Component 'VMFleet-Remove' -LogRootPath (Join-Path $Pr
 
 try {
     Write-Log -Message 'Starting VMFleet cleanup phase' -Severity Information
+    if (-not $RunId) { $RunId = "vmfleet-$(Get-Timestamp -FilenameSafe)" }
 
-    if (-not $ClusterConfigPath) {
-        $ClusterConfigPath = Join-Path $ProjectRoot 'config\clusters\cluster.yml'
-    }
+    if (-not $ClusterConfigPath) { $ClusterConfigPath = Get-VMFleetDefaultClusterConfigPath -ProjectRoot $ProjectRoot }
+    $cluster = Get-VMFleetClusterConfig -ClusterConfigPath $ClusterConfigPath
 
-    Import-Module powershell-yaml -ErrorAction Stop
-    $clusterConfig = Import-ClusterConfig -Path $ClusterConfigPath
-    $primaryNode = ($clusterConfig.nodes | ForEach-Object { $_.name })[0]
+    $Credential = Get-VMFleetCredentialOrExit -Credential $Credential -ProjectRoot $ProjectRoot
 
-    if (-not $Credential) {
-        Import-Module (Join-Path $modulesPath 'CredentialManager\CredentialManager.psm1') -Force
-        # No prompt: -Credential, CLUSTER_ADMIN_USERNAME/CLUSTER_ADMIN_PASSWORD or the Key Vault mapping; otherwise stop (exit 2).
-        try {
-            $Credential = Get-ManagedCredential -Name 'cluster_admin' -ProjectRoot $ProjectRoot
-        } catch {
-            Write-Log -Message $_.Exception.Message -Severity Error
-            exit 2
+    if ($PSCmdlet.ShouldProcess($cluster.ClusterName, 'Remove every VMFleet VM and its files (Remove-Fleet)')) {
+        Write-Log -Message 'Stopping the workload and removing the fleet (node task)...' -Severity Information
+        $result = Invoke-VMFleetNodeTask -ComputerName $cluster.PrimaryNode -Credential $Credential -Step 'Remove' -RunId $RunId `
+            -CollectPath $cluster.CollectPath -TimeoutSeconds ($TimeoutMinutes * 60) `
+            -Arguments @{ RemoveCollectData = $RemoveCollectData.IsPresent }
+
+        $leftVMs = @($result.Output.RemainingVMs)
+        $leftDirs = @($result.Output.RemainingDirectories)
+        if ($leftVMs.Count -gt 0 -or $leftDirs.Count -gt 0) {
+            throw "Cleanup is incomplete. VMs left: $($leftVMs -join ', '). Folders left: $($leftDirs -join ', '). Fix the cause (see $($result.TranscriptPath) on the node) and run this script again."
         }
-    }
-
-    # Stop any running workloads first
-    if ($PSCmdlet.ShouldProcess($primaryNode, 'Stop running VMFleet workloads')) {
-        Write-Log -Message 'Stopping any running workloads...' -Severity Information
-        Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            Import-Module VMFleet -ErrorAction Stop
-            try { Stop-Fleet -ErrorAction SilentlyContinue } catch { Write-Verbose "Ignored: $($_.Exception.Message)" }
-        }
-    }
-
-    # Remove fleet VMs
-    if ($PSCmdlet.ShouldProcess($primaryNode, 'Remove all VMFleet VMs')) {
-        Write-Log -Message 'Removing fleet VMs...' -Severity Information
-
-        Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-            param($CleanVHDs)
-            Import-Module VMFleet -ErrorAction Stop
-
-            # Get all fleet VMs
-            $fleetVMs = Get-Fleet -ErrorAction SilentlyContinue
-            if ($fleetVMs) {
-                Write-Output "Removing $($fleetVMs.Count) fleet VMs..."
-
-                # Stop VMs first
-                $fleetVMs | Where-Object { $_.State -eq 'Running' } | ForEach-Object {
-                    Stop-VM -Name $_.Name -Force -ErrorAction SilentlyContinue
-                }
-
-                # Remove VMs
-                $fleetVMs | ForEach-Object {
-                    Remove-VM -Name $_.Name -Force -ErrorAction SilentlyContinue
-                }
-
-                Write-Output 'Fleet VMs removed'
-            } else {
-                Write-Output 'No fleet VMs found'
-            }
-        } -ArgumentList @($RemoveVHDs.IsPresent)
-
-        Write-Log -Message 'Fleet VMs removed' -Severity Information
-
-        if ($RemoveVHDs) {
-            Write-Log -Message 'Cleaning up VHD files...' -Severity Information
-            Invoke-RemoteCommand -ComputerName $primaryNode -Credential $Credential -ScriptBlock {
-                param($CSVPath)
-                $fleetPath = Join-Path $CSVPath 'collect'
-                if (Test-Path $fleetPath) {
-                    Remove-Item -Path $fleetPath -Recurse -Force -ErrorAction SilentlyContinue
-                    Write-Output "Cleaned up fleet storage at $fleetPath"
-                }
-            } -ArgumentList @($clusterConfig.storage.csv_path)
-        }
+        Write-Log -Message 'No fleet VM and no fleet folder is left' -Severity Information
     }
 
     Write-Log -Message 'VMFleet cleanup completed' -Severity Information
